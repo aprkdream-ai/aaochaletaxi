@@ -80,7 +80,8 @@ if [ ! -e "$WEB_ROOT/storage" ] || [ -L "$WEB_ROOT/storage" ]; then
 fi
 
 # ---------- atomic switch ----------
-PREV=$(readlink -f "$APP_ROOT/current" 2>/dev/null || true)
+PREV=""
+[ -L "$APP_ROOT/current" ] && PREV=$(readlink -f "$APP_ROOT/current")
 ln -sfn "$R" "$APP_ROOT/current.new" && mv -Tf "$APP_ROOT/current.new" "$APP_ROOT/current"
 log "Switched current -> $RELEASE"
 

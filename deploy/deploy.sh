@@ -23,7 +23,7 @@ REV="$(git rev-parse --short HEAD 2>/dev/null || echo manual)"
 RELEASE="$(date -u +%Y%m%d%H%M%S)-$REV"
 
 echo "==> Preparing release $RELEASE"
-PREV=$($SSH_CMD "$REMOTE" "mkdir -p ~/$APP_DIR/releases/$RELEASE && readlink -f ~/$APP_DIR/current 2>/dev/null || true")
+PREV=$($SSH_CMD "$REMOTE" "mkdir -p ~/$APP_DIR/releases/$RELEASE && if [ -L ~/$APP_DIR/current ]; then readlink -f ~/$APP_DIR/current; fi")
 
 echo "==> Uploading files"
 rsync -az --delete --exclude-from=deploy/rsync-exclude.txt ${PREV:+--link-dest="$PREV"} \
