@@ -1,0 +1,38 @@
+# AAOCHALETAXI_HTACCESS — managed by deploy/remote-deploy.sh.
+# NOTE: public_html also hosts other apps in sub-folders. Existing files and
+# directories are always served as-is, so those apps are unaffected.
+
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+# Never expose VCS metadata or env files anywhere under the web root.
+RedirectMatch 404 /\.(git|env)(/|$)
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    RewriteCond %{HTTP:x-xsrf-token} .
+    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+    # Redirect trailing slashes if not a folder
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send requests to the front controller (only when no real file/dir exists)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Long cache for fingerprinted Vite assets
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|woff2?|svg|png|jpe?g|webp)$">
+        Header set Cache-Control "public, max-age=31536000, immutable" env=IS_BUILD_ASSET
+    </FilesMatch>
+</IfModule>
+SetEnvIf Request_URI "^/build/" IS_BUILD_ASSET

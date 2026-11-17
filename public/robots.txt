@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /admin
+Disallow: /app
+Disallow: /driver
+Disallow: /account
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://aaochaletaxi.com/sitemap.xml
