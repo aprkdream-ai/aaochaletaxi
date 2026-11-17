@@ -1,6 +1,7 @@
 @props(['status'])
 @php
-    $color = method_exists($status, 'badge') ? $status->badge() : 'secondary';
+    $tone = method_exists($status, 'badge') ? $status->badge() : 'secondary';
+    $map = ['success' => 'ok', 'warning' => 'warn', 'info' => 'info', 'danger' => 'danger', 'secondary' => 'muted'];
     $label = method_exists($status, 'label') ? $status->label() : ucfirst((string) $status);
 @endphp
-<span {{ $attributes->class(["badge rounded-pill text-bg-{$color}"]) }}>{{ $label }}</span>
+<span {{ $attributes->class(['badge-soft', $map[$tone] ?? 'muted']) }}>{{ $label }}</span>

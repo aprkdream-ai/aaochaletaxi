@@ -1,8 +1,8 @@
-<x-layouts.public :title="__('Privacy policy')">
+<x-layouts.public :mobile-cta="false" :title="__('Privacy policy')" :description="__('How AaoChaleTaxi collects, uses and protects personal data under the DPDP Act, 2023.')">
+    <x-page-hero :title="__('Privacy policy')" :lead="__('Last updated').': 17 November 2026'" :crumbs="[__('Privacy policy') => null]" />
     <section class="section">
-        <div class="container legal-content">
-            <h1 class="section-title">{{ __('Privacy policy') }}</h1>
-            <p class="text-body-secondary">{{ __('Last updated') }}: 17 November 2026</p>
+        <div class="container"><div class="prose">
+            
             <p>{{ config('aaochale.legal_name') }} ("AaoChaleTaxi", "we") operates aaochaletaxi.com. This policy explains how we collect, use and protect personal data in line with the Digital Personal Data Protection Act, 2023 and the Information Technology Act, 2000.</p>
             <h2>1. Data we collect</h2>
             <ul>
@@ -26,6 +26,6 @@
             <p>We use HTTPS, hashed passwords, role-based access control and audit logs. No system is perfectly secure; please keep your password confidential.</p>
             <h2>8. Grievance officer</h2>
             <p>Email: <a href="mailto:{{ config('aaochale.grievance_email') }}">{{ config('aaochale.grievance_email') }}</a>. We acknowledge grievances within 72 hours.</p>
-        </div>
+        </div></div>
     </section>
 </x-layouts.public>

@@ -16,12 +16,53 @@ class PublicPagesTest extends TestCase
 
     public function test_partner_page_lists_seeded_plans(): void
     {
-        $this->get(route('partner'))->assertOk()->assertSee('Starter')->assertSee('₹799.00')->assertSee('Growth')->assertSee('Business');
+        $this->get(route('partner'))->assertOk()->assertSee('Starter')->assertSee('₹799')->assertSee('₹7,990')->assertSee('Growth')->assertSee('Business')->assertSee('Compare plans');
     }
 
     public function test_home_has_seo_tags(): void
     {
         $this->get('/')->assertSee('<link rel="canonical"', false)->assertSee('application/ld+json', false)->assertSee('og:title', false);
+    }
+
+    public function test_rich_seo_markup(): void
+    {
+        $this->get('/')
+            ->assertSee('"@type":"FAQPage"', false)
+            ->assertSee('"@type":"Organization"', false)
+            ->assertSee('og-image.png', false)
+            ->assertSee('site.webmanifest', false)
+            ->assertSee('Plans from ₹799/month', false);
+
+        $this->get(route('services'))->assertSee('"@type":"BreadcrumbList"', false);
+        $this->get(route('legal.terms'))->assertSee('Terms governing bookings', false);
+        $this->get(route('login'))->assertSee('noindex, nofollow', false);
+    }
+
+    public function test_static_seo_assets_exist(): void
+    {
+        foreach (['og-image.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'site.webmanifest', 'favicon.svg', 'robots.txt'] as $file) {
+            $this->assertFileExists(public_path($file));
+        }
+        $this->assertJson(file_get_contents(public_path('site.webmanifest')));
+    }
+
+    public function test_route_and_trip_prefill_on_home(): void
+    {
+        $this->get('/?pickup=Delhi&drop=Agra&trip=airport')
+            ->assertSee('value="Delhi"', false)->assertSee('value="Agra"', false)->assertSee("quoteForm('airport')", false);
+
+        // Unknown trip types fall back safely; markup is escaped.
+        $this->get('/?trip=evil%27);alert(1)//&pickup=%3Cscript%3E')
+            ->assertSee("quoteForm('outstation_oneway')", false)
+            ->assertDontSee('<script>alert', false)
+            ->assertSee('&lt;script&gt;', false);
+    }
+
+    public function test_icons_render_inline_without_icon_font(): void
+    {
+        $html = $this->get('/')->assertOk()->getContent();
+        $this->assertStringContainsString('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"', $html);
+        $this->assertStringNotContainsString('bootstrap-icons', $html);
     }
 
     public function test_sitemap_is_xml(): void

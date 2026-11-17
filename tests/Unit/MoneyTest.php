@@ -24,6 +24,7 @@ class MoneyTest extends TestCase
         $this->assertSame('₹799.00', Money::format('799'));
         $this->assertSame('-₹1,000.50', Money::format(-1000.5));
         $this->assertSame('₹0.00', Money::format(null));
+        $this->assertSame('₹1,49,990', Money::format('149990.00', 0));
     }
 
     public function test_phone_normalisation(): void

@@ -12,7 +12,7 @@ Domain: https://aaochaletaxi.com. Commercial product — no demo shortcuts, no d
 5. Update `docs/PROGRESS.md` + `docs/CHANGELOG.md` at the end of each phase/logical module.
 
 ## Stack
-PHP 8.3, Laravel 12, Blade, Bootstrap 5, Alpine.js, Bootstrap Icons, Vite (build locally/CI only),
+PHP 8.3, Laravel 12, Blade, Bootstrap 5 (slim SCSS), Alpine.js, inline SVG icons, Vite (build locally/CI only),
 MySQL 8 (MariaDB 10.6+ ok). Database queue + database cache + database sessions.
 Tests: PHPUnit, SQLite in-memory locally; MySQL 8 in CI.
 
@@ -46,7 +46,10 @@ Tests: PHPUnit, SQLite in-memory locally; MySQL 8 in CI.
 - Financial records are append-only: corrections via adjustment/reversal rows.
 - Fare quotations store full breakdown JSON snapshot.
 - Audit important actions via `App\Services\AuditLogger`.
-- Named routes everywhere; Blade components in `resources/views/components`.
+- Named routes everywhere; reuse Blade components in `resources/views/components` (see ARCHITECTURE §8).
+- Icons: `<x-icon name="..."/>` only (no `<i class="bi">`). After adding a new icon run `npm run icons`
+  (also part of `npm run build`); `tests/Unit/IconTest` fails if one is missing.
+- Composer platform is pinned to PHP 8.3 — never remove (`config.platform.php`).
 - Eager-load to avoid N+1. No raw SQL unless justified in DECISIONS.md.
 - Don't add packages without recording reason in `docs/DECISIONS.md`.
 

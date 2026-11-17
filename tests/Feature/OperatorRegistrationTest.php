@@ -50,7 +50,7 @@ class OperatorRegistrationTest extends TestCase
     {
         $this->post(route('register.operator.store'), $this->payload());
 
-        $this->get(route('operator.status'))->assertOk()->assertSee('under verification');
+        $this->get(route('operator.status'))->assertOk()->assertSee('verifying your business');
         $this->get(route('operator.dashboard'))->assertRedirect(route('operator.status'));
     }
 

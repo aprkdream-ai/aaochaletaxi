@@ -52,7 +52,7 @@ log "Caches built"
 # ---------- public assets (additive first; old files removed after switch) ----------
 mkdir -p "$WEB_ROOT/build"
 rsync -a "$R/public/build/" "$WEB_ROOT/build/"
-for f in robots.txt favicon.svg; do
+for f in robots.txt favicon.svg site.webmanifest og-image.png apple-touch-icon.png icon-192.png icon-512.png; do
     [ -f "$R/public/$f" ] && cp -f "$R/public/$f" "$WEB_ROOT/$f"
 done
 

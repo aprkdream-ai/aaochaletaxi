@@ -5,7 +5,7 @@ Status legend: ✅ done · 🟡 in progress · ⬜ not started
 | Phase | Scope | Acceptance criteria | Status |
 |---|---|---|---|
 | 0 Discovery | Repo/server inspection, docs, ERD, roadmap | All docs present; hosting constraints recorded | ✅ |
-| 1 Foundation | Laravel 12 setup, auth (email/phone login, register operator, reset), roles & permissions, tenants, isolation, base UI, public site shell, CI/CD | Tests for auth, tenant isolation, permissions pass; deployed to production | 🟡 |
+| 1 Foundation | Laravel 12 setup, auth (email/phone login, register operator, reset), roles & permissions, tenants, isolation, base UI, public site shell, CI/CD | Tests for auth, tenant isolation, permissions pass; deployed to production | ✅ (MySQL switch pending on server) |
 | 2 SaaS Admin | Admin dashboard, operator approval, KYC review, plans CRUD, subscriptions (trial/activate/extend/suspend), tenant settings, platform settings, audit log viewer, support tickets | Super admin can onboard, approve and bill a tenant end-to-end | ⬜ |
 | 3 Operator | Operator dashboard, branches, staff + role management, vehicles (+docs, maintenance, expenses), drivers (+docs), plan limits enforcement | Plan limits enforced; all CRUD tenant-isolated (tests) | ⬜ |
 | 4 Booking engine | Fare rules + calculator, booking types, enquiry→settlement workflow, quotations with snapshot, availability, assignment with locking, trips, status logs | Concurrent assignment test can't double-book; fare snapshot immutable | ⬜ |

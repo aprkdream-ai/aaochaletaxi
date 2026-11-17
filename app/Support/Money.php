@@ -38,11 +38,13 @@ class Money
         return bcadd($value, $offset, 2);
     }
 
-    public static function format(string|int|float|null $amount): string
+    public static function format(string|int|float|null $amount, int $decimals = 2): string
     {
         $amount = (float) ($amount ?? 0);
         $negative = $amount < 0;
-        [$int, $dec] = explode('.', number_format(abs($amount), 2, '.', ''));
+        $parts = explode('.', number_format(abs($amount), $decimals, '.', ''));
+        $int = $parts[0];
+        $dec = $parts[1] ?? null;
 
         // Indian digit grouping: 12,34,567.00
         $last3 = substr($int, -3);
@@ -52,7 +54,7 @@ class Money
             $int = $rest.','.$last3;
         }
 
-        return ($negative ? '-' : '').'₹'.$int.'.'.$dec;
+        return ($negative ? '-' : '').'₹'.$int.($dec !== null ? '.'.$dec : '');
     }
 
     private static function norm(string|int|float $v, int $scale = 2): string

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-17 — UI v2 (design system + SEO + performance)
+- New theme: taxi-yellow/ink palette, Plus Jakarta Sans, glass header, gradient hero with grid, light/dark.
+- Home: trip-type tabs quote form (prefill via `?trip=`, `?pickup=`, `?drop=`), trust strip, services, fleet,
+  steps, bento features, popular routes, operator dashboard preview, FAQ, CTA band; mobile sticky CTA + drawer nav.
+- Pricing page: monthly/yearly toggle (DB-driven), comparison table, operator FAQ. New services/about/contact/legal layouts.
+- Auth split-screen with password visibility toggle; panel sidebar redesign, avatars, soft badges, modern tables.
+- Weight: icon font removed (inline SVG), slim Bootstrap SCSS + ESM JS → ~32 KB CSS + 37 KB JS gzipped (was ~120 KB incl. font).
+- SEO: OG/Twitter image, web manifest, apple-touch icon, Organization/WebSite/TaxiService/FAQPage/BreadcrumbList schema,
+  unique meta descriptions, branded error pages. Hindi strings expanded.
+- Fix: `Money::format()` supports whole-rupee display.
+
 ## 2026-11-17 — Phase 0 + Phase 1 foundation
 - Laravel 12 skeleton; Bootstrap 5 + Alpine + Bootstrap Icons via Vite (Tailwind removed).
 - Shared-DB multi-tenancy: `TenantContext`, `TenantScope` (fail-closed), `BelongsToTenant` (forces tenant_id, blocks changes).

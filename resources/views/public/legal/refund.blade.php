@@ -1,8 +1,8 @@
-<x-layouts.public :title="__('Cancellation & refund policy')">
+<x-layouts.public :mobile-cta="false" :title="__('Cancellation & refund policy')" :description="__('Taxi booking cancellation charges, refund timelines and subscription refund rules.')">
+    <x-page-hero :title="__('Cancellation & refund policy')" :lead="__('Last updated').': 17 November 2026'" :crumbs="[__('Cancellation & refund policy') => null]" />
     <section class="section">
-        <div class="container legal-content">
-            <h1 class="section-title">{{ __('Cancellation & refund policy') }}</h1>
-            <p class="text-body-secondary">{{ __('Last updated') }}: 17 November 2026</p>
+        <div class="container"><div class="prose">
+            
             <h2>1. Customer cancellations</h2>
             <ul>
                 <li>More than 24 hours before pickup: full refund of advance paid.</li>
@@ -18,6 +18,6 @@
             <p>Operator subscription fees are non-refundable once a billing period has started. You may cancel auto-renewal anytime; access continues until the end of the paid period.</p>
             <h2>5. Contact</h2>
             <p>For cancellations and refunds email <a href="mailto:{{ config('aaochale.support_email') }}">{{ config('aaochale.support_email') }}</a> with your booking number.</p>
-        </div>
+        </div></div>
     </section>
 </x-layouts.public>

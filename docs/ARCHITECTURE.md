@@ -9,7 +9,9 @@
 | Queue | `database`, drained by scheduler every minute (`queue:work --stop-when-empty --max-time=50`) | No Supervisor |
 | Scheduler | One hPanel cron: `* * * * * php artisan schedule:run` | Only cron is available |
 | Real-time | AJAX polling (15–30 s) | No WebSockets |
-| Assets | Vite build in CI → `public/build` | No Node in production |
+| Assets | Vite build in CI → `public/build` (~32 KB CSS + 37 KB JS gzipped) | No Node in production |
+| Icons | Inline SVG via `<x-icon>` (Bootstrap Icons copied to `resources/icons` by `npm run icons`) | No 130 KB icon font |
+| Fonts | Plus Jakarta Sans (Google Fonts, variable, `display=swap`) | One request, system fallback |
 | PDFs | (Phase 6) `barryvdh/laravel-dompdf` – pure PHP | Shared-hosting friendly |
 
 Required PHP extensions (all present on server): bcmath, ctype, curl, dom, fileinfo, gd, intl,
@@ -18,14 +20,19 @@ json, mbstring, openssl, pdo_mysql, tokenizer, xml, zip.
 ## 2. Server layout (Hostinger)
 ```
 ~/domains/aaochaletaxi.com/
-├── aaochaletaxi_app/        ← Laravel app (outside web root): app, vendor, storage, .env …
+├── aaochaletaxi_app/
+│   ├── releases/<utc>-<sha>/  ← immutable releases (last 5 kept)
+│   ├── shared/{.env, storage/, database.sqlite*}
+│   └── current -> releases/<id>   ← atomic symlink switched by deploy
 ├── public_html/             ← web root (SHARED with other apps in subfolders!)
-│   ├── index.php            ← custom front controller pointing to ../aaochaletaxi_app
+│   ├── index.php            ← front controller → ../aaochaletaxi_app/current
 │   ├── .htaccess            ← Laravel rewrite; existing dirs/files are served as-is
-│   ├── build/  robots.txt  favicon.ico
-│   ├── storage -> ../aaochaletaxi_app/storage/app/public  (symlink)
+│   ├── build/ robots.txt favicon.svg site.webmanifest og-image.png icon-*.png
+│   ├── storage -> ../aaochaletaxi_app/shared/storage/app/public  (symlink)
 │   └── vahansetu/, mediaflow/, …  ← unrelated apps, never touched
-└── deploy_backups/          ← one-time backup of the previous root index.php
+└── deploy_backups/          ← backup of the previous root index.php (coming-soon page)
+
+* SQLite only as temporary fallback until the hPanel MySQL DB is configured.
 ```
 The front controller calls `$app->usePublicPath(__DIR__)` so `public_path()`, Vite manifest and
 asset URLs resolve to `public_html`.
@@ -74,3 +81,16 @@ prevents duplicate submission.
 ## 7. Financial model (Phase 6)
 Append-only `payments`, `refunds`, adjustments. Invoices immutable once issued; corrections via
 credit notes. Fare breakdown snapshot JSON stored on quotation & booking.
+
+## 8. Frontend / design system
+- Theme tokens in `resources/scss/app.scss` (brand `#ffb703`, ink `#0b1220`), slim Bootstrap import
+  (unused components/utilities removed), light/dark via `data-bs-theme` (set before paint in `<x-head>`).
+- Layouts: `x-layouts.public` (sticky glass header, offcanvas mobile nav, sticky mobile CTA, footer),
+  `x-layouts.auth` (split screen), `x-layouts.panel` (sidebar admin/operator), `x-layouts.mobile` (driver).
+- Components: `x-icon`, `x-input` (icon, password toggle, aria), `x-stat-card`, `x-empty-state`,
+  `x-page-header`, `x-page-hero`, `x-section-head`, `x-status-badge`, `x-faq` (+FAQPage schema),
+  `x-breadcrumbs` (+BreadcrumbList schema), `x-seo` (title/description/canonical/OG/Twitter), `x-json-ld`.
+- JS: Bootstrap ESM modules (collapse, dropdown, modal, offcanvas, toast) + Alpine; scroll-reveal uses
+  IntersectionObserver and is skipped for `prefers-reduced-motion`; content stays visible without JS.
+- SEO: unique title/description per page, canonical, OG image (1200×630), Organization/WebSite/TaxiService/
+  FAQPage/BreadcrumbList JSON-LD, sitemap.xml, robots.txt, web manifest. Panels/auth are `noindex`.

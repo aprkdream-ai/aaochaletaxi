@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'version' => '0.2.0',
     'support_email' => env('SUPPORT_EMAIL', 'support@aaochaletaxi.com'),
     'support_phone' => env('SUPPORT_PHONE'),
     'legal_name' => env('COMPANY_LEGAL_NAME', 'AaoChaleTaxi'),

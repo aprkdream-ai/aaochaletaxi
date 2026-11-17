@@ -61,7 +61,7 @@ sort_order, timestamps.
 ### subscriptions ✅ (T)
 id, tenant_id, plan_id FK, billing_cycle enum(monthly,yearly,trial), status enum(trialing,
 active, past_due, grace, expired, cancelled, suspended), starts_at, ends_at, grace_ends_at,
-cancelled_at, price DECIMAL, auto_renew, activated_by FK users nullable, notes, timestamps.
+cancelled_at (all DATETIME, not TIMESTAMP — see DECISIONS D13), price DECIMAL, auto_renew, activated_by FK users nullable, notes, timestamps.
 idx (tenant_id, status), idx ends_at.
 
 ### subscription_payments ⏳P2 (T)
@@ -141,6 +141,7 @@ marketplace_listings (T), marketplace_commissions (T: booking_id unique, rate, a
 vendors (T), vendor_vehicles (T).
 
 ## SYSTEM
+- contact_messages ✅: name, email, phone, subject, message, type (contact | partner | enquiry), ip_address, handled_at.
 - audit_logs ✅: tenant_id nullable idx, user_id nullable, event, auditable_type/id, old JSON,
   new JSON, ip, user_agent, created_at.
 - notifications ✅ (Laravel database notifications).

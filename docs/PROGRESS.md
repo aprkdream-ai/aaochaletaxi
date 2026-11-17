@@ -1,7 +1,8 @@
 # Progress
 
-**Last updated:** 2026-11-17
-**Current phase:** Phase 1 — Foundation (core done; see pending)
+**Last updated:** 2026-11-17 (UI v2)
+**Current phase:** Phase 1 complete → starting Phase 2 (SaaS Admin)
+**Production:** live at https://aaochaletaxi.com (release-based deploy, SQLite fallback DB)
 **Completed phases:** Phase 0 (discovery, docs, ERD, roadmap)
 
 ## Phase 1 — completed
@@ -15,12 +16,18 @@
 - [x] Public website + SEO (sitemap, robots, JSON-LD, canonical), contact & fare-enquiry forms
 - [x] Seeders: `PlatformSeeder` (idempotent, prod-safe), `DemoSeeder` (local only)
 - [x] CI/CD workflow + release-based deploy scripts with smoke test and auto-rollback
-- [x] Tests: 58 passing (unit, public pages, auth, registration, tenant isolation, authorization, admin lifecycle)
+- [x] UI v2: modern design system (slim Bootstrap, brand theme, light/dark), inline SVG icons, redesigned
+      public site (hero quote form with trip tabs, fleet, routes, FAQ, pricing toggle), split-screen auth,
+      sidebar panels, mobile nav drawer + sticky CTA, OG image, manifest, rich JSON-LD
+- [x] Tests: 65 passing (unit, icons, public pages + SEO, auth, registration, tenant isolation, authorization, admin lifecycle)
 
-## Pending (carry into Phase 2)
-- [ ] Production DB on MySQL (currently SQLite fallback on server until hPanel MySQL DB is created — see DEPLOYMENT §4)
+## Pending (needs owner action)
+- [ ] Production DB on MySQL (currently SQLite fallback until hPanel MySQL DB credentials are provided — DEPLOYMENT §4)
 - [ ] hPanel cron for `schedule:run`
-- [ ] GitHub secrets for auto-deploy (if not yet set)
+- [ ] GitHub Actions secrets (SSH_HOST/PORT/USER/PRIVATE_KEY/KNOWN_HOSTS) so pushes to `main` auto-deploy
+- [ ] SUPPORT_PHONE in shared .env (enables Call button + phone in footer/contact)
+
+## Pending (dev)
 - [ ] Admin: website enquiries inbox (contact_messages are stored; no UI yet)
 
 ## Known issues

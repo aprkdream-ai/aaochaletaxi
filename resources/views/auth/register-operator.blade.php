@@ -1,34 +1,28 @@
-<x-layouts.auth :title="__('Register your taxi business')" width="col-lg-8 col-xl-7">
-    <h1 class="h4 fw-800 mb-1">{{ __('Register your taxi business') }}</h1>
-    <p class="text-body-secondary mb-4">{{ __('Start a free trial. No credit card required. Our team verifies every operator before activation.') }}</p>
+<x-layouts.auth :title="__('Register your taxi business')" wide
+    :aside-title="__('Run your taxi business smarter — free for :days days.', ['days' => 14])"
+    :aside-points="[__('Bookings, dispatch & driver assignment'), __('Fleet documents with expiry reminders'), __('GST invoices & payment tracking'), __('No credit card required')]">
+    <span class="badge-soft ok mb-3 d-inline-block">{{ __('Free trial · No credit card') }}</span>
+    <h1 class="h3 mb-1">{{ __('Register your taxi business') }}</h1>
+    <p class="text-muted-2 mb-4">{{ __('Our team verifies every operator before activation — usually within one working day.') }}</p>
 
     <form method="POST" action="{{ route('register.operator.store') }}" data-loading novalidate>
         @csrf
-        <h2 class="h6 text-uppercase text-body-secondary small mb-3">{{ __('Business') }}</h2>
-        <div class="row">
-            <div class="col-md-12"><x-input name="business_name" :label="__('Business name')" required maxlength="150" /></div>
-            <div class="col-md-6"><x-input name="city" :label="__('City')" required maxlength="100" /></div>
-            <div class="col-md-6"><x-input name="state" :label="__('State')" maxlength="100" /></div>
+        <div class="small-caps text-muted-2 mb-3 d-flex align-items-center gap-2"><span class="icon-tile tile-sm" style="width:1.75rem;height:1.75rem;font-size:.85rem">1</span>{{ __('Business details') }}</div>
+        <div class="row g-2">
+            <div class="col-12"><x-input name="business_name" icon="building" :label="__('Business name')" required maxlength="150" autocomplete="organization" /></div>
+            <div class="col-md-6"><x-input name="city" icon="geo-alt" :label="__('City')" required maxlength="100" autocomplete="address-level2" /></div>
+            <div class="col-md-6"><x-input name="state" icon="map" :label="__('State')" maxlength="100" autocomplete="address-level1" /></div>
         </div>
-        <h2 class="h6 text-uppercase text-body-secondary small mb-3 mt-2">{{ __('Owner / admin login') }}</h2>
-        <div class="row">
-            <div class="col-md-12"><x-input name="name" :label="__('Your full name')" required autocomplete="name" /></div>
-            <div class="col-md-6"><x-input name="email" type="email" :label="__('Email')" required autocomplete="email" /></div>
-            <div class="col-md-6"><x-input name="phone" type="tel" :label="__('Mobile number')" required inputmode="numeric" placeholder="98XXXXXXXX" autocomplete="tel" /></div>
-            <div class="col-md-6"><x-input name="password" type="password" :label="__('Password')" required autocomplete="new-password" :help="__('Min 8 characters with letters and numbers.')" /></div>
-            <div class="col-md-6"><x-input name="password_confirmation" type="password" :label="__('Confirm password')" required autocomplete="new-password" /></div>
+        <div class="small-caps text-muted-2 mb-3 mt-2 d-flex align-items-center gap-2"><span class="icon-tile tile-sm" style="width:1.75rem;height:1.75rem;font-size:.85rem">2</span>{{ __('Owner login') }}</div>
+        <div class="row g-2">
+            <div class="col-12"><x-input name="name" icon="person" :label="__('Your full name')" required autocomplete="name" /></div>
+            <div class="col-md-6"><x-input name="email" type="email" icon="envelope" :label="__('Email')" required autocomplete="email" /></div>
+            <div class="col-md-6"><x-input name="phone" type="tel" icon="phone" :label="__('Mobile number')" required inputmode="numeric" maxlength="14" placeholder="98XXXXXXXX" autocomplete="tel-national" /></div>
+            <div class="col-md-6"><x-input name="password" type="password" icon="lock" :label="__('Password')" required autocomplete="new-password" :help="__('Min 8 characters with letters and numbers.')" /></div>
+            <div class="col-md-6"><x-input name="password_confirmation" type="password" icon="lock" :label="__('Confirm password')" required autocomplete="new-password" /></div>
         </div>
-        <div class="form-check mb-4">
-            <input class="form-check-input @error('terms') is-invalid @enderror" type="checkbox" name="terms" value="1" id="terms" @checked(old('terms'))>
-            <label class="form-check-label small" for="terms">
-                {!! __('I agree to the :terms and :privacy.', [
-                    'terms' => '<a href="'.e(route('legal.terms')).'" target="_blank">'.e(__('Terms & conditions')).'</a>',
-                    'privacy' => '<a href="'.e(route('legal.privacy')).'" target="_blank">'.e(__('Privacy policy')).'</a>',
-                ]) !!}
-            </label>
-            @error('terms')<div class="invalid-feedback">{{ $message }}</div>@enderror
-        </div>
-        <button type="submit" class="btn btn-primary w-100 py-2">{{ __('Create business account') }}</button>
+        @include('auth.partials.terms')
+        <button type="submit" class="btn btn-primary btn-lg w-100">{{ __('Create business account') }}<x-icon name="arrow-right" /></button>
     </form>
-    <p class="small text-center mt-4 mb-0">{{ __('Already registered?') }} <a href="{{ route('login') }}">{{ __('Login') }}</a></p>
+    <p class="small text-center mt-4 mb-0 text-muted-2">{{ __('Already registered?') }} <a href="{{ route('login') }}" class="fw-semibold">{{ __('Login') }}</a></p>
 </x-layouts.auth>

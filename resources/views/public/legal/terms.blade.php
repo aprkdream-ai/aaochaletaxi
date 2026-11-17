@@ -1,8 +1,8 @@
-<x-layouts.public :title="__('Terms & conditions')">
+<x-layouts.public :mobile-cta="false" :title="__('Terms & conditions')" :description="__('Terms governing bookings, operator subscriptions and use of the AaoChaleTaxi platform.')">
+    <x-page-hero :title="__('Terms & conditions')" :lead="__('Last updated').': 17 November 2026'" :crumbs="[__('Terms & conditions') => null]" />
     <section class="section">
-        <div class="container legal-content">
-            <h1 class="section-title">{{ __('Terms & conditions') }}</h1>
-            <p class="text-body-secondary">{{ __('Last updated') }}: 17 November 2026</p>
+        <div class="container"><div class="prose">
+            
             <p>These terms govern use of aaochaletaxi.com and related apps operated by {{ config('aaochale.legal_name') }}. By using the platform you agree to them.</p>
             <h2>1. The platform</h2>
             <p>AaoChaleTaxi provides (a) a booking platform connecting customers with independent taxi operators and (b) subscription software that operators use to manage their business. Rides are fulfilled by the operator named on your booking, who is responsible for the vehicle, driver, permits and insurance.</p>
@@ -20,6 +20,6 @@
             <p>These terms are governed by the laws of India. Courts at the company's registered office location have jurisdiction.</p>
             <h2>8. Contact</h2>
             <p><a href="mailto:{{ config('aaochale.support_email') }}">{{ config('aaochale.support_email') }}</a></p>
-        </div>
+        </div></div>
     </section>
 </x-layouts.public>

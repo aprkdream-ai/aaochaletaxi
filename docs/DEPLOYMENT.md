@@ -10,7 +10,7 @@
 │   └── current -> releases/<id>             ← atomic symlink
 ├── public_html/                             ← web root, SHARED with other apps in sub-folders
 │   ├── index.php, .htaccess                 ← managed by deploy (see deploy/public_html/)
-│   ├── build/, robots.txt, favicon.svg
+│   ├── build/, robots.txt, favicon.svg, site.webmanifest, og-image.png, *icon*.png
 │   └── storage -> ../aaochaletaxi_app/shared/storage/app/public
 └── deploy_backups/                          ← original index.php/.htaccess saved before first deploy
 ```
@@ -26,7 +26,7 @@ On push to `main` (after tests pass): build production vendor (`--no-dev`) + ass
 `deploy/remote-deploy.sh` on the server:
 1. link shared `.env` + `storage`, generate `APP_KEY` if missing
 2. `migrate --force`, `db:seed PlatformSeeder` (idempotent), `optimize`
-3. copy `public/build` (additive), robots, favicon to `public_html`
+3. copy `public/build` (additive), robots, favicon, manifest, OG/touch icons to `public_html`
 4. **pre-switch smoke test** (`deploy/smoke.php` boots the new release, requests `/up`, `/`, `/login`, …) — abort if any non-200; live site untouched
 5. install front controller + `.htaccess` (backs up foreign originals once), storage symlink
 6. atomic `current` symlink switch → live `GET /up` check → **auto-rollback** on failure
