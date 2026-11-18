@@ -2,9 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Enums\SubscriptionStatus;
 use App\Enums\TenantStatus;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Services\RoleService;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -36,9 +40,28 @@ class TenantFactory extends Factory
         return $this->state(fn () => ['status' => TenantStatus::Suspended, 'suspended_at' => now(), 'suspension_reason' => 'Test']);
     }
 
-    /** Seed default roles after creation (requires permissions to be synced). */
+    private bool $withSubscription = true;
+
+    public function withoutSubscription(): static
+    {
+        $clone = clone $this;
+        $clone->withSubscription = false;
+
+        return $clone;
+    }
+
+    /** Seed default roles and a trial subscription, mirroring real onboarding. */
     public function configure(): static
     {
-        return $this->afterCreating(fn (Tenant $tenant) => app(RoleService::class)->seedTenantRoles($tenant));
+        return $this->afterCreating(function (Tenant $tenant) {
+            app(RoleService::class)->seedTenantRoles($tenant);
+
+            if ($this->withSubscription && $plan = SubscriptionPlan::query()->where('code', 'starter')->first()) {
+                app(TenantContext::class)->runAs($tenant, fn () => Subscription::create([
+                    'plan_id' => $plan->id, 'billing_cycle' => 'trial', 'status' => SubscriptionStatus::Trialing,
+                    'starts_at' => now(), 'ends_at' => now()->addDays(14), 'price' => 0,
+                ]));
+            }
+        });
     }
 }

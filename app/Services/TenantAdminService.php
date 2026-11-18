@@ -6,6 +6,7 @@ use App\Enums\KycStatus;
 use App\Enums\TenantStatus;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\TenantApproved;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -22,6 +23,8 @@ class TenantAdminService
             $t->suspended_at = null;
             $t->suspension_reason = null;
         }, 'tenant.approved');
+
+        $tenant->ownerUser()?->notify(new TenantApproved($tenant));
     }
 
     public function reject(Tenant $tenant, string $reason): void

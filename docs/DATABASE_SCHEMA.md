@@ -64,9 +64,22 @@ active, past_due, grace, expired, cancelled, suspended), starts_at, ends_at, gra
 cancelled_at (all DATETIME, not TIMESTAMP — see DECISIONS D13), price DECIMAL, auto_renew, activated_by FK users nullable, notes, timestamps.
 idx (tenant_id, status), idx ends_at.
 
-### subscription_payments ⏳P2 (T)
-id, tenant_id, subscription_id, amount, tax_amount, total, method, gateway, gateway_order_id,
-gateway_payment_id (unique nullable), status, paid_at, invoice_number (unique), meta JSON.
+Phase 2 additions to subscriptions ✅: reminder_stage (7/3/1 last reminder sent), superseded_by FK subscriptions
+(renewal/upgrade chain; superseded rows expire quietly).
+
+### subscription_payments ✅ (T, append-only)
+id, tenant_id, subscription_id, invoice_number (unique, `ACT/<FY>/<00001>` from `sequences`), amount (excl. GST),
+tax_percent, tax_amount, total, method (upi/bank_transfer/cash/cheque/razorpay/other), reference, gateway,
+gateway_order_id, gateway_payment_id (unique nullable), status, paid_at, billing_snapshot JSON (seller/buyer/item
+frozen at invoice time), recorded_by FK users, notes. idx (tenant_id, paid_at).
+
+### sequences ✅
+key (PK, e.g. `subscription_invoice:2026-27`, `support_ticket`), value. Row-locked gap-free counters.
+
+### tenant_documents ✅ (T) — KYC
+type (gst_certificate/pan_card/business_registration/owner_id_proof/address_proof/other), number, file_path
+(private `local` disk, `kyc/<tenant uuid>/<random>`), original_name, mime, size, status (pending/approved/rejected),
+review_notes, uploaded_by, reviewed_by, reviewed_at. idx (tenant_id, type).
 
 ### tenant_settings ✅ (T)
 id, tenant_id, key, value TEXT, unique(tenant_id, key).
@@ -146,7 +159,11 @@ vendors (T), vendor_vehicles (T).
   new JSON, ip, user_agent, created_at.
 - notifications ✅ (Laravel database notifications).
 - message_logs ⏳P9: channel, to, template, status, error, provider_message_id.
-- notification_templates ⏳P9, support_tickets ⏳P2.
+- support_tickets ✅ (T): number unique (TKT-000001), subject, category, priority, status (open/awaiting_customer/
+  resolved/closed), created_by, assigned_to, last_reply_at, closed_at. idx (tenant_id, status), (status, last_reply_at).
+- support_ticket_replies ✅ (T): support_ticket_id, user_id, from_staff, is_internal, body.
+- contact_messages (Phase 2): + handled_by, admin_notes, idx (type, handled_at).
+- notification_templates ⏳P9.
 - Framework: cache, cache_locks, jobs, job_batches, failed_jobs, sessions, password_reset_tokens ✅.
 
 ## Tenant isolation checklist

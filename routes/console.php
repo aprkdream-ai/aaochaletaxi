@@ -12,3 +12,5 @@ Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3 --backof
 Schedule::command('auth:clear-resets')->everyFifteenMinutes();
 Schedule::command('queue:prune-failed --hours=720')->daily();
 Schedule::command('queue:prune-batches --hours=72')->daily();
+
+Schedule::command('subscriptions:process')->hourly()->withoutOverlapping(30);

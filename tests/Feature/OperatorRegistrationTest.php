@@ -40,7 +40,7 @@ class OperatorRegistrationTest extends TestCase
         $sub = Subscription::withoutGlobalScopes()->where('tenant_id', $tenant->id)->sole();
         $this->assertSame('trialing', $sub->status->value);
         $this->assertSame('starter', $sub->plan->code);
-        $this->assertSame(14, (int) round($sub->starts_at->diffInDays($sub->ends_at)));
+        $this->assertSame(now()->addDays(14)->toDateString(), $sub->ends_at->toDateString());
 
         $this->assertTrue(AuditLog::where('event', 'tenant.registered')->where('tenant_id', $tenant->id)->exists());
         $this->assertAuthenticatedAs($owner);

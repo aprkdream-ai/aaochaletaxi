@@ -94,3 +94,16 @@ credit notes. Fare breakdown snapshot JSON stored on quotation & booking.
   IntersectionObserver and is skipped for `prefers-reduced-motion`; content stays visible without JS.
 - SEO: unique title/description per page, canonical, OG image (1200×630), Organization/WebSite/TaxiService/
   FAQPage/BreadcrumbList JSON-LD, sitemap.xml, robots.txt, web manifest. Panels/auth are `noindex`.
+
+## 9. SaaS billing & onboarding (Phase 2)
+- Subscription rows are never edited in place for plan/period changes: `SubscriptionService` creates a new row and
+  sets `superseded_by` on the old one (renewal = starts at old `ends_at`; immediate = old row cancelled).
+- `SubscriptionLifecycleService` (hourly): active/trialing → grace (`grace_days`) → expired; reminders at 7/3/1 days.
+  Middleware `subscription` blocks dashboard routes without a usable subscription; profile, KYC, subscription and
+  support stay reachable (also for pending/suspended tenants) so operators can always fix their account.
+- Payments are append-only with gap-free invoice numbers per financial year and a frozen billing snapshot;
+  invoice shows CGST+SGST when seller and buyer state match, else IGST (SAC 998314).
+- KYC files on the private disk, streamed via authorised routes with `nosniff` + sandbox CSP. Approving all required
+  document types auto-marks KYC verified.
+- Middleware priority: `ResolveTenant` and `PlatformScope` run before `SubstituteBindings`, so route-model binding of
+  tenant-owned models is already scoped (other tenants' IDs → 404).

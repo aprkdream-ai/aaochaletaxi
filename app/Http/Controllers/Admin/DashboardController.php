@@ -9,7 +9,10 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\ContactMessage;
 use App\Models\Subscription;
+use App\Models\SubscriptionPayment;
+use App\Models\SupportTicket;
 use App\Models\Tenant;
+use App\Models\TenantDocument;
 use App\Models\User;
 use Illuminate\View\View;
 
@@ -27,6 +30,10 @@ class DashboardController extends Controller
             'trials' => Subscription::query()->where('status', SubscriptionStatus::Trialing)->count(),
             'paid' => Subscription::query()->where('status', SubscriptionStatus::Active)->count(),
             'enquiries' => ContactMessage::query()->whereNull('handled_at')->count(),
+            'revenue_month' => SubscriptionPayment::query()->where('status', 'paid')->where('paid_at', '>=', now()->startOfMonth())->sum('total'),
+            'expiring' => Subscription::query()->whereNull('superseded_by')->whereIn('status', ['trialing', 'active'])->whereBetween('ends_at', [now(), now()->addDays(7)])->count(),
+            'tickets' => SupportTicket::query()->where('status', 'open')->count(),
+            'kyc_pending' => TenantDocument::query()->where('status', 'pending')->count(),
         ];
 
         return view('admin.dashboard', [

@@ -6,6 +6,7 @@ use App\Enums\SubscriptionStatus;
 use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subscription extends Model
 {
@@ -23,12 +24,28 @@ class Subscription extends Model
             'cancelled_at' => 'datetime',
             'price' => 'decimal:2',
             'auto_renew' => 'boolean',
+            'reminder_stage' => 'integer',
         ];
     }
 
     public function plan(): BelongsTo
     {
         return $this->belongsTo(SubscriptionPlan::class, 'plan_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(SubscriptionPayment::class)->withoutGlobalScopes()->latest('id');
+    }
+
+    public function activator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'activated_by');
+    }
+
+    public function isUsable(): bool
+    {
+        return $this->status->isUsable();
     }
 
     public function daysLeft(): int

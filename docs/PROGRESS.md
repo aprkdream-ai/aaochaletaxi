@@ -1,9 +1,10 @@
 # Progress
 
 **Last updated:** 2026-11-17 (UI v2)
-**Current phase:** Phase 1 complete → starting Phase 2 (SaaS Admin)
+**Current phase:** Phase 2 complete → next Phase 3 (Operator: branches, staff, vehicles, drivers)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, SQLite fallback DB)
-**Completed phases:** Phase 0 (discovery, docs, ERD, roadmap)
+**Completed phases:** 0 (discovery), 1 (foundation + UI v2), 2 (SaaS admin)
+**Tests:** 97 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
 ## Phase 1 — completed
 - [x] Laravel 12 + Bootstrap/Alpine/Vite setup, IST timezone, en/hi locale switch
@@ -27,8 +28,16 @@
 - [ ] GitHub Actions secrets (SSH_HOST/PORT/USER/PRIVATE_KEY/KNOWN_HOSTS) so pushes to `main` auto-deploy
 - [ ] SUPPORT_PHONE in shared .env (enables Call button + phone in footer/contact)
 
-## Pending (dev)
-- [ ] Admin: website enquiries inbox (contact_messages are stored; no UI yet)
+## Phase 2 — completed
+- [x] Enquiries inbox · plans CRUD · subscriptions (activate/renew/change/extend/cancel/payments/invoices)
+- [x] Lifecycle (grace/expiry/reminders) + notifications (queued) · subscription guard middleware
+- [x] KYC uploads & review · support tickets · platform settings (encrypted secrets) · audit viewer · staff & roles
+- [x] Operator: business profile/logo, KYC, subscription & invoices, support; pending-tenant onboarding links
+
+## Pending (dev, later phases)
+- [ ] Online subscription payment via Razorpay (Phase 9) — currently manual payment recording
+- [ ] PDF download of invoices (Phase 6, dompdf) — currently print-to-PDF page
+- [ ] Plan limits for vehicles/drivers/branches enforced when those modules ship (Phase 3)
 
 ## Known issues
 - None open.
@@ -37,12 +46,11 @@
 - Super admin: admin@aaochaletaxi.test / password
 - Active operator: owner@shivtravels.test / password1 · Pending operator: owner@ganeshcabs.test / password1
 
-## Next exact tasks (Phase 2 — SaaS Admin)
-1. Admin enquiries inbox (list/filter/mark handled) for `contact_messages`.
-2. Subscription plans CRUD (`admin.plans.manage`), plan feature flags.
-3. Subscription management: manual activation/extension/upgrade/downgrade, grace-period + expiry command in scheduler,
-   `subscription_payments` table + invoices numbering.
-4. Operator KYC document uploads (private disk) + admin review UI.
-5. Platform settings UI (trial days, grace days, commission, integration keys encrypted) + audit log viewer.
-6. Platform staff management (create staff, assign platform roles).
-7. Support tickets (tables + operator/admin UI).
+## Next exact tasks (Phase 3 — Operator management)
+1. Branches CRUD (plan `max_branches`), `users.branch_id` usage.
+2. Staff management for operators (invite/create staff, assign tenant roles, deactivate) with `max_users`.
+3. Custom role editor (tenant roles ↔ permission catalog), owner role protected.
+4. Vehicle categories (platform defaults + tenant custom) and vehicles CRUD with documents & expiry dates (`max_vehicles`).
+5. Drivers CRUD + driver documents + driver login user (`max_drivers`); availability flag.
+6. Vehicle maintenance & expenses; expiry reminder command (insurance/permit/fitness/PUC/licence).
+7. Extend `PlanLimitService` usage for vehicles/drivers/branches.

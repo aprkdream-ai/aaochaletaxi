@@ -10,6 +10,13 @@
         <div class="col-6 col-xl-3"><x-stat-card :label="__('Customers')" :value="$stats['customers']" icon="people" color="primary" :hint="trans_choice('{0} No new enquiries|{1} :n new enquiry|[2,*] :n new enquiries', $stats['enquiries'], ['n' => $stats['enquiries']])" /></div>
     </div>
 
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-xl-3"><x-stat-card :label="__('Revenue this month')" :value="\App\Support\Money::format($stats['revenue_month'], 0)" icon="cash-stack" color="success" :href="route('admin.subscriptions.index')" /></div>
+        <div class="col-6 col-xl-3"><x-stat-card :label="__('Expiring in 7 days')" :value="$stats['expiring']" icon="alarm" color="warning" :href="route('admin.subscriptions.index', ['expiring' => 1])" /></div>
+        <div class="col-6 col-xl-3"><x-stat-card :label="__('Open tickets')" :value="$stats['tickets']" icon="life-preserver" color="info" :href="route('admin.support.index')" /></div>
+        <div class="col-6 col-xl-3"><x-stat-card :label="__('KYC docs to review')" :value="$stats['kyc_pending']" icon="patch-check" color="danger" /></div>
+    </div>
+
     <div class="row g-3">
         <div class="col-lg-6">
             <div class="card panel-card h-100">

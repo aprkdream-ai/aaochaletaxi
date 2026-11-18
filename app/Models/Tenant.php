@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Tenant extends Model
@@ -78,7 +80,33 @@ class Tenant extends Model
             array_filter(SubscriptionStatus::cases(), fn (SubscriptionStatus $s) => $s->isUsable())
         ));
 
-        return $this->subscriptions()->with('plan')->whereIn('status', $usable)->first();
+        return $this->subscriptions()->with('plan')->whereIn('status', $usable)->whereNull('superseded_by')->first();
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(TenantDocument::class)->withoutGlobalScopes()->latest('id');
+    }
+
+    public function subscriptionPayments(): HasMany
+    {
+        return $this->hasMany(SubscriptionPayment::class)->withoutGlobalScopes()->latest('id');
+    }
+
+    public function logoUrl(): ?string
+    {
+        return $this->logo_path ? Storage::disk('public')->url($this->logo_path) : null;
+    }
+
+    /** Owner user = first user holding the owner role (falls back to first operator user). */
+    public function ownerUser(): ?User
+    {
+        $ownerRoleId = Role::query()->forTenant($this->id)->where('slug', 'owner')->value('id');
+
+        return ($ownerRoleId ? $this->users()
+            ->whereIn('id', DB::table('role_user')->where('role_id', $ownerRoleId)->select('user_id'))
+            ->orderBy('id')->first() : null)
+            ?? $this->users()->orderBy('id')->first();
     }
 
     public function owner(): HasOne

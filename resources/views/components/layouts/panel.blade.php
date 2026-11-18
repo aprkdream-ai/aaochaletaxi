@@ -6,6 +6,10 @@
         ->values();
     $items = $visible->filter(fn ($item, $idx) => ! isset($item['section']) || (($next = $visible->get($idx + 1)) && ! isset($next['section'])));
     $tenant = app(\App\Support\Tenancy\TenantContext::class)->get();
+    $navBadges = $panel === 'admin' && $user->hasPermission('admin.support.manage') ? [
+        'tickets' => \App\Models\SupportTicket::query()->where('status', 'open')->count(),
+        'enquiries' => \App\Models\ContactMessage::query()->whereNull('handled_at')->count(),
+    ] : [];
     $initials = collect(explode(' ', $user->name))->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->join('');
 @endphp
 <!DOCTYPE html>
@@ -34,6 +38,7 @@
                 @php $active = ($item['active'] ?? null) !== '__none__' && request()->routeIs($item['active'] ?? $item['route']); @endphp
                 <a href="{{ route($item['route'], $item['params'] ?? []) }}" @class(['nav-link', 'active' => $active]) @if ($active) aria-current="page" @endif>
                     <x-icon :name="$item['icon']" /><span>{{ __($item['label']) }}</span>
+                    @if (! empty($item['badge']) && ($navBadges[$item['badge']] ?? 0) > 0)<span class="ms-auto badge rounded-pill text-bg-warning">{{ $navBadges[$item['badge']] }}</span>@endif
                 </a>
             @endif
         @endforeach

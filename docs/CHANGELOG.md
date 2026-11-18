@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-18 — Phase 2: SaaS admin
+- Subscriptions: activate/renew (now or after current), change plan (limit-checked), extend, cancel, record payment;
+  GST tax invoices (`ACT/<FY>/<n>`, CGST/SGST vs IGST), printable; operator billing page with usage & history.
+- Lifecycle command `subscriptions:process` (hourly): grace → expired, 7/3/1-day reminders; queued mail + DB notifications.
+- KYC: private uploads (PDF/JPG/PNG/WEBP ≤5 MB), operator manage, admin approve/reject, auto-verify.
+- Support tickets (operator ↔ staff, internal notes, assignment, status), website enquiries inbox.
+- Plans CRUD, platform settings (billing, company/invoice, encrypted integration secrets), audit log viewer,
+  platform staff & roles, operator business profile with logo/brand colour, approval email.
+- Fixes: route-model binding ran before tenant context (now prioritised); `User::roles()` eager-load returned no
+  roles for tenant users (filter moved to permission check); date-dependent trial tests.
+
 ## 2026-11-17 — UI v2 (design system + SEO + performance)
 - New theme: taxi-yellow/ink palette, Plus Jakarta Sans, glass header, gradient hero with grid, light/dark.
 - Home: trip-type tabs quote form (prefill via `?trip=`, `?pickup=`, `?drop=`), trust strip, services, fleet,

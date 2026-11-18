@@ -20,6 +20,13 @@
             <h1 class="h3">{{ __('Registration not approved') }}</h1>
             @if ($tenant->suspension_reason)<p class="small"><strong>{{ __('Reason') }}:</strong> {{ $tenant->suspension_reason }}</p>@endif
         @endif
+        <div class="d-grid gap-2 my-4">
+            @if (in_array($status, ['pending', 'rejected']))
+                <a href="{{ route('operator.kyc.index') }}" class="btn btn-primary"><x-icon name="cloud-upload" />{{ __('Upload KYC documents') }}</a>
+                <a href="{{ route('operator.profile.edit') }}" class="btn btn-light border"><x-icon name="building" />{{ __('Complete business profile') }}</a>
+            @endif
+            <a href="{{ route('operator.support.create', ['category' => $status === 'suspended' ? 'account' : 'kyc']) }}" class="btn btn-light border"><x-icon name="life-preserver" />{{ __('Contact support') }}</a>
+        </div>
         <p class="small">{{ __('Questions? Write to') }} <a href="mailto:{{ config('aaochale.support_email') }}">{{ config('aaochale.support_email') }}</a></p>
         <form method="POST" action="{{ route('logout') }}" class="mt-4">@csrf
             <button class="btn btn-light border"><x-icon name="box-arrow-right" />{{ __('Logout') }}</button>

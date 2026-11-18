@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 
 class User extends Authenticatable
 {
@@ -42,13 +43,19 @@ class User extends Authenticatable
         return $this->belongsTo(Tenant::class);
     }
 
-    /** Only roles that belong to the user's own tenant (or platform roles for platform users). */
+    /**
+     * All attached roles. Use tenantRoles() for authorization — it drops any role that does not
+     * belong to the user's own tenant (or platform roles for platform users).
+     */
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class)
-            ->where(fn ($q) => $this->tenant_id
-                ? $q->where('roles.tenant_id', $this->tenant_id)
-                : $q->whereNull('roles.tenant_id'));
+        return $this->belongsToMany(Role::class);
+    }
+
+    /** @return Collection<int, Role> */
+    public function tenantRoles(): Collection
+    {
+        return $this->roles->filter(fn (Role $r) => $r->tenant_id === $this->tenant_id)->values();
     }
 
     public function isSuperAdmin(): bool
@@ -63,13 +70,14 @@ class User extends Authenticatable
 
     public function hasRole(string $slug): bool
     {
-        return $this->roles->contains('slug', $slug);
+        return $this->tenantRoles()->contains('slug', $slug);
     }
 
     /** @return list<string> */
     public function permissionKeys(): array
     {
         return $this->permissionCache ??= $this->roles()
+            ->where(fn ($q) => $this->tenant_id ? $q->where('roles.tenant_id', $this->tenant_id) : $q->whereNull('roles.tenant_id'))
             ->with('permissions:id,key')
             ->get()
             ->flatMap(fn (Role $role) => $role->permissions->pluck('key'))

@@ -57,7 +57,8 @@ Rollback (on server): `bash ~/domains/aaochaletaxi.com/aaochaletaxi_app/current/
    first super admin once). Change the password after first login.
 3. hPanel → Advanced → **Cron Jobs** → every minute:
    `/usr/bin/php /home/u856292259/domains/aaochaletaxi.com/aaochaletaxi_app/current/artisan schedule:run >> /dev/null 2>&1`
-   (drains the database queue, clears expired resets, prunes failed jobs).
+   (drains the database queue — **all emails are queued**, runs `subscriptions:process` hourly for expiry/grace/
+   reminders, clears expired resets, prunes failed jobs). Without this cron no emails go out and trials never expire.
 4. SSL: hPanel → Security → SSL (already active; HTTP→HTTPS redirect handled by Hostinger). `SESSION_SECURE_COOKIE=true`.
 5. Mail: `MAIL_MAILER=sendmail` works out of the box. For better deliverability create `noreply@aaochaletaxi.com`
    in hPanel → Emails and switch to SMTP (`smtp.hostinger.com:465`, `MAIL_SCHEME=smtps`).

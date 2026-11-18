@@ -6,7 +6,11 @@ use App\Enums\KycStatus;
 use App\Enums\TenantStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
+use App\Services\KycService;
+use App\Services\PlanLimitService;
+use App\Services\SubscriptionService;
 use App\Services\TenantAdminService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,12 +46,21 @@ class TenantController extends Controller
         return view('admin.tenants.index', ['tenants' => $tenants, 'filters' => $filters, 'statuses' => TenantStatus::cases()]);
     }
 
-    public function show(Tenant $tenant): View
+    public function show(Tenant $tenant, SubscriptionService $subscriptions, PlanLimitService $limits): View
     {
-        $tenant->load(['users' => fn ($q) => $q->with('roles:id,name')->orderBy('id'), 'subscriptions.plan:id,name']);
+        $tenant->load([
+            'users' => fn ($q) => $q->with('roles:id,tenant_id,name,slug')->orderBy('id'),
+            'subscriptions.plan:id,name',
+            'documents.reviewer:id,name',
+            'subscriptionPayments',
+        ]);
 
         return view('admin.tenants.show', [
             'tenant' => $tenant,
+            'current' => $subscriptions->currentFor($tenant),
+            'plans' => SubscriptionPlan::query()->active()->get(),
+            'usage' => $limits->usage($tenant),
+            'kycRequired' => KycService::requiredStatus($tenant),
             'activity' => AuditLog::query()->with('user:id,name')->where('tenant_id', $tenant->id)->latest('id')->limit(15)->get(),
             'kycStatuses' => KycStatus::cases(),
         ]);
