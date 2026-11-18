@@ -17,9 +17,9 @@
             <h2>6. Liability</h2>
             <p>To the extent permitted by law, AaoChaleTaxi is not liable for acts or omissions of operators or drivers, delays caused by traffic, weather or events beyond reasonable control, or indirect losses.</p>
             <h2>7. Governing law</h2>
-            <p>These terms are governed by the laws of India. Courts at the company's registered office location have jurisdiction.</p>
+            <p>These terms are governed by the laws of India. Courts having jurisdiction over the registered address below have exclusive jurisdiction.</p>
             <h2>8. Contact</h2>
-            <p><a href="mailto:{{ config('aaochale.support_email') }}">{{ config('aaochale.support_email') }}</a></p>
+            @include('public.partials.business')
         </div></div>
     </section>
 </x-layouts.public>

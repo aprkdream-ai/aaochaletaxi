@@ -19,6 +19,12 @@
                         <div class="route-chip">
                             <span class="d-flex align-items-center gap-3"><span class="icon-tile tile-sm"><x-icon name="clock" /></span><span><span class="d-block small text-muted-2 fw-semibold">{{ __('Support hours') }}</span>{{ __('Mon – Sun, 8 AM – 10 PM IST') }}</span></span>
                         </div>
+                        @php $bizName = \App\Models\PlatformSetting::getValue('platform_legal_name'); $bizAddress = \App\Models\PlatformSetting::getValue('platform_address'); @endphp
+                        @if ($bizName || $bizAddress)
+                            <div class="route-chip">
+                                <span class="d-flex align-items-start gap-3"><span class="icon-tile tile-sm"><x-icon name="geo-alt" /></span><span><span class="d-block small text-muted-2 fw-semibold">{{ __('Registered business') }}</span>@if ($bizName)<span class="d-block fw-semibold">{{ $bizName }}</span>@endif @if ($bizAddress)<span class="d-block small" style="white-space: pre-line">{{ $bizAddress }}</span>@endif</span></span>
+                            </div>
+                        @endif
                         <a href="{{ route('home') }}#quote" class="route-chip">
                             <span class="d-flex align-items-center gap-3"><span class="icon-tile tile-sm"><x-icon name="lightning-charge" /></span><span><span class="d-block small text-muted-2 fw-semibold">{{ __('Need a taxi?') }}</span>{{ __('Get a fare quote') }}</span></span>
                             <x-icon name="chevron-right" class="arrow" />

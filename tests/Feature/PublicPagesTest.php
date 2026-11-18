@@ -3,13 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\ContactMessage;
+use App\Models\PlatformSetting;
 use Tests\TestCase;
 
 class PublicPagesTest extends TestCase
 {
     public function test_public_pages_render(): void
     {
-        foreach (['home', 'about', 'services', 'partner', 'contact', 'legal.privacy', 'legal.terms', 'legal.refund', 'login', 'register.operator', 'register.customer', 'password.request'] as $route) {
+        foreach (['home', 'about', 'services', 'partner', 'contact', 'legal.privacy', 'legal.terms', 'legal.refund', 'legal.shipping', 'login', 'register.operator', 'register.customer', 'password.request'] as $route) {
             $this->get(route($route))->assertOk()->assertSee('AaoChale', false);
         }
     }
@@ -124,5 +125,16 @@ class PublicPagesTest extends TestCase
     public function test_unknown_page_returns_404(): void
     {
         $this->get('/no-such-page')->assertNotFound();
+    }
+
+    public function test_business_details_shown_on_policy_pages_when_configured(): void
+    {
+        $this->get(route('legal.shipping'))->assertOk()->assertSee('do not sell or ship any physical goods', false)->assertDontSee('owned and operated by');
+        PlatformSetting::setValue('platform_legal_name', 'Test Owner');
+        PlatformSetting::setValue('platform_address', "12 Main Road\nIndore 452001");
+        foreach (['legal.shipping', 'legal.terms', 'legal.refund', 'legal.privacy', 'contact'] as $r) {
+            $this->get(route($r))->assertOk()->assertSee('Test Owner')->assertSee('Indore 452001');
+        }
+        $this->get(route('home'))->assertSee('Owned &amp; operated by Test Owner', false)->assertSee(route('legal.shipping'), false);
     }
 }

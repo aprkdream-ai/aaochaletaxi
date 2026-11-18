@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-18 — Payment-gateway compliance pages
+- New `/shipping-delivery-policy` (services only, ride & subscription delivery timelines) in footer + sitemap.
+- Owner/legal name, registered address and GSTIN (Admin → Settings → Company) shown on contact, terms, refund, privacy,
+  shipping pages and the footer; terms jurisdiction follows the registered address.
+
 ## 2026-11-18 — UI polish (panels + mobile)
 - Admin/operator panels: denser type (15 px), slimmer inputs/buttons/cards, smaller stat cards on phones, full-width
   header actions on mobile.

@@ -29,6 +29,7 @@ Route::controller(PageController::class)->group(function () {
     Route::get('/privacy-policy', 'legal')->defaults('page', 'privacy')->name('legal.privacy');
     Route::get('/terms-and-conditions', 'legal')->defaults('page', 'terms')->name('legal.terms');
     Route::get('/cancellation-refund-policy', 'legal')->defaults('page', 'refund')->name('legal.refund');
+    Route::get('/shipping-delivery-policy', 'legal')->defaults('page', 'shipping')->name('legal.shipping');
 });
 Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:forms')->name('contact.store');
 Route::post('/enquiry', [ContactController::class, 'enquiry'])->middleware('throttle:forms')->name('enquiry.store');

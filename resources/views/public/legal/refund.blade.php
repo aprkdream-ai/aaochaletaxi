@@ -17,7 +17,8 @@
             <h2>4. Subscription fees</h2>
             <p>Operator subscription fees are non-refundable once a billing period has started. You may cancel auto-renewal anytime; access continues until the end of the paid period.</p>
             <h2>5. Contact</h2>
-            <p>For cancellations and refunds email <a href="mailto:{{ config('aaochale.support_email') }}">{{ config('aaochale.support_email') }}</a> with your booking number.</p>
+            <p>For cancellations and refunds, write to us with your booking number or payment ID.</p>
+            @include('public.partials.business')
         </div></div>
     </section>
 </x-layouts.public>

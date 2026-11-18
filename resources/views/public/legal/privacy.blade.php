@@ -25,7 +25,10 @@
             <h2>7. Security</h2>
             <p>We use HTTPS, hashed passwords, role-based access control and audit logs. No system is perfectly secure; please keep your password confidential.</p>
             <h2>8. Grievance officer</h2>
-            <p>Email: <a href="mailto:{{ config('aaochale.grievance_email') }}">{{ config('aaochale.grievance_email') }}</a>. We acknowledge grievances within 72 hours.</p>
+            @php $grievanceName = \App\Models\PlatformSetting::getValue('platform_legal_name'); @endphp
+            <p>@if ($grievanceName){{ $grievanceName }} · @endif Email: <a href="mailto:{{ config('aaochale.grievance_email') }}">{{ config('aaochale.grievance_email') }}</a>. We acknowledge grievances within 72 hours.</p>
+            <h2>9. Business details</h2>
+            @include('public.partials.business')
         </div></div>
     </section>
 </x-layouts.public>
