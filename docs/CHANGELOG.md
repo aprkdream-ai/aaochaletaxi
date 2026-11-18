@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-18 — Integrations (Phase 9 core, pulled forward)
+- Super admin settings split into Payments (Razorpay), Email (SMTP/sendmail), SMS (MSG91 / Fast2SMS), WhatsApp Cloud API,
+  Google Maps, Push (Firebase FCM v1) — encrypted secrets, "required secret" validation, live "Send test" per channel.
+- Razorpay online subscription checkout (order → Checkout.js → HMAC-verified callback) + signed webhook
+  (`/webhooks/razorpay`, CSRF-exempt); idempotent fulfilment with amount check; renews after current paid period.
+- Notifications fan out to mail + SMS + WhatsApp when configured; runtime mail config from settings.
+- `message_logs` delivery log (sent/failed/skipped + provider id/error) with admin viewer; `payment_orders` table.
+- Distance Matrix service (cached) and FCM service (JWT signed with openssl, no SDK).
+- UI: readable activity feed, fixed invisible active item in settings menu; richer DemoSeeder (paid plan, invoice, ticket, enquiries).
+
 ## 2026-11-18 — Phase 2: SaaS admin
 - Subscriptions: activate/renew (now or after current), change plan (limit-checked), extend, cancel, record payment;
   GST tax invoices (`ACT/<FY>/<n>`, CGST/SGST vs IGST), printable; operator billing page with usage & history.

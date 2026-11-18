@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Subscription;
+use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -10,15 +11,10 @@ use Illuminate\Notifications\Notification;
 
 class SubscriptionNotice extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, UsesConfiguredChannels;
 
     /** @param 'activated'|'expiring'|'grace'|'expired' $kind */
     public function __construct(public string $kind, public Subscription $subscription) {}
-
-    public function via(object $notifiable): array
-    {
-        return $notifiable->email ? ['database', 'mail'] : ['database'];
-    }
 
     public function toMail(object $notifiable): MailMessage
     {
@@ -39,6 +35,18 @@ class SubscriptionNotice extends Notification implements ShouldQueue
             default => $mail->subject(__('Subscription expired'))
                 ->line(__('Your subscription has expired and access to the dashboard is paused. Your data is safe and will be available as soon as you renew.'))
                 ->action(__('Renew subscription'), route('operator.subscription')),
+        };
+    }
+
+    public function toText(object $notifiable): string
+    {
+        $s = $this->subscription;
+
+        return match ($this->kind) {
+            'activated' => __('AaoChaleTaxi: your :plan plan is active till :date.', ['plan' => $s->plan->name, 'date' => $s->ends_at->format('d M Y')]),
+            'expiring' => __('AaoChaleTaxi: your :plan plan expires on :date. Renew at :url', ['plan' => $s->plan->name, 'date' => $s->ends_at->format('d M Y'), 'url' => route('operator.subscription')]),
+            'grace' => __('AaoChaleTaxi: your subscription ended. Renew before :date to avoid interruption.', ['date' => $s->grace_ends_at?->format('d M Y')]),
+            default => __('AaoChaleTaxi: your subscription has expired. Your data is safe — renew at :url', ['url' => route('operator.subscription')]),
         };
     }
 

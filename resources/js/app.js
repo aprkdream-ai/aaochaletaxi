@@ -31,6 +31,54 @@ Alpine.data('quoteForm', (initial = 'outstation_oneway') => ({
     },
 }));
 
+// Razorpay Checkout: create order on the server, open the modal, post the signed result back.
+Alpine.data('razorpayCheckout', (orderUrl) => ({
+    cycle: 'monthly',
+    busy: null,
+    error: '',
+    loadScript() {
+        if (window.Razorpay) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            s.onload = resolve;
+            s.onerror = () => reject(new Error('Could not load payment window. Check your internet connection.'));
+            document.head.appendChild(s);
+        });
+    },
+    async pay(planId) {
+        this.error = '';
+        this.busy = planId;
+        try {
+            await this.loadScript();
+            const res = await fetch(orderUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                body: JSON.stringify({ plan_id: planId, billing_cycle: this.cycle }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || Object.values(data.errors || {})[0]?.[0] || 'Payment could not be started.');
+            const form = this.$refs.verify;
+            form.action = data.verify_url;
+            const rzp = new window.Razorpay({
+                ...data,
+                handler: (r) => {
+                    form.razorpay_order_id.value = r.razorpay_order_id;
+                    form.razorpay_payment_id.value = r.razorpay_payment_id;
+                    form.razorpay_signature.value = r.razorpay_signature;
+                    form.submit();
+                },
+                modal: { ondismiss: () => { this.busy = null; } },
+            });
+            rzp.on('payment.failed', (r) => { this.error = r.error?.description || 'Payment failed. Please try again.'; this.busy = null; });
+            rzp.open();
+        } catch (e) {
+            this.error = e.message;
+            this.busy = null;
+        }
+    },
+}));
+
 Alpine.start();
 
 document.addEventListener('DOMContentLoaded', () => {

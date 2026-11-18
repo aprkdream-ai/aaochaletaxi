@@ -29,7 +29,7 @@ class AdminPlatformTest extends TestCase
             route('admin.dashboard'), route('admin.tenants.index'), route('admin.tenants.show', $tenant), route('admin.subscriptions.index'),
             route('admin.plans.index'), route('admin.plans.create'), route('admin.plans.edit', SubscriptionPlan::first()),
             route('admin.enquiries.index'), route('admin.support.index'), route('admin.staff.index'), route('admin.staff.create'),
-            route('admin.settings.edit'), route('admin.settings.edit', ['group' => 'company']), route('admin.settings.edit', ['group' => 'integrations']),
+            route('admin.settings.edit'), route('admin.settings.edit', ['group' => 'company']), route('admin.settings.edit', ['group' => 'payments']),
             route('admin.audit.index'),
         ] as $url) {
             $this->actingAs($this->admin)->get($url)->assertOk();
@@ -64,19 +64,19 @@ class AdminPlatformTest extends TestCase
 
     public function test_settings_secrets_are_encrypted_and_not_audited(): void
     {
-        $this->actingAs($this->admin)->put(route('admin.settings.update'), ['group' => 'integrations', 'razorpay_key_id' => 'rzp_test_1', 'razorpay_key_secret' => 'supersecret'])->assertRedirect();
+        $this->actingAs($this->admin)->put(route('admin.settings.update'), ['group' => 'payments', 'razorpay_mode' => 'test', 'razorpay_key_id' => 'rzp_test_1', 'razorpay_key_secret' => 'supersecret'])->assertRedirect()->assertSessionHasNoErrors();
         $raw = DB::table('platform_settings')->where('key', 'razorpay_key_secret')->value('value');
         $this->assertNotSame('supersecret', $raw);
         $this->assertSame('supersecret', PlatformSetting::getValue('razorpay_key_secret'));
 
         // Blank keeps the existing secret; page never echoes it.
-        $this->actingAs($this->admin)->put(route('admin.settings.update'), ['group' => 'integrations', 'razorpay_key_id' => 'rzp_test_1', 'razorpay_key_secret' => '']);
+        $this->actingAs($this->admin)->put(route('admin.settings.update'), ['group' => 'payments', 'razorpay_mode' => 'test', 'razorpay_key_id' => 'rzp_test_1', 'razorpay_key_secret' => '']);
         $this->assertSame('supersecret', PlatformSetting::getValue('razorpay_key_secret'));
-        $this->actingAs($this->admin)->get(route('admin.settings.edit', ['group' => 'integrations']))->assertDontSee('supersecret')->assertSee('Configured');
+        $this->actingAs($this->admin)->get(route('admin.settings.edit', ['group' => 'payments']))->assertDontSee('supersecret')->assertSee('Configured');
 
         $this->assertStringNotContainsString('supersecret', AuditLog::where('event', 'platform.settings_updated')->get()->toJson());
 
-        $this->actingAs($this->admin)->put(route('admin.settings.update'), ['group' => 'integrations', 'clear_razorpay_key_secret' => 1]);
+        $this->actingAs($this->admin)->put(route('admin.settings.update'), ['group' => 'payments', 'razorpay_mode' => 'disabled', 'clear_razorpay_key_secret' => 1]);
         $this->assertNull(PlatformSetting::getValue('razorpay_key_secret'));
     }
 

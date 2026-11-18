@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(ResetTenantContext::class);
         $middleware->append(SecurityHeaders::class);
         $middleware->web(append: [SetLocale::class, EnsureUserIsActive::class]);
+        $middleware->validateCsrfTokens(except: ['webhooks/*']); // signature-verified instead
 
         $middleware->alias([
             'type' => EnsureUserType::class,

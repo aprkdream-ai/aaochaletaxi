@@ -63,6 +63,17 @@ Rollback (on server): `bash ~/domains/aaochaletaxi.com/aaochaletaxi_app/current/
 5. Mail: `MAIL_MAILER=sendmail` works out of the box. For better deliverability create `noreply@aaochaletaxi.com`
    in hPanel → Emails and switch to SMTP (`smtp.hostinger.com:465`, `MAIL_SCHEME=smtps`).
 
+## 4a. Third-party integrations (all optional) — Admin → Settings
+| Section | What to enter | Test |
+|---|---|---|
+| Payments | Razorpay mode (test/live), Key ID, Key secret, Webhook secret. Razorpay Dashboard → Webhooks → URL `https://aaochaletaxi.com/webhooks/razorpay`, events `payment.captured`, `order.paid` | "Send test" checks keys |
+| Email | sendmail (default) or SMTP `smtp.hostinger.com:465 SSL` + mailbox credentials, From address | sends a test email |
+| SMS | MSG91 (auth key + Flow template with `##var1##`) or Fast2SMS (API key, DLT sender ID, DLT template id) | sends a test SMS |
+| WhatsApp | Meta Cloud API phone number ID, permanent token, approved template with `{{1}}` | sends template (or `hello_world`) |
+| Google Maps | Browser key (domain-restricted) + server key with Distance Matrix enabled | Mumbai → Pune distance |
+| Push | Firebase project ID + service-account JSON | authenticates / sends to a token |
+All deliveries are visible in Admin → Message log.
+
 ## 5. Generic cPanel / Plesk (no SSH)
 1. Locally: `composer install --no-dev -o && npm ci && npm run build`.
 2. Zip the project **excluding** `.git`, `node_modules`, `tests`, `.env`. Upload via File Manager to

@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Tenant;
+use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -10,14 +11,9 @@ use Illuminate\Notifications\Notification;
 
 class TenantApproved extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, UsesConfiguredChannels;
 
     public function __construct(public Tenant $tenant) {}
-
-    public function via(object $notifiable): array
-    {
-        return $notifiable->email ? ['database', 'mail'] : ['database'];
-    }
 
     public function toMail(object $notifiable): MailMessage
     {
@@ -27,6 +23,11 @@ class TenantApproved extends Notification implements ShouldQueue
             ->line(__('Your business account has been verified and activated.'))
             ->action(__('Open your dashboard'), route('operator.dashboard'))
             ->line(__('Need help getting started? Reply to this email or raise a support ticket.'));
+    }
+
+    public function toText(object $notifiable): string
+    {
+        return __('AaoChaleTaxi: :name is verified and live. Login at :url', ['name' => $this->tenant->name, 'url' => route('login')]);
     }
 
     public function toArray(object $notifiable): array

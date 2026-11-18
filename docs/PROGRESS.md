@@ -4,7 +4,7 @@
 **Current phase:** Phase 2 complete → next Phase 3 (Operator: branches, staff, vehicles, drivers)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, SQLite fallback DB)
 **Completed phases:** 0 (discovery), 1 (foundation + UI v2), 2 (SaaS admin)
-**Tests:** 97 passing (SQLite + MariaDB locally; MySQL 8 in CI)
+**Tests:** 114 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
 ## Phase 1 — completed
 - [x] Laravel 12 + Bootstrap/Alpine/Vite setup, IST timezone, en/hi locale switch
@@ -34,8 +34,13 @@
 - [x] KYC uploads & review · support tickets · platform settings (encrypted secrets) · audit viewer · staff & roles
 - [x] Operator: business profile/logo, KYC, subscription & invoices, support; pending-tenant onboarding links
 
+## Integrations — completed (pulled forward from Phase 9)
+- [x] Razorpay online subscription checkout + webhook (idempotent), settings with test buttons for all channels
+- [x] SMS (MSG91/Fast2SMS), WhatsApp Cloud API, SMTP/sendmail, Google Distance Matrix, FCM v1; message log
+
 ## Pending (dev, later phases)
-- [ ] Online subscription payment via Razorpay (Phase 9) — currently manual payment recording
+- [ ] Use Maps distance + Places autocomplete in booking/fare flow (Phase 4/5)
+- [ ] Driver PWA push subscription → FCM tokens (Phase 7); booking payments via Razorpay (Phase 5)
 - [ ] PDF download of invoices (Phase 6, dompdf) — currently print-to-PDF page
 - [ ] Plan limits for vehicles/drivers/branches enforced when those modules ship (Phase 3)
 

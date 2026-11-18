@@ -163,6 +163,11 @@ vendors (T), vendor_vehicles (T).
   resolved/closed), created_by, assigned_to, last_reply_at, closed_at. idx (tenant_id, status), (status, last_reply_at).
 - support_ticket_replies ✅ (T): support_ticket_id, user_id, from_staff, is_internal, body.
 - contact_messages (Phase 2): + handled_by, admin_notes, idx (type, handled_at).
+- payment_orders ✅ (T): purpose, plan_id, billing_cycle, amount, tax_amount, total, currency, gateway, gateway_mode,
+  gateway_order_id unique, gateway_payment_id unique, status (created/paid/failed), subscription_payment_id,
+  created_by, fulfilled_via (checkout/webhook), failure_reason, paid_at.
+- message_logs ✅: tenant_id nullable, channel (mail/sms/whatsapp/push), provider, recipient, subject, body, status
+  (sent/failed/skipped), provider_message_id, error, context.
 - notification_templates ⏳P9.
 - Framework: cache, cache_locks, jobs, job_batches, failed_jobs, sessions, password_reset_tokens ✅.
 

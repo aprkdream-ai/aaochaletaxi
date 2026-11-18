@@ -36,22 +36,39 @@
     <div class="row g-3">
         <div class="col-lg-7">
             <div class="card panel-card mb-3">
-                <div class="card-header">{{ __('Renew or upgrade') }}</div>
-                <div class="card-body">
-                    <p class="small text-muted-2">{{ __('Online payment is coming soon. To renew or change plan, raise a billing request — our team will share payment details (UPI / bank transfer) and activate your plan as soon as payment is received.') }}</p>
+                <div class="card-header">{{ __('Renew or upgrade') }} @if ($onlinePayment)<span class="badge-soft ok"><x-icon name="shield-check" /> {{ __('Secure online payment') }}</span>@endif</div>
+                <div class="card-body" x-data="razorpayCheckout(@js(route('operator.checkout.store')))">
+                    @if ($onlinePayment)
+                        <div class="d-flex justify-content-center mb-3">
+                            <div class="seg"><button type="button" :class="{ active: cycle === 'monthly' }" @click="cycle = 'monthly'">{{ __('Monthly') }}</button><button type="button" :class="{ active: cycle === 'yearly' }" @click="cycle = 'yearly'">{{ __('Yearly') }}</button></div>
+                        </div>
+                    @else
+                        <p class="small text-muted-2">{{ __('To renew or change plan, raise a billing request — our team will share payment details (UPI / bank transfer) and activate your plan as soon as payment is received.') }}</p>
+                    @endif
+                    <div class="alert alert-danger small py-2" x-show="error" x-text="error" x-cloak></div>
                     <div class="row g-2">
                         @foreach ($plans as $p)
                             <div class="col-md-4">
-                                <div @class(['p-3 rounded-4 border h-100', 'border-warning' => $current?->plan_id === $p->id])>
-                                    <div class="fw-bold">{{ $p->name }}</div>
-                                    <div class="fs-5 fw-800">{{ Money::format($p->price_monthly, 0) }}<span class="small fw-normal text-muted-2">/{{ __('mo') }}</span></div>
+                                <div @class(['p-3 rounded-4 border h-100 d-flex flex-column', 'border-warning' => $current?->plan_id === $p->id])>
+                                    <div class="fw-bold">{{ $p->name }} @if ($current?->plan_id === $p->id)<span class="badge-soft warn">{{ __('Current') }}</span>@endif</div>
+                                    <div class="fs-5 fw-800">
+                                        <span x-show="cycle === 'monthly'">{{ Money::format($p->price_monthly, 0) }}<span class="small fw-normal text-muted-2">/{{ __('mo') }}</span></span>
+                                        <span x-show="cycle === 'yearly'" x-cloak>{{ Money::format($p->price_yearly, 0) }}<span class="small fw-normal text-muted-2">/{{ __('yr') }}</span></span>
+                                    </div>
                                     <div class="small text-muted-2 mb-2">{{ __(':v vehicles · :d drivers', ['v' => $p->max_vehicles, 'd' => $p->max_drivers]) }}</div>
-                                    <a href="{{ route('operator.support.create', ['category' => 'billing', 'subject' => __('Request: :plan plan', ['plan' => $p->name])]) }}" class="btn btn-sm {{ $current?->plan_id === $p->id ? 'btn-primary' : 'btn-light border' }} w-100">{{ $current?->plan_id === $p->id ? __('Renew') : __('Choose') }}</a>
+                                    @if ($onlinePayment)
+                                        <button type="button" class="btn btn-sm {{ $current?->plan_id === $p->id ? 'btn-primary' : 'btn-ink' }} w-100 mt-auto" :disabled="busy" @click="pay({{ $p->id }})">
+                                            <span x-show="busy === {{ $p->id }}" class="spinner-border spinner-border-sm" x-cloak></span>{{ $current?->plan_id === $p->id ? __('Renew & pay') : __('Choose & pay') }}
+                                        </button>
+                                    @else
+                                        <a href="{{ route('operator.support.create', ['category' => 'billing', 'subject' => __('Request: :plan plan', ['plan' => $p->name])]) }}" class="btn btn-sm {{ $current?->plan_id === $p->id ? 'btn-primary' : 'btn-light border' }} w-100 mt-auto">{{ $current?->plan_id === $p->id ? __('Renew') : __('Choose') }}</a>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
                     </div>
-                    <div class="small text-muted-2 mt-2">{{ __('Prices exclusive of GST.') }} <a href="{{ route('partner') }}#pricing" target="_blank">{{ __('Compare plans') }}</a></div>
+                    <div class="small text-muted-2 mt-2">{{ __('Prices exclusive of GST (:p%).', ['p' => rtrim(rtrim($gstPercent, '0'), '.')]) }} @if ($onlinePayment){{ __('UPI, cards, net banking & wallets accepted. Paying while a paid plan is active extends it from its end date.') }}@endif <a href="{{ route('partner') }}#pricing" target="_blank">{{ __('Compare plans') }}</a></div>
+                    <form method="POST" x-ref="verify" class="d-none">@csrf<input type="hidden" name="razorpay_order_id"><input type="hidden" name="razorpay_payment_id"><input type="hidden" name="razorpay_signature"></form>
                 </div>
             </div>
             <div class="card panel-card">
@@ -61,8 +78,8 @@
                         <thead><tr><th>{{ __('Invoice') }}</th><th>{{ __('Date') }}</th><th class="text-end">{{ __('Amount') }}</th><th></th></tr></thead>
                         <tbody>
                             @forelse ($payments as $p)
-                                <tr><td class="fw-semibold">{{ $p->invoice_number }}</td><td>{{ $p->paid_at?->format('d M Y') }}</td><td class="text-end fw-bold">{{ Money::format($p->total) }}</td>
-                                    <td class="text-end"><a href="{{ route('operator.invoices.show', $p) }}" target="_blank" class="btn btn-sm btn-light"><x-icon name="download" />{{ __('Invoice') }}</a></td></tr>
+                                <tr><td class="fw-semibold text-nowrap">{{ $p->invoice_number }}</td><td class="text-nowrap">{{ $p->paid_at?->format('d M Y') }}</td><td class="text-end fw-bold text-nowrap">{{ Money::format($p->total) }}</td>
+                                    <td class="text-end"><a href="{{ route('operator.invoices.show', $p) }}" target="_blank" class="btn btn-sm btn-light" aria-label="{{ __('Invoice') }}"><x-icon name="download" /><span class="d-none d-sm-inline">{{ __('Invoice') }}</span></a></td></tr>
                             @empty
                                 <tr><td colspan="4"><x-empty-state icon="receipt" :title="__('No invoices yet')" /></td></tr>
                             @endforelse

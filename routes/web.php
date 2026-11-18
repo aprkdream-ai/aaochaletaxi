@@ -12,6 +12,7 @@ use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\LocaleController;
 use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\SitemapController;
+use App\Http\Controllers\Webhooks\RazorpayWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // ---------- Public website ----------
@@ -29,6 +30,7 @@ Route::post('/contact', [ContactController::class, 'store'])->middleware('thrott
 Route::post('/enquiry', [ContactController::class, 'enquiry'])->middleware('throttle:forms')->name('enquiry.store');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/locale/{locale}', LocaleController::class)->name('locale');
+Route::post('/webhooks/razorpay', RazorpayWebhookController::class)->middleware('throttle:120,1')->name('webhooks.razorpay');
 
 // ---------- Authentication ----------
 Route::middleware('guest')->group(function () {
@@ -101,6 +103,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'type:super_admin,pl
     Route::middleware('permission:admin.settings.manage')->group(function () {
         Route::get('/settings', [Admin\SettingsController::class, 'edit'])->name('settings.edit');
         Route::put('/settings', [Admin\SettingsController::class, 'update'])->name('settings.update');
+        Route::post('/settings/test/{integration}', [Admin\SettingsController::class, 'test'])->middleware('throttle:forms')->name('settings.test');
+        Route::get('/message-log', [Admin\MessageLogController::class, 'index'])->name('messages.index');
     });
     Route::get('/audit-log', [Admin\AuditLogController::class, 'index'])->middleware('permission:admin.audit.view')->name('audit.index');
 });
@@ -120,6 +124,8 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
     });
     Route::middleware('permission:subscription.manage')->group(function () {
         Route::get('/subscription', [Operator\SubscriptionController::class, 'show'])->name('subscription');
+        Route::post('/subscription/checkout', [Operator\CheckoutController::class, 'store'])->middleware('throttle:forms')->name('checkout.store');
+        Route::post('/subscription/checkout/verify', [Operator\CheckoutController::class, 'verify'])->name('checkout.verify');
         Route::get('/invoices/{payment}', [Operator\SubscriptionController::class, 'invoice'])->name('invoices.show');
     });
     Route::controller(Operator\SupportTicketController::class)->group(function () {

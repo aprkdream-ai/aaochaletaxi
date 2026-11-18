@@ -19,4 +19,7 @@
 | D15 | 2026-11-17 | Inline SVG icons (`x-icon`) instead of Bootstrap Icons font | Saves ~134 KB font download; only used icons ship |
 | D16 | 2026-11-17 | Slim Bootstrap SCSS/JS imports, Plus Jakarta Sans | Lightweight pages (~70 KB gz CSS+JS) on Indian mobile networks |
 | D17 | 2026-11-17 | Sessions/locale: Hindi via session switch on same URLs (no `/hi/` prefix yet) | Simple; revisit with hreflang URLs if Hindi SEO becomes a goal |
+| D19 | 2026-11-18 | Integrations via plain HTTP clients (Razorpay, MSG91, Fast2SMS, Meta Graph, Google, FCM v1) — no SDKs | Fewer dependencies on shared hosting; easy to fake in tests |
+| D20 | 2026-11-18 | WhatsApp notifications use one approved utility template with `{{1}}` = message text | Business-initiated WhatsApp messages require templates |
+| D21 | 2026-11-18 | Online payment activates "after current" when a paid period is running, else immediately | Customers never lose paid days |
 | D18 | 2026-11-17 | No fabricated reviews/stats on marketing pages | Honest launch; add real testimonials once collected |

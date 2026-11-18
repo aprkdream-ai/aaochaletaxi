@@ -179,7 +179,7 @@
             <div class="card panel-card"><div class="card-header">{{ __('Activity') }}</div>
                 <div class="list-group list-group-flush list-modern small">
                     @forelse ($activity as $log)
-                        <div class="list-group-item"><code>{{ $log->event }}</code><div class="text-muted-2">{{ $log->user?->name ?? __('System') }} · {{ $log->created_at->format('d M Y, h:i A') }}</div></div>
+                        <div class="list-group-item d-flex gap-2"><x-icon :name="\App\Support\AuditPresenter::icon($log->event)" class="text-muted-2 mt-1" /><div><span class="fw-semibold">{{ \App\Support\AuditPresenter::label($log->event) }}</span><div class="text-muted-2">{{ $log->user?->name ?? __('System') }} · {{ $log->created_at->format('d M Y, h:i A') }}</div></div></div>
                     @empty
                         <x-empty-state icon="activity" :title="__('No activity yet')" />
                     @endforelse

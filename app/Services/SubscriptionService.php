@@ -37,7 +37,7 @@ class SubscriptionService
      * @param  'now'|'after_current'  $start
      * @param  array{amount?:string|float|null, method:string, reference?:?string, paid_at?:mixed, notes?:?string}|null  $payment
      */
-    public function activate(Tenant $tenant, SubscriptionPlan $plan, string $cycle, string $start, User $admin, ?array $payment = null, ?string $notes = null): Subscription
+    public function activate(Tenant $tenant, SubscriptionPlan $plan, string $cycle, string $start, ?User $admin, ?array $payment = null, ?string $notes = null): Subscription
     {
         if (! in_array($cycle, ['monthly', 'yearly'], true)) {
             throw ValidationException::withMessages(['billing_cycle' => __('Invalid billing cycle.')]);
@@ -60,7 +60,7 @@ class SubscriptionService
                     'plan_id' => $plan->id, 'billing_cycle' => $cycle, 'status' => SubscriptionStatus::Active,
                     'starts_at' => $startsAt, 'ends_at' => $endsAt, 'price' => $price, 'notes' => $notes,
                 ]);
-                $s->activated_by = $admin->id;
+                $s->activated_by = $admin?->id;
                 $s->save();
 
                 return $s;

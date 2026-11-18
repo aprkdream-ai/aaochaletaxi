@@ -16,6 +16,7 @@ return [
         ['section' => 'Platform'],
         ['label' => 'Staff & roles', 'icon' => 'person-gear', 'route' => 'admin.staff.index', 'active' => 'admin.staff.*', 'permission' => 'admin.users.manage'],
         ['label' => 'Settings', 'icon' => 'gear', 'route' => 'admin.settings.edit', 'active' => 'admin.settings.*', 'permission' => 'admin.settings.manage'],
+        ['label' => 'Message log', 'icon' => 'send-check', 'route' => 'admin.messages.index', 'permission' => 'admin.settings.manage'],
         ['label' => 'Audit log', 'icon' => 'journal-text', 'route' => 'admin.audit.index', 'permission' => 'admin.audit.view'],
     ],
     'operator' => [

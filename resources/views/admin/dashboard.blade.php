@@ -40,9 +40,9 @@
                 <div class="list-group list-group-flush list-modern">
                     @forelse ($recentActivity as $log)
                         <div class="list-group-item d-flex gap-3">
-                            <span class="stat-ico tone-secondary" style="width:2rem;height:2rem;font-size:.9rem"><x-icon name="dot" /></span>
+                            <span class="stat-ico tone-secondary" style="width:2rem;height:2rem;font-size:.9rem"><x-icon :name="\App\Support\AuditPresenter::icon($log->event)" /></span>
                             <div class="min-w-0 flex-grow-1">
-                                <div class="d-flex justify-content-between gap-2"><code class="small">{{ $log->event }}</code><span class="small text-muted-2 text-nowrap">{{ $log->created_at->diffForHumans() }}</span></div>
+                                <div class="d-flex justify-content-between gap-2"><span class="fw-semibold small">{{ \App\Support\AuditPresenter::label($log->event) }}</span><span class="small text-muted-2 text-nowrap">{{ $log->created_at->diffForHumans() }}</span></div>
                                 <div class="small text-muted-2 text-truncate">{{ $log->user?->name ?? __('System') }}@if ($log->tenant) · {{ $log->tenant->name }}@endif</div>
                             </div>
                         </div>

@@ -6,13 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use App\Models\SubscriptionPlan;
+use App\Services\Payments\RazorpayGateway;
 use App\Services\PlanLimitService;
+use App\Support\PlatformSettings;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\View\View;
 
 class SubscriptionController extends Controller
 {
-    public function show(TenantContext $context, PlanLimitService $limits): View
+    public function show(TenantContext $context, PlanLimitService $limits, RazorpayGateway $gateway): View
     {
         $tenant = $context->get();
 
@@ -24,6 +26,8 @@ class SubscriptionController extends Controller
             'payments' => SubscriptionPayment::query()->latest('paid_at')->get(),
             'plans' => SubscriptionPlan::query()->active()->get(),
             'usage' => $limits->usage($tenant),
+            'onlinePayment' => $gateway->isEnabled(),
+            'gstPercent' => PlatformSettings::decimal('subscription_gst_percent', '18'),
         ]);
     }
 
