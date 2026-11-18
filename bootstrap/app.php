@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsureUserType;
 use App\Http\Middleware\PlatformScope;
 use App\Http\Middleware\ResetTenantContext;
 use App\Http\Middleware\ResolveTenant;
+use App\Http\Middleware\RunWebScheduler;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -24,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(ResetTenantContext::class);
         $middleware->append(SecurityHeaders::class);
+        $middleware->append(RunWebScheduler::class);
         $middleware->web(append: [SetLocale::class, EnsureUserIsActive::class]);
         $middleware->validateCsrfTokens(except: ['webhooks/*']); // signature-verified instead
 

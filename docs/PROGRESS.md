@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-11-17 (UI v2)
 **Current phase:** Phase 2 complete → next Phase 3 (Operator: branches, staff, vehicles, drivers)
-**Production:** live at https://aaochaletaxi.com (release-based deploy, SQLite fallback DB)
+**Production:** live at https://aaochaletaxi.com (release-based deploy, MySQL)
 **Completed phases:** 0 (discovery), 1 (foundation + UI v2), 2 (SaaS admin)
 **Tests:** 114 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
@@ -23,10 +23,10 @@
 - [x] Tests: 65 passing (unit, icons, public pages + SEO, auth, registration, tenant isolation, authorization, admin lifecycle)
 
 ## Pending (needs owner action)
-- [ ] Production DB on MySQL (currently SQLite fallback until hPanel MySQL DB credentials are provided — DEPLOYMENT §4)
-- [ ] hPanel cron for `schedule:run`
+- [x] Production DB on MySQL (2026-11-18)
+- [ ] hPanel cron for `schedule:run` (no crontab over SSH; web-fallback scheduler active meanwhile)
 - [ ] GitHub Actions secrets (SSH_HOST/PORT/USER/PRIVATE_KEY/KNOWN_HOSTS) so pushes to `main` auto-deploy
-- [ ] SUPPORT_PHONE in shared .env (enables Call button + phone in footer/contact)
+- [x] SUPPORT_PHONE set (+91 90094 34118)
 
 ## Phase 2 — completed
 - [x] Enquiries inbox · plans CRUD · subscriptions (activate/renew/change/extend/cancel/payments/invoices)

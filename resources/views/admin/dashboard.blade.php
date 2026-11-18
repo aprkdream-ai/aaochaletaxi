@@ -3,6 +3,21 @@
         <a href="{{ route('admin.tenants.index', ['status' => 'pending']) }}" class="btn btn-primary"><x-icon name="hourglass-split" />{{ __('Review pending') }}</a>
     </x-page-header>
 
+    @php
+        $run = \App\Support\WebScheduler::lastRun();
+        $cronOk = \App\Support\WebScheduler::cronIsActive();
+    @endphp
+    @if (! $cronOk)
+        <div class="alert {{ $run ? 'alert-warning' : 'alert-danger' }} d-flex flex-wrap align-items-center gap-2 rounded-4 small">
+            <x-icon name="clock-history" class="icon-lg" />
+            <div class="me-auto">
+                <span class="fw-bold">{{ __('Cron job not detected.') }}</span>
+                {{ $run ? __('Background jobs are running in web-fallback mode (last run :t). Add the hPanel cron for reliable emails & expiry.', ['t' => \Illuminate\Support\Carbon::parse($run['at'])->diffForHumans()]) : __('Background jobs have not run yet.') }}
+                <code class="d-block mt-1">* * * * * /usr/bin/php {{ str_contains(base_path(), '/releases/') ? dirname(base_path(), 2).'/current' : base_path() }}/artisan schedule:run</code>
+            </div>
+        </div>
+    @endif
+
     <div class="row g-3 mb-4">
         <div class="col-6 col-xl-3"><x-stat-card :label="__('Active operators')" :value="$stats['operators_active']" icon="buildings" color="success" :href="route('admin.tenants.index', ['status' => 'active'])" /></div>
         <div class="col-6 col-xl-3"><x-stat-card :label="__('Pending approval')" :value="$stats['operators_pending']" icon="hourglass-split" color="warning" :href="route('admin.tenants.index', ['status' => 'pending'])" /></div>

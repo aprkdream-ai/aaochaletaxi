@@ -16,6 +16,8 @@
 ```
 `.env`, `vendor/`, source and storage are never inside `public_html`.
 
+Production DB: MySQL `u856292259_aaochaletaxi` (MariaDB 11.8) since 2026-11-18 (previous SQLite kept in shared/ as backup).
+PHP disable_functions on server include exec/system/popen/symlink (proc_open allowed) — never rely on them.
 Server facts (checked 2026-11-17): PHP 8.3 CLI + web, Composer 2.9, git, rsync, GNU coreutils,
 `/usr/sbin/sendmail`, symlinks allowed, SSH on port 65002, no `crontab` binary (use hPanel cron).
 
@@ -57,7 +59,9 @@ Rollback (on server): `bash ~/domains/aaochaletaxi.com/aaochaletaxi_app/current/
    first super admin once). Change the password after first login.
 3. hPanel → Advanced → **Cron Jobs** → every minute:
    `/usr/bin/php /home/u856292259/domains/aaochaletaxi.com/aaochaletaxi_app/current/artisan schedule:run >> /dev/null 2>&1`
-   (drains the database queue — **all emails are queued**, runs `subscriptions:process` hourly for expiry/grace/
+   Fallback if cron is missing: `RunWebScheduler` middleware drains the queue and runs hourly jobs after web
+   responses (max once/min, in-process) and auto-disables once cron heartbeats arrive (`WEB_SCHEDULER_FALLBACK`).
+   (cron drains the database queue — **all emails are queued**, runs `subscriptions:process` hourly for expiry/grace/
    reminders, clears expired resets, prunes failed jobs). Without this cron no emails go out and trials never expire.
 4. SSL: hPanel → Security → SSL (already active; HTTP→HTTPS redirect handled by Hostinger). `SESSION_SECURE_COOKIE=true`.
 5. Mail: `MAIL_MAILER=sendmail` works out of the box. For better deliverability create `noreply@aaochaletaxi.com`

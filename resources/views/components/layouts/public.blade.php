@@ -101,7 +101,7 @@
                 <x-brand />
                 <p class="mt-3 mb-4" style="max-width: 340px">{{ __('Reliable taxi booking for travellers and smart fleet management for taxi operators across India.') }}</p>
                 <a href="mailto:{{ config('aaochale.support_email') }}" class="d-inline-flex align-items-center gap-2"><x-icon name="envelope" />{{ config('aaochale.support_email') }}</a>
-                @if ($phone)<div class="mt-2"><a href="tel:{{ $phone }}" class="d-inline-flex align-items-center gap-2"><x-icon name="telephone" />{{ $phone }}</a></div>@endif
+                @if ($phone)<div class="mt-2"><a href="tel:{{ config('aaochale.support_phone_e164') }}" class="d-inline-flex align-items-center gap-2"><x-icon name="telephone" />{{ $phone }}</a></div>@endif
             </div>
             <div class="col-6 col-md-4 col-lg-2">
                 <h2>{{ __('Rides') }}</h2>
@@ -141,7 +141,7 @@
 
 @if ($mobileCta)
     <div class="mobile-cta">
-        @if ($phone)<a href="tel:{{ $phone }}" class="btn btn-light border"><x-icon name="telephone-fill" />{{ __('Call') }}</a>@endif
+        @if ($phone)<a href="tel:{{ config('aaochale.support_phone_e164') }}" class="btn btn-light border"><x-icon name="telephone-fill" />{{ __('Call') }}</a>@endif
         <a href="{{ route('home') }}#quote" class="btn btn-primary"><x-icon name="lightning-charge-fill" />{{ __('Get fare quote') }}</a>
     </div>
 @endif

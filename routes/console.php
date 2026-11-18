@@ -1,8 +1,12 @@
 <?php
 
+use App\Support\WebScheduler;
 use Illuminate\Support\Facades\Schedule;
 
 // Single hosting cron runs `php artisan schedule:run` every minute (see docs/DEPLOYMENT.md).
+
+// Heartbeat: tells the web fallback scheduler that a real cron is running.
+Schedule::call(fn () => WebScheduler::cronHeartbeat())->everyMinute()->name('cron-heartbeat');
 
 // Drain the database queue without a long-running worker (shared hosting).
 Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3 --backoff=30')

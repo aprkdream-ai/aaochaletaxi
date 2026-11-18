@@ -11,7 +11,7 @@
                             <x-icon name="chevron-right" class="arrow" />
                         </a>
                         @if (config('aaochale.support_phone'))
-                            <a href="tel:{{ config('aaochale.support_phone') }}" class="route-chip">
+                            <a href="tel:{{ config('aaochale.support_phone_e164') }}" class="route-chip">
                                 <span class="d-flex align-items-center gap-3"><span class="icon-tile tile-sm"><x-icon name="telephone" /></span><span><span class="d-block small text-muted-2 fw-semibold">{{ __('Phone') }}</span>{{ config('aaochale.support_phone') }}</span></span>
                                 <x-icon name="chevron-right" class="arrow" />
                             </a>
