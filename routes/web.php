@@ -189,6 +189,34 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
             Route::get('/drivers/{driver}', [Operator\DriverController::class, 'show'])->name('drivers.show');
         });
 
+        // Bookings
+        Route::middleware('permission:bookings.create')->group(function () {
+            Route::get('/bookings/create', [Operator\BookingController::class, 'create'])->name('bookings.create');
+            Route::post('/bookings', [Operator\BookingController::class, 'store'])->name('bookings.store');
+            Route::post('/bookings/preview', [Operator\BookingController::class, 'preview'])->middleware('throttle:60,1')->name('bookings.preview');
+            Route::post('/bookings/distance', [Operator\BookingController::class, 'distance'])->middleware('throttle:30,1')->name('bookings.distance');
+        });
+        Route::middleware('permission:bookings.view')->group(function () {
+            Route::get('/bookings', [Operator\BookingController::class, 'index'])->name('bookings.index');
+            Route::get('/bookings/{booking}', [Operator\BookingController::class, 'show'])->name('bookings.show');
+        });
+        Route::middleware('permission:bookings.manage')->group(function () {
+            Route::post('/bookings/{booking}/quote', [Operator\BookingController::class, 'requote'])->name('bookings.quote');
+            Route::post('/bookings/{booking}/confirm', [Operator\BookingController::class, 'confirm'])->name('bookings.confirm');
+            Route::post('/bookings/{booking}/cancel', [Operator\BookingController::class, 'cancel'])->name('bookings.cancel');
+        });
+        Route::middleware('permission:bookings.assign')->group(function () {
+            Route::post('/bookings/{booking}/assign', [Operator\BookingController::class, 'assign'])->name('bookings.assign');
+            Route::post('/bookings/{booking}/start', [Operator\BookingController::class, 'start'])->name('bookings.start');
+            Route::post('/bookings/{booking}/complete', [Operator\BookingController::class, 'complete'])->name('bookings.complete');
+        });
+        Route::post('/bookings/{booking}/payments', [Operator\BookingController::class, 'payment'])->middleware('permission:payments.manage')->name('bookings.payments.store');
+        Route::middleware('permission:fares.manage')->group(function () {
+            Route::get('/fare-rules', [Operator\FareRuleController::class, 'index'])->name('fares.index');
+            Route::get('/fare-rules/{fareRule}/edit', [Operator\FareRuleController::class, 'edit'])->name('fares.edit');
+            Route::put('/fare-rules/{fareRule}', [Operator\FareRuleController::class, 'update'])->name('fares.update');
+        });
+
         // Documents (permission checked per owner type in controller)
         Route::get('/fleet-documents/{document}', [Operator\FleetRecordController::class, 'downloadDocument'])->name('fleet-documents.show');
         Route::delete('/fleet-documents/{document}', [Operator\FleetRecordController::class, 'destroyDocument'])->name('fleet-documents.destroy');

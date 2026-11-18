@@ -125,7 +125,7 @@ unique(tenant_id, phone).
 - vehicle_maintenance ✅ (T): vehicle_id, service_date, type, description, odometer_km, cost, vendor, next_service_date/km.
 - vehicle_expenses ✅ (T): vehicle_id, expense_date, category, amount, payment_method, reference, notes.
 
-## BOOKINGS ⏳P4
+## BOOKINGS ✅ (P4) — see migration 2026_11_18_000004 for exact columns
 - bookings (T): booking_number unique(tenant_id), customer_id, source enum(manual, website,
   marketplace, api, phone), type enum(local, outstation_oneway, outstation_round, airport,
   railway, hourly, full_day, corporate), status enum(enquiry, quoted, confirmed, advance_paid,
@@ -139,7 +139,7 @@ unique(tenant_id, phone).
   driver_id+start_at), start_otp hash, start_km, end_km, started_at, completed_at.
 - trip_expenses, trip_locations (lat, lng, recorded_at).
 
-## PRICING ⏳P4
+## PRICING ✅ (P4) — fare_rules implemented; fare_components/route_prices deferred (D26)
 - fare_rules (T): vehicle_category_id, booking_type, base_fare, per_km, min_km, extra_km_rate,
   driver_allowance_per_day, night_charge, night_start, night_end, waiting_per_min,
   gst_percent, is_active; idx(tenant_id, vehicle_category_id, booking_type).
@@ -178,3 +178,14 @@ vendors (T), vendor_vehicles (T).
 Every T table: `tenant_id` NOT NULL + FK + index (leading column on composite indexes);
 unique constraints include `tenant_id`; model uses `BelongsToTenant`; exports/reports query
 through scoped models only.
+
+### Phase 4 actual tables
+- fare_rules (T): vehicle_category_id, booking_type, base_fare, per_km, min_km, included_km/hours, extra_km_rate,
+  extra_hour_rate, driver_allowance, night_charge, night_start/end, waiting_free_min, waiting_per_min, gst_percent, is_active;
+  unique(tenant, category, type).
+- bookings (T): booking_number unique(tenant), idempotency_key unique(tenant), source, type, status, payment_status,
+  customer_*, pickup/drop, pickup_at, return_at, vehicle_category_id, passengers, distance_km, duration_min, rental_hours,
+  quoted_total, final_total, amount_paid, fare_snapshot JSON, final_snapshot JSON, cancel_*, created_by.
+- booking_stops, booking_quotations (version, breakdown JSON, total, valid_until, accepted_at), booking_status_logs.
+- trips (T): booking_id unique, vehicle_id, driver_id, start_at/end_at window, status, start_otp (hash), start/end km.
+- payments (T, append-only): booking_id, kind (advance/balance/refund/adjustment), amount (negative = refund), method, reference, reversal_of.

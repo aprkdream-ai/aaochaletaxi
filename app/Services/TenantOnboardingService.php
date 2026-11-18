@@ -11,6 +11,7 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\Booking\FareRuleService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -58,6 +59,7 @@ class TenantOnboardingService
             $owner->roles()->attach($ownerRole->id);
 
             $this->startTrial($tenant);
+            app(FareRuleService::class)->seedDefaults($tenant);
 
             $this->audit->log('tenant.registered', $tenant, [], ['name' => $tenant->name, 'slug' => $tenant->slug], $tenant->id);
 

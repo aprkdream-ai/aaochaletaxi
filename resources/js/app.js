@@ -31,6 +31,47 @@ Alpine.data('quoteForm', (initial = 'outstation_oneway') => ({
     },
 }));
 
+// Booking form: live fare preview + Google distance.
+Alpine.data('bookingForm', (previewUrl, distanceUrl, initialType, initialStops) => ({
+    type: initialType,
+    stops: initialStops || [],
+    fare: null,
+    error: '',
+    busy: false,
+    distanceNote: '',
+    seq: 0,
+    init() { this.$nextTick(() => this.refresh()); },
+    inr(v) { return '₹' + Number(v).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); },
+    headers() { return { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }; },
+    async refresh() {
+        const data = Object.fromEntries(new FormData(this.$refs.form).entries());
+        delete data._token; delete data['stops[]'];
+        data.type = this.type; // Alpine state is the source of truth (DOM may not be synced on first run)
+        if (!data.vehicle_category_id || !data.pickup_at) return;
+        const mine = ++this.seq;
+        this.busy = true;
+        try {
+            const res = await fetch(previewUrl, { method: 'POST', headers: this.headers(), body: JSON.stringify(data) });
+            const json = await res.json();
+            if (mine !== this.seq) return;
+            if (res.ok) { this.fare = json; this.error = ''; } else { this.fare = null; this.error = Object.values(json.errors || {})[0]?.[0] || json.message || ''; }
+        } catch { if (mine === this.seq) this.error = 'Could not calculate fare.'; } finally { if (mine === this.seq) this.busy = false; }
+    },
+    async fetchDistance() {
+        const from = this.$refs.from?.value, to = this.$refs.to?.value;
+        if (!from || !to) { this.distanceNote = 'Enter pickup and drop first.'; return; }
+        this.busy = true;
+        try {
+            const res = await fetch(distanceUrl, { method: 'POST', headers: this.headers(), body: JSON.stringify({ from, to, round: this.type === 'outstation_round' }) });
+            const json = await res.json();
+            if (!res.ok) { this.distanceNote = json.message; return; }
+            this.$refs.km.value = json.km; this.$refs.duration.value = json.minutes;
+            this.distanceNote = json.km + ' km · ~' + Math.floor(json.minutes / 60) + 'h ' + (json.minutes % 60) + 'm (' + json.from + ' → ' + json.to + ')';
+            this.refresh();
+        } finally { this.busy = false; }
+    },
+}));
+
 // Razorpay Checkout: create order on the server, open the modal, post the signed result back.
 Alpine.data('razorpayCheckout', (orderUrl) => ({
     cycle: 'monthly',

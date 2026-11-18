@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-18 — Phase 4: Booking engine
+- Fare rules per operator × vehicle category × trip type (auto-seeded suggested rates; editable; GST 0/5/12/18).
+- `FareCalculator` (bcmath): min km (per day for round trips), driver allowance, rental packages with extra km/hours,
+  night window, waiting, discount, GST on fare only, tolls/parking/state tax pass-through, rupee round-off.
+- Bookings: idempotent create, numbering `BK<yymm>-<n>` per operator, stops, quotation versions with full snapshot
+  (rates frozen), confirm, append-only payments ledger (advance/balance/refund), cancellation.
+- Assignment with row locks (vehicle → driver) + time-window overlap checks; compliance/availability checks;
+  4-digit customer OTP (hashed) sent by SMS when configured; start with OTP; complete with actual km → final fare.
+- Operator UI: bookings list (tabs/search/date), new-booking form with live fare preview and Google distance,
+  booking detail with workflow actions, WhatsApp quote share, payments, timeline; fare rule editor.
+- Demo data now includes quoted, assigned and completed bookings; `demo:data` install/remove command.
+- Fixes: Alpine `x-show` vs Bootstrap `!important` display utilities; initial fare preview type.
+
 ## 2026-11-18 — Phase 3: Operator management (fleet & team)
 - Branches (head office, plan `max_branches`), operator staff (roles, branch, status; last Owner protected; `max_users`),
   custom role editor (tenant permissions only; Owner locked).

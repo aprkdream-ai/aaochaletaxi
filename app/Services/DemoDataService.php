@@ -18,9 +18,11 @@ use App\Models\Vehicle;
 use App\Models\VehicleCategory;
 use App\Models\VehicleExpense;
 use App\Models\VehicleMaintenance;
+use App\Services\Booking\BookingService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -104,6 +106,28 @@ class DemoDataService
                 $this->drivers->create($tenant, ['name' => 'Mahesh Thakor', 'phone' => '9811122244', 'licence_number' => 'GJ0120180098765', 'licence_type' => 'LMV-TR', 'licence_expiry' => now()->addYears(4), 'pay_type' => 'per_trip', 'pay_amount' => 600, 'status' => 'active', 'is_available' => true, 'branch_id' => $branch->id], null);
             });
 
+            // Demo bookings across the workflow.
+            $this->context->runAs($tenant, function () use ($tenant, $owner) {
+                $bookings = app(BookingService::class);
+                $sedan = VehicleCategory::whereNull('tenant_id')->where('slug', 'sedan')->value('id');
+                $muv = VehicleCategory::whereNull('tenant_id')->where('slug', 'muv')->value('id');
+                $mk = fn (array $d, array $fare = []) => $bookings->create($tenant, $d + ['passengers' => 2, 'source' => 'phone'], [], $fare, $owner, (string) Str::uuid());
+
+                $mk(['type' => 'outstation_oneway', 'vehicle_category_id' => $sedan, 'customer_name' => 'Priya Shah', 'customer_phone' => '9825012345', 'pickup_address' => 'Ahmedabad, Navrangpura', 'drop_address' => 'Udaipur, City Palace', 'pickup_at' => now()->addDays(3)->setTime(7, 0), 'distance_km' => 262], ['tolls' => 320]);
+
+                $assigned = $mk(['type' => 'airport', 'vehicle_category_id' => $sedan, 'customer_name' => 'Arjun Mehta', 'customer_phone' => '9898012345', 'pickup_address' => 'SVPI Airport T2', 'drop_address' => 'Gandhinagar Sector 21', 'pickup_at' => now()->addDay()->setTime(6, 30), 'distance_km' => 24], ['parking' => 90]);
+                $bookings->confirm($assigned, $owner);
+                $bookings->recordPayment($assigned, 'advance', 200, 'upi', 'UPI-DEMO-2001', $owner);
+                $bookings->assign($assigned, Vehicle::where('registration_number', 'GJ01AB1234')->value('id'), Driver::where('phone', '9811122233')->value('id'), $owner);
+
+                $done = $mk(['type' => 'outstation_round', 'vehicle_category_id' => $muv, 'customer_name' => 'Kiran Desai', 'customer_phone' => '9712012345', 'pickup_address' => 'Vadodara', 'drop_address' => 'Statue of Unity', 'pickup_at' => now()->addMinutes(5), 'return_at' => now()->addHours(12), 'distance_km' => 190, 'passengers' => 6], ['tolls' => 250]);
+                $bookings->confirm($done, $owner);
+                $res = $bookings->assign($done, Vehicle::where('registration_number', 'GJ01CD5678')->value('id'), Driver::where('phone', '9811122244')->value('id'), $owner);
+                $bookings->start($done->refresh(), $res['otp'], 42000, $owner);
+                $bookings->complete($done->refresh(), 42210, ['tolls' => 250, 'parking' => 100], $owner);
+                $bookings->recordPayment($done->refresh(), 'balance', (float) $done->fresh()->final_total, 'cash', null, $owner);
+            });
+
             $this->onboarding->register(['business_name' => 'Ganesh Cabs'.$suffix, 'city' => 'Pune', 'state' => 'Maharashtra', 'name' => 'Sunil Joshi', 'email' => self::PENDING_EMAIL, 'phone' => '9876500002', 'password' => $passwords['owner']]);
 
             foreach ([
@@ -135,6 +159,9 @@ class DemoDataService
                     $model::withoutGlobalScopes()->whereIn('tenant_id', $tenantIds)->delete();
                 }
                 DB::table('payment_orders')->whereIn('tenant_id', $tenantIds)->delete();
+                foreach (['payments', 'trips', 'booking_status_logs', 'booking_quotations', 'booking_stops', 'bookings', 'fare_rules'] as $table) {
+                    DB::table($table)->whereIn('tenant_id', $tenantIds)->delete();
+                }
                 Driver::withoutGlobalScopes()->withTrashed()->whereIn('tenant_id', $tenantIds)->forceDelete();
                 Vehicle::withoutGlobalScopes()->withTrashed()->whereIn('tenant_id', $tenantIds)->forceDelete();
                 SupportTicket::withoutGlobalScopes()->whereIn('tenant_id', $tenantIds)->delete();

@@ -25,4 +25,8 @@
 | D22 | 2026-11-18 | One polymorphic `fleet_documents` table for vehicle + driver files | Same rules (private disk, expiry, audit); less duplicated code |
 | D23 | 2026-11-18 | Expiry dates kept as columns on vehicles/drivers (mirrored from uploaded documents) | Fast filters, dashboard and reminders without joins |
 | D24 | 2026-11-18 | Web-fallback scheduler (in-process, after response) when no cron heartbeat | Hostinger has no crontab over SSH; exec/popen disabled |
+| D25 | 2026-11-18 | Booking status (enquiry→quoted→confirmed→assigned→started→completed/cancelled) separate from payment_status (unpaid/advance_paid/paid/refunded) | Advance & settlement happen in parallel with the trip; avoids combinatorial statuses |
+| D26 | 2026-11-18 | Fare snapshot stores the rule's rates; final fare is recomputed from the snapshot, not the live rule | Rate edits never change confirmed bookings |
+| D27 | 2026-11-18 | Trip time window (pickup → estimated end incl. return/buffer) used for overlap checks under row locks | Prevents double assignment without a scheduler service |
+| D28 | 2026-11-18 | Tolls/parking/state tax are pass-through (no GST) | Reimbursements at actuals are outside taxable value |
 | D18 | 2026-11-17 | No fabricated reviews/stats on marketing pages | Honest launch; add real testimonials once collected |

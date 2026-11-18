@@ -22,6 +22,10 @@ return [
     'operator' => [
         ['section' => 'Overview'],
         ['label' => 'Dashboard', 'icon' => 'speedometer2', 'route' => 'operator.dashboard', 'permission' => 'dashboard.view'],
+        ['section' => 'Bookings'],
+        ['label' => 'Bookings', 'icon' => 'journal-bookmark', 'route' => 'operator.bookings.index', 'active' => 'operator.bookings.*', 'permission' => 'bookings.view'],
+        ['label' => 'New booking', 'icon' => 'plus-circle', 'route' => 'operator.bookings.create', 'active' => '__none__', 'permission' => 'bookings.create'],
+        ['label' => 'Fare rules', 'icon' => 'calculator', 'route' => 'operator.fares.index', 'active' => 'operator.fares.*', 'permission' => 'fares.manage'],
         ['section' => 'Fleet'],
         ['label' => 'Vehicles', 'icon' => 'car-front', 'route' => 'operator.vehicles.index', 'active' => 'operator.vehicles.*', 'permission' => 'vehicles.view'],
         ['label' => 'Drivers', 'icon' => 'person-badge', 'route' => 'operator.drivers.index', 'active' => 'operator.drivers.*', 'permission' => 'drivers.view'],
