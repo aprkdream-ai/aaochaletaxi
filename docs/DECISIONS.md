@@ -33,4 +33,9 @@
 | D30 | 2026-11-18 | Trip OTP stored encrypted (not hashed) | Customer must be able to view it on the tracking page |
 | D31 | 2026-11-18 | Online advances are collected on the platform's Razorpay account and settled to operators (Phase 6) | Single gateway, no per-operator KYC with Razorpay |
 | D32 | 2026-11-18 | Named rate limiters per action | Laravel's numeric `throttle:x,y` shares one counter per client across routes |
+| D33 | 2026-11-18 | barryvdh/laravel-dompdf for PDFs | Pure PHP, works on shared hosting; DejaVu Sans renders ₹ |
+| D34 | 2026-11-18 | Invoice number `PREFIX/YY-YY/NNNN` per operator & FY via `sequences` | GST rule 46: unique per FY, ≤16 chars, gap-free |
+| D35 | 2026-11-18 | Corrections only via credit notes; invoices immutable (model guard) | GST compliance & audit trail |
+| D36 | 2026-11-18 | Driver earnings computed on demand; payouts store a breakdown snapshot | No double source of truth; payouts auditable |
+| D37 | 2026-11-18 | Advanced reports gated by plan flag | Growth/Business value proposition |
 | D18 | 2026-11-17 | No fabricated reviews/stats on marketing pages | Honest launch; add real testimonials once collected |

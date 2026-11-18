@@ -139,11 +139,11 @@ class SubscriptionManagementTest extends TestCase
         $this->actingAs($this->admin)->post(route('admin.subscriptions.payments.store', $sub), ['amount' => 799, 'method' => 'upi']);
         $payment = SubscriptionPayment::withoutGlobalScopes()->sole();
 
-        $this->actingAs($this->owner)->get(route('operator.invoices.show', $payment))->assertOk()->assertSee($payment->invoice_number)->assertSee('CGST')->assertSee('₹942.82')->assertSee('SGST');
+        $this->actingAs($this->owner)->get(route('operator.subscription.invoices.show', $payment))->assertOk()->assertSee($payment->invoice_number)->assertSee('CGST')->assertSee('₹942.82')->assertSee('SGST');
         $this->actingAs($this->admin)->get(route('admin.invoices.show', $payment))->assertOk();
 
         $other = $this->owner(Tenant::factory()->create());
-        $this->actingAs($other)->get(route('operator.invoices.show', $payment))->assertNotFound();
+        $this->actingAs($other)->get(route('operator.subscription.invoices.show', $payment))->assertNotFound();
     }
 
     public function test_validation_and_permissions(): void

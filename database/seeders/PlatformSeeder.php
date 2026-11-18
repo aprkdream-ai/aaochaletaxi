@@ -28,10 +28,10 @@ class PlatformSeeder extends Seeder
                 'max_vehicles' => 5, 'max_drivers' => 5, 'max_branches' => 1, 'max_users' => 3, 'sort_order' => 1,
                 'features' => ['Booking management', 'Vehicle & driver management', 'Invoices & payments', 'Driver mobile app']],
             ['code' => 'growth', 'name' => 'Growth', 'description' => 'For growing fleets that want their own brand.', 'price_monthly' => 1499, 'price_yearly' => 14990,
-                'max_vehicles' => 25, 'max_drivers' => 30, 'max_branches' => 1, 'max_users' => 10, 'sort_order' => 2,
+                'max_vehicles' => 25, 'max_drivers' => 30, 'max_branches' => 1, 'max_users' => 10, 'sort_order' => 2, 'advanced_reports' => true,
                 'features' => ['Everything in Starter', 'Advanced reports', 'Branded booking page', 'Expense & settlement tracking']],
             ['code' => 'business', 'name' => 'Business', 'description' => 'For large operators with multiple branches.', 'price_monthly' => 2999, 'price_yearly' => 29990,
-                'max_vehicles' => 100, 'max_drivers' => 150, 'max_branches' => 10, 'max_users' => 50, 'sort_order' => 3,
+                'max_vehicles' => 100, 'max_drivers' => 150, 'max_branches' => 10, 'max_users' => 50, 'sort_order' => 3, 'advanced_reports' => true,
                 'features' => ['Everything in Growth', 'Multi-branch', 'Additional integrations', 'Priority support']],
         ];
 
@@ -39,7 +39,7 @@ class PlatformSeeder extends Seeder
             SubscriptionPlan::query()->firstOrCreate(['code' => $plan['code']], $plan + ['trial_days' => 14, 'is_active' => true]);
         }
 
-        foreach (['trial_plan_code' => 'starter', 'trial_days' => '14', 'grace_days' => '7', 'marketplace_commission_percent' => '10', 'default_gst_percent' => '5'] as $key => $value) {
+        foreach (['trial_plan_code' => 'starter', 'trial_days' => '14', 'grace_days' => '7', 'marketplace_commission_percent' => '10', 'default_gst_percent' => '5', 'online_collection_fee_percent' => '2'] as $key => $value) {
             if (! PlatformSetting::query()->where('key', $key)->exists()) {
                 PlatformSetting::setValue($key, $value);
             }

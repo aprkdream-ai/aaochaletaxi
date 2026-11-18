@@ -93,6 +93,9 @@
                         </div>
                     @endif
                     </div>
+                    @if ($invoice)
+                        <a href="{{ route('booking.track.invoice', $booking->public_token) }}" class="btn btn-ink w-100 mb-3"><x-icon name="download" />{{ __('Download invoice :no', ['no' => $invoice->number]) }}</a>
+                    @endif
                     <div class="card panel-card mb-3"><div class="card-body d-grid gap-2">
                         <div class="fw-semibold">{{ $tenant->name }}</div>
                         <a href="tel:+91{{ $tenant->phone }}" class="btn btn-light border"><x-icon name="telephone" />{{ __('Call operator') }}</a>

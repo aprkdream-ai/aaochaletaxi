@@ -7,6 +7,7 @@ use App\Enums\TicketPriority;
 use App\Models\Branch;
 use App\Models\ContactMessage;
 use App\Models\Driver;
+use App\Models\Expense;
 use App\Models\FleetDocument;
 use App\Models\PlatformSetting;
 use App\Models\SubscriptionPayment;
@@ -19,6 +20,8 @@ use App\Models\VehicleCategory;
 use App\Models\VehicleExpense;
 use App\Models\VehicleMaintenance;
 use App\Services\Booking\BookingService;
+use App\Services\Finance\DriverEarningsService;
+use App\Services\Finance\InvoiceService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -72,7 +75,7 @@ class DemoDataService
         DB::transaction(function () use ($admin, $passwords, $withInvoice, $suffix, &$enquiryIds) {
             $owner = $this->onboarding->register(['business_name' => 'Shiv Travels'.$suffix, 'city' => 'Ahmedabad', 'state' => 'Gujarat', 'name' => 'Ramesh Patel', 'email' => self::ACTIVE_EMAIL, 'phone' => '9876500001', 'password' => $passwords['owner']]);
             $tenant = $owner->tenant;
-            $tenant->forceFill(['address_line' => 'CG Road, Navrangpura', 'pincode' => '380009', 'legal_name' => 'Shiv Travels'.$suffix])->save();
+            $tenant->forceFill(['address_line' => 'CG Road, Navrangpura', 'pincode' => '380009', 'legal_name' => 'Shiv Travels'.$suffix, 'gstin' => '24ABCDE1234F1Z5', 'pan' => 'ABCDE1234F'])->save();
             $this->tenants->approve($tenant, $admin);
 
             $this->subscriptions->activate($tenant, SubscriptionPlan::where('code', 'growth')->firstOrFail(), 'monthly', 'now', $admin,
@@ -126,6 +129,13 @@ class DemoDataService
                 $bookings->start($done->refresh(), $res['otp'], 42000, $owner);
                 $bookings->complete($done->refresh(), 42210, ['tolls' => 250, 'parking' => 100], $owner);
                 $bookings->recordPayment($done->refresh(), 'balance', (float) $done->fresh()->final_total, 'cash', null, $owner);
+
+                // Finance demo: GST invoice, a business expense and a driver payout.
+                app(InvoiceService::class)->issue($done->refresh(), $owner, ['name' => 'Kiran Desai']);
+                $exp = new Expense(['expense_date' => now()->startOfMonth(), 'category' => 'rent', 'amount' => 15000, 'payment_method' => 'bank_transfer', 'notes' => 'Office rent']);
+                $exp->recorded_by = $owner->id;
+                $exp->save();
+                app(DriverEarningsService::class)->settle(Driver::where('phone', '9811122244')->firstOrFail(), now()->startOfMonth(), now(), 600, 0, 'upi', 'UPI-DEMO-3001', 'Demo payout', $owner);
             });
 
             $this->onboarding->register(['business_name' => 'Ganesh Cabs'.$suffix, 'city' => 'Pune', 'state' => 'Maharashtra', 'name' => 'Sunil Joshi', 'email' => self::PENDING_EMAIL, 'phone' => '9876500002', 'password' => $passwords['owner']]);
@@ -159,7 +169,9 @@ class DemoDataService
                     $model::withoutGlobalScopes()->whereIn('tenant_id', $tenantIds)->delete();
                 }
                 DB::table('payment_orders')->whereIn('tenant_id', $tenantIds)->delete();
-                foreach (['payments', 'trips', 'booking_status_logs', 'booking_quotations', 'booking_stops', 'bookings', 'fare_rules'] as $table) {
+                DB::table('invoice_items')->whereIn('tenant_id', $tenantIds)->delete();
+                DB::table('invoices')->whereIn('tenant_id', $tenantIds)->update(['credit_note_for' => null]);
+                foreach (['invoices', 'expenses', 'driver_settlements', 'payments', 'trips', 'booking_status_logs', 'booking_quotations', 'booking_stops', 'bookings', 'fare_rules'] as $table) {
                     DB::table($table)->whereIn('tenant_id', $tenantIds)->delete();
                 }
                 Driver::withoutGlobalScopes()->withTrashed()->whereIn('tenant_id', $tenantIds)->forceDelete();

@@ -4,18 +4,21 @@ namespace App\Http\Controllers\Public;
 
 use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Operator\InvoiceController;
 use App\Models\Booking;
 use App\Models\BookingReview;
 use App\Models\PaymentOrder;
 use App\Models\Tenant;
 use App\Notifications\OperatorBookingAlert;
 use App\Services\Booking\BookingService;
+use App\Services\Finance\InvoiceService;
 use App\Services\Payments\BookingCheckoutService;
 use App\Services\Payments\RazorpayGateway;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Throwable;
@@ -35,6 +38,7 @@ class BookingTrackController extends Controller
             'otp' => $booking->status === BookingStatus::Assigned ? $this->bookings->tripOtp($booking->trip) : null,
             'canCancel' => in_array($booking->status, [BookingStatus::Enquiry, BookingStatus::Quoted, BookingStatus::Confirmed, BookingStatus::Assigned], true),
             'advance' => $this->checkout->available($booking, $tenant) ? $this->checkout->advanceAmount($booking, $tenant) : null,
+            'invoice' => app(InvoiceService::class)->activeInvoice($booking),
         ]);
     }
 
@@ -103,6 +107,15 @@ class BookingTrackController extends Controller
         }
 
         return back()->with('success', __('Payment received. Your booking is confirmed!'));
+    }
+
+    public function invoice(string $token): Response
+    {
+        [$booking] = $this->resolve($token);
+        $invoice = app(InvoiceService::class)->activeInvoice($booking);
+        abort_unless($invoice, 404);
+
+        return InvoiceController::renderPdf($invoice);
     }
 
     /** @return array{0: Booking, 1: Tenant} */

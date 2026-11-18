@@ -65,10 +65,12 @@ class PlanController extends Controller
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'features_text' => ['nullable', 'string', 'max:2000'],
             'is_active' => ['nullable', 'boolean'],
+            'advanced_reports' => ['nullable', 'boolean'],
         ]);
 
         $data['features'] = collect(preg_split('/\r\n|\r|\n/', (string) ($data['features_text'] ?? '')))->map(fn ($l) => trim($l))->filter()->take(20)->values()->all();
         $data['is_active'] = (bool) ($data['is_active'] ?? false);
+        $data['advanced_reports'] = (bool) ($data['advanced_reports'] ?? false);
         $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
         if (isset($data['code'])) {
             $data['code'] = strtolower($data['code']);

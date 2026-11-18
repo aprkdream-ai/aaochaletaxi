@@ -17,7 +17,7 @@ log() { echo "[deploy $(date +%H:%M:%S)] $*"; }
 cd "$R"
 
 # ---------- shared state ----------
-mkdir -p "$S"/storage/{app/public,app/private,framework/cache/data,framework/sessions,framework/views,framework/testing,logs} "$BACKUP_DIR"
+mkdir -p "$S"/storage/{app/public,app/private,framework/cache/data,framework/sessions,framework/views,framework/testing,logs,fonts} "$BACKUP_DIR"
 if [ ! -f "$S/.env" ]; then
     log "Creating shared .env from .env.production.example (edit DB/mail settings!)"
     cp "$R/.env.production.example" "$S/.env"

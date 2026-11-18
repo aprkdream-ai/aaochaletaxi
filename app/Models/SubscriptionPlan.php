@@ -9,7 +9,7 @@ class SubscriptionPlan extends Model
 {
     protected $fillable = [
         'code', 'name', 'description', 'price_monthly', 'price_yearly', 'max_vehicles',
-        'max_drivers', 'max_branches', 'max_users', 'features', 'trial_days', 'is_active', 'sort_order',
+        'max_drivers', 'max_branches', 'max_users', 'features', 'advanced_reports', 'trial_days', 'is_active', 'sort_order',
     ];
 
     protected function casts(): array
@@ -18,6 +18,7 @@ class SubscriptionPlan extends Model
             'price_monthly' => 'decimal:2',
             'price_yearly' => 'decimal:2',
             'features' => 'array',
+            'advanced_reports' => 'boolean',
             'is_active' => 'boolean',
         ];
     }

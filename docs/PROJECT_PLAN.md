@@ -10,7 +10,7 @@ Status legend: ✅ done · 🟡 in progress · ⬜ not started
 | 3 Operator | Operator dashboard, branches, staff + role management, vehicles (+docs, maintenance, expenses), drivers (+docs), plan limits enforcement | Plan limits enforced; all CRUD tenant-isolated (tests) | ✅ |
 | 4 Booking engine | Fare rules + calculator, booking types, enquiry→settlement workflow, quotations with snapshot, availability, assignment with locking, trips, status logs | Concurrent assignment test can't double-book; fare snapshot immutable | ✅ |
 | 5 Customer portal | Public search & booking, guest booking with OTP-ready verification, customer account, history, cancellation, ratings, operator microsite `/o/{slug}` | Customer can book & pay (mock gateway) | ✅ |
-| 6 Finance | Invoices (GST-ready), receipts, payments, refunds, expenses, driver/vendor settlements, reports, PDF + CSV export | Append-only ledger tests; exports tenant-scoped | ⬜ |
+| 6 Finance | Invoices (GST-ready), receipts, payments, refunds, expenses, driver/vendor settlements, reports, PDF + CSV export | Append-only ledger tests; exports tenant-scoped | ✅ |
 | 7 Driver PWA | Manifest + service worker, trips list, start (OTP)/complete, earnings, polling notifications | Installable PWA; works on mobile | ⬜ |
 | 8 Marketplace | Listings, fare comparison, booking requests, operator acceptance, commission tracking, reviews | Commission separate from direct bookings | ⬜ |
 | 9 Integrations | Razorpay (orders, verify, webhook), WhatsApp Cloud, SMS, mail, Maps, FCM — all optional with mock mode | Works with integrations disabled | ⬜ |

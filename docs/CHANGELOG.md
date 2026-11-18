@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-18 — Phase 6: Finance
+- GST invoices for completed bookings: per-operator FY numbering ≤16 chars (`SHIV/26-27/0001`), seller/buyer snapshots,
+  SAC 996601, CGST+SGST or IGST, reimbursements outside taxable value, amount in words; immutable; credit notes
+  (`SHIC/…`) + re-issue; HTML print + PDF (dompdf, DejaVu Sans); customer download from tracking page; WhatsApp share.
+- Business expenses (monthly view by category), driver earnings (per-trip / commission / pro-rata salary + allowances)
+  with append-only payouts and statements.
+- Reports with date ranges & presets: summary (revenue, collections, costs, profit, outstanding, by method, daily chart),
+  vehicle-wise & booking-wise profitability (Growth+ via `subscription_plans.advanced_reports`), GST register; CSV export
+  (UTF-8 BOM, formula-injection safe).
+- Admin: operator settlements of online advances (fee %, UTR, payment-level tracking) and 12-month platform reports.
+- Fixes: date columns compared by date (Eloquent stores 'Y-m-d 00:00:00'); duplicate `operator.invoices.show` route
+  (subscription invoices moved to `/app/subscription/invoices/{payment}`); report header layout.
+
 ## 2026-11-18 — Phase 5: Customer portal
 - Operator booking page `/o/{slug}` (branding, verified badge, fleet, ratings, JSON-LD) with server-side fare estimate
   (Google distance only — client km ignored); no maps → booking saved as enquiry for a call-back quote.

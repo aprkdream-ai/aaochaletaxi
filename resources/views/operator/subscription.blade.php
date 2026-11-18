@@ -79,7 +79,7 @@
                         <tbody>
                             @forelse ($payments as $p)
                                 <tr><td class="fw-semibold text-nowrap">{{ $p->invoice_number }}</td><td class="text-nowrap">{{ $p->paid_at?->format('d M Y') }}</td><td class="text-end fw-bold text-nowrap">{{ Money::format($p->total) }}</td>
-                                    <td class="text-end"><a href="{{ route('operator.invoices.show', $p) }}" target="_blank" class="btn btn-sm btn-light" aria-label="{{ __('Invoice') }}"><x-icon name="download" /><span class="d-none d-sm-inline">{{ __('Invoice') }}</span></a></td></tr>
+                                    <td class="text-end"><a href="{{ route('operator.subscription.invoices.show', $p) }}" target="_blank" class="btn btn-sm btn-light" aria-label="{{ __('Invoice') }}"><x-icon name="download" /><span class="d-none d-sm-inline">{{ __('Invoice') }}</span></a></td></tr>
                             @empty
                                 <tr><td colspan="4"><x-empty-state icon="receipt" :title="__('No invoices yet')" /></td></tr>
                             @endforelse

@@ -125,6 +125,41 @@
                 </div>
             </div>
 
+            {{-- Invoice --}}
+            @if ($s === BookingStatus::Completed && ($u->hasPermission('invoices.view') || $u->hasPermission('invoices.manage')))
+                @php $inv = app(\App\Services\Finance\InvoiceService::class)->activeInvoice($booking); $docs = \App\Models\Invoice::query()->where('booking_id', $booking->id)->latest('id')->get(); @endphp
+                <div class="card panel-card mb-3">
+                    <div class="card-header">{{ __('Invoice') }} @if ($inv)<span class="badge-soft ok">{{ $inv->number }}</span>@endif</div>
+                    <div class="card-body">
+                        @if ($inv)
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{{ route('operator.invoices.show', $inv) }}" class="btn btn-sm btn-light border"><x-icon name="eye" />{{ __('View') }}</a>
+                                <a href="{{ route('operator.invoices.pdf', $inv) }}" class="btn btn-sm btn-light border"><x-icon name="download" />PDF</a>
+                                <a href="https://wa.me/91{{ $booking->customer_phone }}?text={{ rawurlencode(__('Your invoice :no: :url', ['no' => $inv->number, 'url' => route('booking.track.invoice', $booking->public_token)])) }}" target="_blank" rel="noopener" class="btn btn-sm btn-light border"><x-icon name="whatsapp" />{{ __('Send') }}</a>
+                                @if ($u->hasPermission('invoices.manage'))
+                                    <details class="ms-auto"><summary class="small text-danger">{{ __('Correct (credit note)') }}</summary>
+                                        <form method="POST" action="{{ route('operator.invoices.credit-note', $inv) }}" class="d-flex gap-2 mt-2" data-confirm="{{ __('Cancel this invoice with a credit note?') }}">@csrf<input type="text" name="reason" class="form-control form-control-sm" placeholder="{{ __('Reason') }}" required maxlength="200" aria-label="{{ __('Reason') }}"><button class="btn btn-sm btn-outline-danger">{{ __('Issue') }}</button></form>
+                                    </details>
+                                @endif
+                            </div>
+                        @elseif ($u->hasPermission('invoices.manage'))
+                            <form method="POST" action="{{ route('operator.invoices.store', $booking) }}" class="row g-2 align-items-end" data-loading>@csrf
+                                <div class="col-md-4"><label class="form-label small" for="i_name">{{ __('Bill to (name / company)') }}</label><input type="text" name="name" id="i_name" value="{{ $booking->customer_name }}" class="form-control form-control-sm" maxlength="150"></div>
+                                <div class="col-md-3"><label class="form-label small" for="i_gstin">{{ __('Customer GSTIN (B2B)') }}</label><input type="text" name="gstin" id="i_gstin" class="form-control form-control-sm" maxlength="15" style="text-transform:uppercase"></div>
+                                <div class="col-md-3"><label class="form-label small" for="i_state">{{ __('State') }}</label><input type="text" name="state" id="i_state" class="form-control form-control-sm" maxlength="60"></div>
+                                <div class="col-md-2"><button class="btn btn-sm btn-primary w-100">{{ __('Issue invoice') }}</button></div>
+                                <div class="col-12"><div class="form-check small"><input class="form-check-input" type="checkbox" name="inter_state" value="1" id="i_inter"><label class="form-check-label" for="i_inter">{{ __('Inter-state supply (IGST instead of CGST + SGST)') }}</label></div></div>
+                            </form>
+                            @error('gstin')<div class="text-danger small">{{ $message }}</div>@enderror
+                            @error('invoice')<div class="text-danger small">{{ $message }}</div>@enderror
+                        @endif
+                        @if ($docs->count() > ($inv ? 1 : 0))
+                            <div class="small text-muted-2 mt-2">{{ __('History') }}: @foreach ($docs as $d)<a href="{{ route('operator.invoices.show', $d) }}">{{ $d->number }}</a>@if ($d->isCreditNote()) (CN)@elseif ($d->status === 'credited') ({{ __('credited') }})@endif{{ $loop->last ? '' : ', ' }}@endforeach</div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             {{-- Payments --}}
             <div class="card panel-card mb-3">
                 <div class="card-header">{{ __('Payments') }} <span class="small fw-normal">{{ __('Received :p · Balance :b', ['p' => Money::format($booking->amount_paid), 'b' => Money::format($booking->balance())]) }}</span></div>

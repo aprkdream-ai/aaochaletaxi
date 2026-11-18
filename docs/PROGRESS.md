@@ -1,10 +1,10 @@
 # Progress
 
 **Last updated:** 2026-11-17 (UI v2)
-**Current phase:** Phase 5 complete → next Phase 6 (Finance: invoices, reports, exports)
+**Current phase:** Phase 6 complete → next Phase 7 (Driver PWA)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, MySQL)
-**Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), 5 (customer portal), integrations core
-**Tests:** 160 passing (SQLite + MariaDB locally; MySQL 8 in CI)
+**Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), 5 (customer portal), 6 (finance), integrations core
+**Tests:** 169 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
 ## Phase 1 — completed
 - [x] Laravel 12 + Bootstrap/Alpine/Vite setup, IST timezone, en/hi locale switch
@@ -69,10 +69,14 @@
 - `SSH_KEY=~/.ssh/aaochaletaxi_deploy bash deploy/release.sh` (clean origin/main build → deploy.sh). Git identity in this repo:
   aprkdream-ai noreply address.
 
-## Next exact tasks (Phase 6 — Finance)
-1. Customer invoices for completed bookings (GST-ready numbering per operator & FY, operator GSTIN, SAC 996412/996601),
-   printable + PDF (dompdf), credit notes for corrections; link from tracking page.
-2. Operator expenses (non-vehicle), driver settlements (trips × pay type, advances, payouts — append-only), vendor settlements.
-3. Platform → operator settlement of online advances collected via Razorpay (ledger + payout records).
-4. Reports: daily/monthly revenue, booking-wise & vehicle-wise profitability, GST summary, outstanding balances; CSV export.
-5. Admin reports: platform revenue, operators by activity, online collections.
+## Phase 6 — completed
+- [x] GST invoices + credit notes + PDF · expenses · driver earnings & payouts · reports + CSV · admin settlements & reports
+
+## Next exact tasks (Phase 7 — Driver PWA)
+1. `/driver` mobile app shell: web manifest (driver scope), service worker (offline shell + cache-first assets), install prompt.
+2. Trip list (today / upcoming / history) for the logged-in driver only; trip detail with pickup/drop, customer call,
+   Google Maps navigation deep link, stops.
+3. Start trip with customer OTP + start km; complete with end km, tolls/parking/waiting (reuse BookingService start/complete).
+4. Availability toggle (on/off duty), earnings summary (reuse DriverEarningsService), documents expiry view.
+5. Notifications: polling endpoint (`/driver/poll`, 30 s) for new assignments; FCM web push when configured (token register endpoint).
+6. Optional location ping during trip (trip_locations) — store last position only (privacy), shown to operator.

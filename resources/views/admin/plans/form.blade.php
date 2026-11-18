@@ -41,6 +41,7 @@
                     <x-input name="sort_order" type="number" min="0" :label="__('Display order')" :value="$plan->sort_order" />
                     <input type="hidden" name="is_active" value="0">
                     <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" role="switch" name="is_active" value="1" id="is_active" @checked(old('is_active', $plan->is_active))><label class="form-check-label" for="is_active">{{ __('Visible & available') }}</label></div>
+                    <x-switch name="advanced_reports" :label="__('Advanced reports (vehicle & booking profitability)')" :checked="$plan->advanced_reports" />
                     <button class="btn btn-primary w-100">{{ $editing ? __('Save changes') : __('Create plan') }}</button>
                 </div></div>
             </div>

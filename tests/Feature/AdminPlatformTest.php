@@ -82,9 +82,9 @@ class AdminPlatformTest extends TestCase
 
     public function test_billing_settings_validation_and_effect(): void
     {
-        $this->actingAs($this->admin)->put(route('admin.settings.update'), ['group' => 'billing', 'trial_plan_code' => 'nope', 'trial_days' => 500, 'grace_days' => 3, 'subscription_gst_percent' => 18, 'default_gst_percent' => 5, 'marketplace_commission_percent' => 10])
+        $this->actingAs($this->admin)->put(route('admin.settings.update'), ['group' => 'billing', 'trial_plan_code' => 'nope', 'trial_days' => 500, 'grace_days' => 3, 'subscription_gst_percent' => 18, 'default_gst_percent' => 5, 'marketplace_commission_percent' => 10, 'online_collection_fee_percent' => 2])
             ->assertSessionHasErrors(['trial_plan_code', 'trial_days']);
-        $this->actingAs($this->admin)->put(route('admin.settings.update'), ['group' => 'billing', 'trial_plan_code' => 'growth', 'trial_days' => 30, 'grace_days' => 3, 'subscription_gst_percent' => 18, 'default_gst_percent' => 5, 'marketplace_commission_percent' => 10])->assertSessionHasNoErrors();
+        $this->actingAs($this->admin)->put(route('admin.settings.update'), ['group' => 'billing', 'trial_plan_code' => 'growth', 'trial_days' => 30, 'grace_days' => 3, 'subscription_gst_percent' => 18, 'default_gst_percent' => 5, 'marketplace_commission_percent' => 10, 'online_collection_fee_percent' => 2])->assertSessionHasNoErrors();
 
         $this->post('/logout');
         $this->post(route('register.operator.store'), ['business_name' => 'New Co', 'city' => 'Pune', 'name' => 'N', 'email' => 'n@example.com', 'phone' => '9876555555', 'password' => 'secret123', 'password_confirmation' => 'secret123', 'terms' => 1]);

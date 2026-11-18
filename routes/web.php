@@ -48,6 +48,7 @@ Route::prefix('b/{token}')->name('booking.track')->where(['token' => '[A-Za-z0-9
     Route::post('/review', 'review')->middleware('throttle:track-actions')->name('.review');
     Route::post('/pay', 'checkout')->middleware('throttle:track-actions')->name('.pay');
     Route::post('/pay/verify', 'verify')->middleware('throttle:track-actions')->name('.verify');
+    Route::get('/invoice', 'invoice')->middleware('throttle:track-actions')->name('.invoice');
 });
 Route::post('/webhooks/razorpay', RazorpayWebhookController::class)->middleware('throttle:webhooks')->name('webhooks.razorpay');
 
@@ -127,6 +128,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'type:super_admin,pl
         Route::post('/settings/test/{integration}', [Admin\SettingsController::class, 'test'])->middleware('throttle:forms')->name('settings.test');
         Route::get('/message-log', [Admin\MessageLogController::class, 'index'])->name('messages.index');
     });
+    Route::middleware('permission:admin.reports.view')->group(function () {
+        Route::get('/finance/settlements', [Admin\FinanceController::class, 'settlements'])->name('finance.settlements');
+        Route::get('/finance/reports', [Admin\FinanceController::class, 'reports'])->name('finance.reports');
+    });
+    Route::post('/finance/settlements/{tenant}', [Admin\FinanceController::class, 'settle'])->middleware('permission:admin.subscriptions.manage')->name('finance.settle');
     Route::get('/audit-log', [Admin\AuditLogController::class, 'index'])->middleware('permission:admin.audit.view')->name('audit.index');
 });
 
@@ -147,7 +153,7 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
         Route::get('/subscription', [Operator\SubscriptionController::class, 'show'])->name('subscription');
         Route::post('/subscription/checkout', [Operator\CheckoutController::class, 'store'])->middleware('throttle:forms')->name('checkout.store');
         Route::post('/subscription/checkout/verify', [Operator\CheckoutController::class, 'verify'])->name('checkout.verify');
-        Route::get('/invoices/{payment}', [Operator\SubscriptionController::class, 'invoice'])->name('invoices.show');
+        Route::get('/subscription/invoices/{payment}', [Operator\SubscriptionController::class, 'invoice'])->name('subscription.invoices.show');
     });
     Route::controller(Operator\SupportTicketController::class)->group(function () {
         Route::get('/support', 'index')->name('support.index');
@@ -236,6 +242,31 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
             Route::get('/fare-rules', [Operator\FareRuleController::class, 'index'])->name('fares.index');
             Route::get('/fare-rules/{fareRule}/edit', [Operator\FareRuleController::class, 'edit'])->name('fares.edit');
             Route::put('/fare-rules/{fareRule}', [Operator\FareRuleController::class, 'update'])->name('fares.update');
+        });
+
+        // Finance
+        Route::middleware('permission:invoices.view,invoices.manage')->group(function () {
+            Route::get('/invoices', [Operator\InvoiceController::class, 'index'])->name('invoices.index');
+            Route::get('/invoices/{invoice}', [Operator\InvoiceController::class, 'show'])->name('invoices.show');
+            Route::get('/invoices/{invoice}/pdf', [Operator\InvoiceController::class, 'pdf'])->name('invoices.pdf');
+        });
+        Route::middleware('permission:invoices.manage')->group(function () {
+            Route::post('/bookings/{booking}/invoice', [Operator\InvoiceController::class, 'store'])->name('invoices.store');
+            Route::post('/invoices/{invoice}/credit-note', [Operator\InvoiceController::class, 'creditNote'])->name('invoices.credit-note');
+        });
+        Route::middleware('permission:expenses.manage')->group(function () {
+            Route::get('/expenses', [Operator\ExpenseController::class, 'index'])->name('expenses.index');
+            Route::post('/expenses', [Operator\ExpenseController::class, 'store'])->name('expenses.store');
+            Route::delete('/expenses/{expense}', [Operator\ExpenseController::class, 'destroy'])->name('expenses.destroy');
+        });
+        Route::middleware('permission:settlements.manage')->group(function () {
+            Route::get('/driver-payouts', [Operator\DriverPayoutController::class, 'index'])->name('payouts.index');
+            Route::get('/driver-payouts/{driver}', [Operator\DriverPayoutController::class, 'show'])->name('payouts.show');
+            Route::post('/driver-payouts/{driver}', [Operator\DriverPayoutController::class, 'store'])->name('payouts.store');
+        });
+        Route::middleware('permission:reports.view')->group(function () {
+            Route::get('/reports', [Operator\ReportController::class, 'index'])->name('reports.index');
+            Route::get('/reports/export', [Operator\ReportController::class, 'export'])->name('reports.export');
         });
 
         // Documents (permission checked per owner type in controller)

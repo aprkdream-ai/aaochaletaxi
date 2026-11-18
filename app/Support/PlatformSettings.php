@@ -17,6 +17,7 @@ class PlatformSettings
                 'grace_days' => ['label' => __('Grace period after expiry (days)'), 'type' => 'number', 'rules' => ['required', 'integer', 'min:0', 'max:30']],
                 'subscription_gst_percent' => ['label' => __('GST on subscriptions (%)'), 'type' => 'number', 'step' => '0.01', 'rules' => ['required', 'numeric', 'min:0', 'max:28']],
                 'default_gst_percent' => ['label' => __('Default GST on taxi fares (%)'), 'type' => 'number', 'step' => '0.01', 'rules' => ['required', 'numeric', 'min:0', 'max:28']],
+                'online_collection_fee_percent' => ['label' => __('Fee on online collections settled to operators (%)'), 'type' => 'number', 'step' => '0.01', 'rules' => ['required', 'numeric', 'min:0', 'max:10']],
                 'marketplace_commission_percent' => ['label' => __('Marketplace commission (%)'), 'type' => 'number', 'step' => '0.01', 'rules' => ['required', 'numeric', 'min:0', 'max:50']],
             ]],
             'company' => ['label' => __('Company (invoice details)'), 'icon' => 'building', 'fields' => [
