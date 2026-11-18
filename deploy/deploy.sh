@@ -17,6 +17,14 @@ if [ -d vendor/phpunit ] && [ "${ALLOW_DEV_VENDOR:-0}" != "1" ]; then
     echo "vendor contains dev packages — run: composer install --no-dev -o (or ALLOW_DEV_VENDOR=1)"; exit 1
 fi
 
+# Never ship a stale checkout: local HEAD must equal its upstream (CI runs on the pushed commit).
+if [ "${CI:-}" != "true" ] && [ "${ALLOW_STALE:-0}" != "1" ] && git rev-parse '@{u}' >/dev/null 2>&1; then
+    git fetch -q 2>/dev/null || true
+    if [ "$(git rev-parse HEAD)" != "$(git rev-parse '@{u}')" ]; then
+        echo "HEAD ($(git rev-parse --short HEAD)) differs from upstream ($(git rev-parse --short '@{u}')). Pull/push first or set ALLOW_STALE=1."; exit 1
+    fi
+fi
+
 SSH_CMD="ssh -p $SSH_PORT -o BatchMode=yes -o StrictHostKeyChecking=accept-new ${SSH_KEY:+-i $SSH_KEY}"
 REMOTE="$SSH_USER@$SSH_HOST"
 REV="$(git rev-parse --short HEAD 2>/dev/null || echo manual)"
