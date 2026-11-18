@@ -20,11 +20,13 @@ class Driver extends Model
         'date_of_birth', 'joined_on', 'address', 'pay_type', 'pay_amount', 'status', 'is_available', 'notes',
     ];
 
+    protected $hidden = ['fcm_token'];
+
     protected function casts(): array
     {
         return [
             'status' => DriverStatus::class, 'is_available' => 'boolean', 'licence_expiry' => 'date',
-            'date_of_birth' => 'date', 'joined_on' => 'date', 'pay_amount' => 'decimal:2',
+            'date_of_birth' => 'date', 'joined_on' => 'date', 'pay_amount' => 'decimal:2', 'app_seen_at' => 'datetime',
         ];
     }
 

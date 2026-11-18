@@ -38,4 +38,7 @@
 | D35 | 2026-11-18 | Corrections only via credit notes; invoices immutable (model guard) | GST compliance & audit trail |
 | D36 | 2026-11-18 | Driver earnings computed on demand; payouts store a breakdown snapshot | No double source of truth; payouts auditable |
 | D37 | 2026-11-18 | Advanced reports gated by plan flag | Growth/Business value proposition |
+| D38 | 2026-11-18 | Driver app is a PWA served by Laravel (manifest + SW at `/driver/…`, scope `/driver/`) | No app-store build; works on shared hosting; installable on Android |
+| D39 | 2026-11-18 | Driver alerts = database notifications + 30 s polling; FCM web push optional (Firebase JS from gstatic, loaded only when configured) | No WebSockets on shared hosting; push is a bonus |
+| D40 | 2026-11-18 | Only the latest driver position is stored, only while a trip is started | Privacy (DPDP) and tiny storage; operators need "where is the car now", not tracks |
 | D18 | 2026-11-17 | No fabricated reviews/stats on marketing pages | Honest launch; add real testimonials once collected |

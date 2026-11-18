@@ -33,7 +33,7 @@ erDiagram
   vehicles ||--o{ trips : used_in
   drivers ||--o{ trips : drives
   trips ||--o{ trip_expenses : has
-  trips ||--o{ trip_locations : tracks
+  %% last position stored on trips (last_lat, last_lng, last_location_at); no track history (D40)
   tenants ||--o{ fare_rules : prices
   fare_rules ||--o{ fare_components : has
   bookings ||--o{ invoices : billed
@@ -187,5 +187,6 @@ through scoped models only.
   customer_*, pickup/drop, pickup_at, return_at, vehicle_category_id, passengers, distance_km, duration_min, rental_hours,
   quoted_total, final_total, amount_paid, fare_snapshot JSON, final_snapshot JSON, cancel_*, created_by.
 - booking_stops, booking_quotations (version, breakdown JSON, total, valid_until, accepted_at), booking_status_logs.
-- trips (T): booking_id unique, vehicle_id, driver_id, start_at/end_at window, status, start_otp (hash), start/end km.
+- trips (T): booking_id unique, vehicle_id, driver_id, start_at/end_at window, status, start_otp (encrypted), start/end km, last_lat/last_lng/last_location_at (latest point only).
+- drivers: + fcm_token (hidden), app_seen_at.
 - payments (T, append-only): booking_id, kind (advance/balance/refund/adjustment), amount (negative = refund), method, reference, reversal_of.

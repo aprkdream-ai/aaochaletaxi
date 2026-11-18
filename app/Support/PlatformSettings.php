@@ -64,6 +64,8 @@ class PlatformSettings
             ]],
             'push' => ['label' => __('Push (Firebase)'), 'icon' => 'bell', 'test' => 'push', 'fields' => [
                 'fcm_project_id' => ['label' => __('Firebase project ID'), 'type' => 'text', 'rules' => ['nullable', 'string', 'max:100']],
+                'fcm_web_config' => ['label' => __('Web app config (JSON: apiKey, projectId, messagingSenderId, appId)'), 'type' => 'textarea', 'rules' => ['nullable', 'json', 'max:2000'], 'help' => __('Firebase console → Project settings → Your apps → Web app. Public values, used by the driver app.')],
+                'fcm_vapid_key' => ['label' => __('Web push certificate (VAPID public key)'), 'type' => 'text', 'rules' => ['nullable', 'string', 'max:200']],
                 'fcm_service_account' => ['label' => __('Service account JSON'), 'type' => 'secret_textarea', 'rules' => ['nullable', 'json', 'max:10000'], 'help' => __('Firebase console → Project settings → Service accounts → Generate new private key.')],
             ]],
         ];

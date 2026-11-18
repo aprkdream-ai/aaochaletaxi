@@ -1,10 +1,10 @@
 # Progress
 
-**Last updated:** 2026-11-17 (UI v2)
-**Current phase:** Phase 6 complete → next Phase 7 (Driver PWA)
+**Last updated:** 2026-11-18 (Phase 7)
+**Current phase:** Phase 7 complete → next Phase 8 (Marketplace)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, MySQL)
-**Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), 5 (customer portal), 6 (finance), integrations core
-**Tests:** 169 passing (SQLite + MariaDB locally; MySQL 8 in CI)
+**Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), 5 (customer portal), 6 (finance), 7 (driver PWA), integrations core
+**Tests:** 175 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
 ## Phase 1 — completed
 - [x] Laravel 12 + Bootstrap/Alpine/Vite setup, IST timezone, en/hi locale switch
@@ -40,7 +40,7 @@
 
 ## Pending (dev, later phases)
 - [ ] Use Maps distance + Places autocomplete in booking/fare flow (Phase 4/5)
-- [ ] Driver PWA push subscription → FCM tokens (Phase 7); booking payments via Razorpay (Phase 5)
+- [x] Driver PWA push subscription → FCM tokens (Phase 7); booking payments via Razorpay (Phase 5)
 - [ ] PDF download of invoices (Phase 6, dompdf) — currently print-to-PDF page
 - [ ] Plan limits for vehicles/drivers/branches enforced when those modules ship (Phase 3)
 
@@ -72,11 +72,14 @@
 ## Phase 6 — completed
 - [x] GST invoices + credit notes + PDF · expenses · driver earnings & payouts · reports + CSV · admin settlements & reports
 
-## Next exact tasks (Phase 7 — Driver PWA)
-1. `/driver` mobile app shell: web manifest (driver scope), service worker (offline shell + cache-first assets), install prompt.
-2. Trip list (today / upcoming / history) for the logged-in driver only; trip detail with pickup/drop, customer call,
-   Google Maps navigation deep link, stops.
-3. Start trip with customer OTP + start km; complete with end km, tolls/parking/waiting (reuse BookingService start/complete).
-4. Availability toggle (on/off duty), earnings summary (reuse DriverEarningsService), documents expiry view.
-5. Notifications: polling endpoint (`/driver/poll`, 30 s) for new assignments; FCM web push when configured (token register endpoint).
-6. Optional location ping during trip (trip_locations) — store last position only (privacy), shown to operator.
+## Phase 7 — completed
+- [x] Driver PWA (manifest, service worker, offline, install) · trips list/detail/history · OTP start & complete
+- [x] Duty toggle · earnings · profile & document expiry · polling alerts + FCM web push · last-location sharing
+
+## Next exact tasks (Phase 8 — Marketplace)
+1. Public search `/cabs` (from/to city, date, category) listing approved operators with booking pages enabled, fares from
+   their fare rules (server-side), rating, verified badge; city pages for SEO (`/cabs/{city}`).
+2. Operator service areas (cities served) in profile; marketplace opt-in flag; ranking (verified, rating, completion).
+3. Marketplace enquiry → lead to chosen operator (or broadcast to up to 3 operators in the city, first-accept wins with row lock).
+4. Platform commission setting on marketplace bookings (feeds settlements), operator lead inbox + accept/decline.
+5. Tests (search isolation, no tenant leakage, broadcast race), sitemap entries, docs.

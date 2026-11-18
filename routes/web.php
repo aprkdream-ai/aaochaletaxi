@@ -276,8 +276,21 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
 });
 
 // ---------- Driver PWA ----------
-Route::prefix('driver')->name('driver.')->middleware(['auth', 'type:driver', 'tenant', 'tenant.active', 'subscription'])->group(function () {
-    Route::get('/', Driver\HomeController::class)->name('home');
+Route::get('/driver/manifest.webmanifest', [Driver\PwaController::class, 'manifest'])->name('driver.manifest');
+Route::get('/driver/sw.js', [Driver\PwaController::class, 'serviceWorker'])->name('driver.sw');
+Route::get('/driver/offline', [Driver\PwaController::class, 'offline'])->name('driver.offline');
+Route::prefix('driver')->name('driver.')->middleware(['auth', 'type:driver', 'tenant', 'tenant.active', 'subscription'])->controller(Driver\AppController::class)->group(function () {
+    Route::get('/', 'home')->name('home');
+    Route::get('/history', 'history')->name('history');
+    Route::get('/earnings', 'earnings')->name('earnings');
+    Route::get('/profile', 'profile')->name('profile');
+    Route::get('/poll', 'poll')->middleware('throttle:driver-poll')->name('poll');
+    Route::post('/availability', 'availability')->name('availability');
+    Route::post('/push-token', 'pushToken')->name('push-token');
+    Route::get('/trips/{trip}', 'show')->name('trips.show');
+    Route::post('/trips/{trip}/start', 'start')->middleware('throttle:otp-verify')->name('trips.start');
+    Route::post('/trips/{trip}/complete', 'complete')->name('trips.complete');
+    Route::post('/trips/{trip}/location', 'location')->middleware('throttle:driver-location')->name('trips.location');
 });
 
 // ---------- Customer account ----------

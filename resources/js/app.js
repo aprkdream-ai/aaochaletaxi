@@ -182,7 +182,6 @@ Alpine.data('razorpayCheckout', (orderUrl) => ({
     },
 }));
 
-Alpine.start();
 
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.toast').forEach((el) => new Toast(el, { delay: 5000 }).show());
@@ -219,3 +218,80 @@ document.addEventListener('DOMContentLoaded', () => {
         items.forEach((el) => el.classList.add('in'));
     }
 });
+
+// ---------- Driver PWA ----------
+const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content;
+const postJson = (url, body) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf() }, body: JSON.stringify(body), credentials: 'same-origin' });
+
+Alpine.data('driverApp', (cfg) => ({
+    offline: !navigator.onLine, installable: false, fresh: 0, prompt: null, timer: null,
+    get freshText() {
+        const t = window.__driverI18n || {};
+        return this.fresh > 1 ? (t.many || ':n new trips').replace(':n', this.fresh) : (t.new || 'New trip assigned!');
+    },
+    init() {
+        window.addEventListener('online', () => { this.offline = false; this.poll(); });
+        window.addEventListener('offline', () => { this.offline = true; });
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); this.prompt = e; this.installable = true; });
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register(cfg.sw, { scope: '/driver/' }).then((reg) => this.setupPush(reg)).catch(() => {});
+        }
+        this.timer = setInterval(() => { if (!document.hidden) this.poll(); }, 30000);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) this.poll(); });
+    },
+    async poll() {
+        if (this.offline) return;
+        try {
+            const r = await fetch(cfg.poll, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+            if (r.status === 401 || r.status === 419) { location.reload(); return; }
+            if (!r.ok) return;
+            const d = await r.json();
+            if (d.new > this.fresh && d.new > 0 && navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            this.fresh = d.new;
+        } catch { /* network blip */ }
+    },
+    async install() {
+        if (!this.prompt) return;
+        this.prompt.prompt();
+        await this.prompt.userChoice;
+        this.prompt = null; this.installable = false;
+    },
+    async setupPush(reg) {
+        if (!cfg.push || !('Notification' in window) || !('PushManager' in window)) return;
+        if (Notification.permission === 'default') {
+            // Ask after the first user interaction (browsers block prompts without a gesture).
+            document.addEventListener('click', () => Notification.requestPermission().then((p) => p === 'granted' && this.setupPush(reg)), { once: true });
+            return;
+        }
+        if (Notification.permission !== 'granted') return;
+        try {
+            const v = '10.12.2';
+            const { initializeApp } = await import(/* @vite-ignore */ `https://www.gstatic.com/firebasejs/${v}/firebase-app.js`);
+            const { getMessaging, getToken } = await import(/* @vite-ignore */ `https://www.gstatic.com/firebasejs/${v}/firebase-messaging.js`);
+            const token = await getToken(getMessaging(initializeApp(cfg.push.config)), { vapidKey: cfg.push.vapidKey, serviceWorkerRegistration: reg });
+            if (token) {
+                let saved = null;
+                try { saved = localStorage.getItem('fcm_token'); } catch { /* storage unavailable */ }
+                if (saved !== token && (await postJson(cfg.token, { token })).ok) {
+                    try { localStorage.setItem('fcm_token', token); } catch { /* storage unavailable */ }
+                }
+            }
+        } catch { /* push optional — polling still works */ }
+    },
+}));
+
+// Shares only the latest position while a trip is in progress (every ~60 s).
+Alpine.data('tripTracker', (url) => ({
+    status: '', last: 0, watch: null,
+    start() {
+        if (!('geolocation' in navigator)) return;
+        this.watch = navigator.geolocation.watchPosition((pos) => {
+            if (Date.now() - this.last < 60000) return;
+            this.last = Date.now();
+            postJson(url, { lat: pos.coords.latitude, lng: pos.coords.longitude }).catch(() => {});
+        }, () => {}, { enableHighAccuracy: true, maximumAge: 30000, timeout: 20000 });
+    },
+    destroy() { if (this.watch !== null) navigator.geolocation.clearWatch(this.watch); },
+}));
+
+Alpine.start();

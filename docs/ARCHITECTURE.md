@@ -86,7 +86,7 @@ credit notes. Fare breakdown snapshot JSON stored on quotation & booking.
 - Theme tokens in `resources/scss/app.scss` (brand `#ffb703`, ink `#0b1220`), slim Bootstrap import
   (unused components/utilities removed), light/dark via `data-bs-theme` (set before paint in `<x-head>`).
 - Layouts: `x-layouts.public` (sticky glass header, offcanvas mobile nav, sticky mobile CTA, footer),
-  `x-layouts.auth` (split screen), `x-layouts.panel` (sidebar admin/operator), `x-layouts.mobile` (driver).
+  `x-layouts.auth` (split screen), `x-layouts.panel` (sidebar admin/operator), `x-layouts.driver` (driver PWA: bottom tabs, polling, SW).
 - Components: `x-icon`, `x-input` (icon, password toggle, aria), `x-stat-card`, `x-empty-state`,
   `x-page-header`, `x-page-hero`, `x-section-head`, `x-status-badge`, `x-faq` (+FAQPage schema),
   `x-breadcrumbs` (+BreadcrumbList schema), `x-seo` (title/description/canonical/OG/Twitter), `x-json-ld`.

@@ -16,7 +16,7 @@ class Trip extends Model
 
     protected function casts(): array
     {
-        return ['start_at' => 'datetime', 'end_at' => 'datetime', 'started_at' => 'datetime', 'completed_at' => 'datetime'];
+        return ['start_at' => 'datetime', 'end_at' => 'datetime', 'started_at' => 'datetime', 'completed_at' => 'datetime', 'last_location_at' => 'datetime', 'last_lat' => 'float', 'last_lng' => 'float'];
     }
 
     public function booking(): BelongsTo

@@ -16,6 +16,7 @@ use App\Models\Tenant;
 use App\Models\Trip;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Notifications\DriverTripAssigned;
 use App\Services\AuditLogger;
 use App\Services\SequenceService;
 use App\Support\Money;
@@ -197,6 +198,11 @@ class BookingService
             return $trip;
         });
 
+        try {
+            DriverTripAssigned::forDriver($trip->driver, $booking->setRelation('trip', $trip));
+        } catch (\Throwable $e) {
+            report($e); // never block assignment because a push failed
+        }
         $this->notifier->notify($booking, 'assigned', [
             'driver' => $trip->driver->name, 'driver_phone' => $trip->driver->phone, 'vehicle' => $trip->vehicle->displayRegistration(), 'otp' => $otp,
         ]);

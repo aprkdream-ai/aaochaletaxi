@@ -1,0 +1,4 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0b1220"><title>Offline · AaoChaleTaxi Driver</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b1220;color:#fff;font-family:system-ui,sans-serif;text-align:center;padding:1.5rem}button{margin-top:1rem;background:#ffc21a;border:0;border-radius:.75rem;padding:.8rem 1.4rem;font-weight:700;font-size:1rem}</style></head>
+<body><div><div style="font-size:3rem">📶</div><h1 style="font-size:1.3rem">You are offline</h1><p style="opacity:.75">Check your internet connection. Your trips will load again once you are back online.</p><button onclick="location.reload()">Try again</button></div></body></html>

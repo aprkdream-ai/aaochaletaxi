@@ -75,7 +75,7 @@ Rollback (on server): `bash ~/domains/aaochaletaxi.com/aaochaletaxi_app/current/
 | SMS | MSG91 (auth key + Flow template with `##var1##`) or Fast2SMS (API key, DLT sender ID, DLT template id) | sends a test SMS |
 | WhatsApp | Meta Cloud API phone number ID, permanent token, approved template with `{{1}}` | sends template (or `hello_world`) |
 | Google Maps | Browser key (domain-restricted) + server key with Distance Matrix enabled | Mumbai → Pune distance |
-| Push | Firebase project ID + service-account JSON | authenticates / sends to a token |
+| Push | Firebase project ID + service-account JSON (server) and Web app config JSON + Web Push VAPID key (Firebase → Project settings → Cloud Messaging) for the driver app | authenticates / sends to a token |
 All deliveries are visible in Admin → Message log.
 
 ## 5. Generic cPanel / Plesk (no SSH)

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-11-18 — Phase 7: Driver app (PWA)
+- Installable driver app at `/driver` (manifest + service worker scoped to `/driver/`, cache-first build assets,
+  network-only pages with offline fallback, install button, bottom tab navigation, safe-area aware).
+- Trips: current / overdue / today / upcoming, history; trip detail with stops, call / WhatsApp customer and Google Maps
+  navigation (pickup before start, drop + waypoints after); start with customer OTP + odometer (max 2 h early);
+  complete with closing km, tolls, parking, state tax, waiting → final fare and amount to collect.
+- On/off duty toggle (blocked during an active trip), earnings (month, last month, paid, pending, payouts), profile with
+  licence/document expiry.
+- New-trip alerts: database notification on assignment + 30 s polling banner (vibrate); FCM web push when Admin →
+  Settings → Push has web config + VAPID key (token registered from the app).
+- Live location during a started trip: only the latest point is stored (India bounds, 1/min); operator booking page
+  links to it on Google Maps.
+- Strict ownership: drivers only see their own trips (others → 404); driver users without a linked profile get a help page.
+- Fix: Bootstrap `d-*` utilities override Alpine `x-show` — driver banners use `x-if`.
+
 ## 2026-11-18 — Phase 6: Finance
 - GST invoices for completed bookings: per-operator FY numbering ≤16 chars (`SHIV/26-27/0001`), seller/buyer snapshots,
   SAC 996601, CGST+SGST or IGST, reimbursements outside taxable value, amount in words; immutable; credit notes

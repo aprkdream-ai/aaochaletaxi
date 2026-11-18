@@ -91,6 +91,8 @@ class AppServiceProvider extends ServiceProvider
         $byIp('webhooks', 300);
         $byUser('operator-preview', 120);
         $byUser('operator-distance', 40);
+        $byUser('driver-poll', 10);
+        $byUser('driver-location', 6);
         RateLimiter::for('public-booking', fn (Request $r) => Limit::perHour(15)->by('public-booking|'.$r->ip()));
     }
 }
