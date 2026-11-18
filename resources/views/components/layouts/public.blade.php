@@ -129,7 +129,7 @@
         </div>
         <div class="foot-line py-4 d-flex flex-column flex-md-row gap-3 justify-content-between small">
             @php $ownerName = \App\Models\PlatformSetting::getValue('platform_legal_name'); $ownerAddress = \App\Models\PlatformSetting::getValue('platform_address'); @endphp
-            <span>&copy; {{ now()->year }} AaoChaleTaxi. {{ __('All rights reserved.') }}@if ($ownerName)<br>{{ __('Owned & operated by :name', ['name' => $ownerName]) }}@if ($ownerAddress) · {{ preg_replace('/\s*\n\s*/', ', ', trim($ownerAddress)) }}@endif @endif</span>
+            <span>&copy; {{ now()->year }} AaoChaleTaxi. {{ __('All rights reserved.') }}@if ($ownerName)<br>{{ __('Owned & operated by :name', ['name' => $ownerName]) }}@if ($ownerAddress) · {{ preg_replace('/[,\s]*\n\s*/', ', ', trim($ownerAddress)) }}@endif @endif</span>
             <nav class="d-flex flex-wrap gap-3" aria-label="{{ __('Legal') }}">
                 <a href="{{ route('legal.privacy') }}">{{ __('Privacy') }}</a>
                 <a href="{{ route('legal.terms') }}">{{ __('Terms') }}</a>
