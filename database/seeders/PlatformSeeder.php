@@ -7,6 +7,7 @@ use App\Enums\UserType;
 use App\Models\PlatformSetting;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use App\Models\VehicleCategory;
 use App\Services\RoleService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -41,6 +42,12 @@ class PlatformSeeder extends Seeder
         foreach (['trial_plan_code' => 'starter', 'trial_days' => '14', 'grace_days' => '7', 'marketplace_commission_percent' => '10', 'default_gst_percent' => '5'] as $key => $value) {
             if (! PlatformSetting::query()->where('key', $key)->exists()) {
                 PlatformSetting::setValue($key, $value);
+            }
+        }
+
+        foreach (VehicleCategory::DEFAULTS as $i => [$name, $slug, $seats, $icon]) {
+            if (! VehicleCategory::query()->whereNull('tenant_id')->where('slug', $slug)->exists()) {
+                VehicleCategory::create(['name' => $name, 'slug' => $slug, 'seats' => $seats, 'icon' => $icon, 'sort_order' => ($i + 1) * 10]);
             }
         }
 

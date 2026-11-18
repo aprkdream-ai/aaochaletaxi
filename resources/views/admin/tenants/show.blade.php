@@ -162,7 +162,8 @@
                     <dt class="col-5 text-muted-2 fw-semibold">{{ __('Address') }}</dt><dd class="col-7">{{ collect([$tenant->address_line, $tenant->city, $tenant->state, $tenant->pincode])->filter()->join(', ') ?: '—' }}</dd>
                     <dt class="col-5 text-muted-2 fw-semibold">GSTIN</dt><dd class="col-7">{{ $tenant->gstin ?: '—' }}</dd>
                     <dt class="col-5 text-muted-2 fw-semibold">PAN</dt><dd class="col-7">{{ $tenant->pan ?: '—' }}</dd>
-                    <dt class="col-5 text-muted-2 fw-semibold">{{ __('Staff users') }}</dt><dd class="col-7">{{ $usage['users'] }}</dd>
+                    <dt class="col-5 text-muted-2 fw-semibold">{{ __('Fleet') }}</dt><dd class="col-7">{{ __(':v vehicles · :d drivers', ['v' => $usage['vehicles'], 'd' => $usage['drivers']]) }}</dd>
+                    <dt class="col-5 text-muted-2 fw-semibold">{{ __('Team') }}</dt><dd class="col-7">{{ __(':u staff · :b branches', ['u' => $usage['users'], 'b' => $usage['branches']]) }}</dd>
                     @if ($tenant->approved_at)<dt class="col-5 text-muted-2 fw-semibold">{{ __('Approved') }}</dt><dd class="col-7">{{ $tenant->approved_at->format('d M Y') }}</dd>@endif
                 </dl>
             </div></div>

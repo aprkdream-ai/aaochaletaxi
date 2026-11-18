@@ -22,6 +22,13 @@ return [
     'operator' => [
         ['section' => 'Overview'],
         ['label' => 'Dashboard', 'icon' => 'speedometer2', 'route' => 'operator.dashboard', 'permission' => 'dashboard.view'],
+        ['section' => 'Fleet'],
+        ['label' => 'Vehicles', 'icon' => 'car-front', 'route' => 'operator.vehicles.index', 'active' => 'operator.vehicles.*', 'permission' => 'vehicles.view'],
+        ['label' => 'Drivers', 'icon' => 'person-badge', 'route' => 'operator.drivers.index', 'active' => 'operator.drivers.*', 'permission' => 'drivers.view'],
+        ['section' => 'Team'],
+        ['label' => 'Staff', 'icon' => 'people', 'route' => 'operator.staff.index', 'active' => 'operator.staff.*', 'permission' => 'staff.manage'],
+        ['label' => 'Roles & access', 'icon' => 'shield-lock', 'route' => 'operator.roles.index', 'active' => 'operator.roles.*', 'permission' => 'roles.manage'],
+        ['label' => 'Branches', 'icon' => 'diagram-3', 'route' => 'operator.branches.index', 'active' => 'operator.branches.*', 'permission' => 'branches.manage'],
         ['section' => 'Business'],
         ['label' => 'Business profile', 'icon' => 'building', 'route' => 'operator.profile.edit', 'permission' => 'settings.manage'],
         ['label' => 'KYC documents', 'icon' => 'patch-check', 'route' => 'operator.kyc.index', 'permission' => 'settings.manage'],

@@ -1,0 +1,94 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\VehicleStatus;
+use App\Models\Concerns\BelongsToTenant;
+use App\Support\Expiry;
+use App\Support\FleetOptions;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Vehicle extends Model
+{
+    use BelongsToTenant, SoftDeletes;
+
+    protected $fillable = [
+        'branch_id', 'vehicle_category_id', 'registration_number', 'make', 'model', 'year', 'color', 'fuel_type', 'seats', 'is_ac',
+        'ownership', 'status', 'is_available', 'insurance_expiry', 'permit_expiry', 'fitness_expiry', 'puc_expiry', 'odometer_km', 'notes',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => VehicleStatus::class, 'is_ac' => 'boolean', 'is_available' => 'boolean',
+            'insurance_expiry' => 'date', 'permit_expiry' => 'date', 'fitness_expiry' => 'date', 'puc_expiry' => 'date',
+        ];
+    }
+
+    /** MH 12 AB 1234 / mh12ab1234 → MH12AB1234 */
+    public static function normalizeRegistration(?string $value): string
+    {
+        return strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $value));
+    }
+
+    /** Pretty print: MH12AB1234 → MH 12 AB 1234 (BH series kept as-is). */
+    public function displayRegistration(): string
+    {
+        return preg_match('/^([A-Z]{2})(\d{1,2})([A-Z]{0,3})(\d{1,4})$/', $this->registration_number, $m)
+            ? trim("$m[1] $m[2] $m[3] $m[4]")
+            : $this->registration_number;
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(VehicleCategory::class, 'vehicle_category_id');
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(FleetDocument::class, 'documentable')->latest('id');
+    }
+
+    public function maintenance(): HasMany
+    {
+        return $this->hasMany(VehicleMaintenance::class)->orderByDesc('service_date')->orderByDesc('id');
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(VehicleExpense::class)->orderByDesc('expense_date')->orderByDesc('id');
+    }
+
+    /** @return array<string, array{label:string}+array> */
+    public function expiries(): array
+    {
+        $out = [];
+        foreach (FleetOptions::vehicleExpiryFields() as $field => $label) {
+            $out[$field] = ['name' => $label, 'date' => $this->{$field}] + Expiry::of($this->{$field});
+        }
+
+        return $out;
+    }
+
+    /** Worst state across documents: expired > due > missing > ok. */
+    public function complianceState(): string
+    {
+        $states = array_column($this->expiries(), 'state');
+
+        return collect(['expired', 'due', 'missing'])->first(fn ($s) => in_array($s, $states, true)) ?? 'ok';
+    }
+
+    public function isAssignable(): bool
+    {
+        return $this->status === VehicleStatus::Active && $this->is_available && $this->complianceState() !== 'expired';
+    }
+}

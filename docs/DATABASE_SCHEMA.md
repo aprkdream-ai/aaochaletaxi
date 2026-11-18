@@ -107,20 +107,23 @@ Composite PKs (permission_id, role_id) / (role_id, user_id).
 ### customers ⏳P5 — id, user_id nullable unique, name, phone idx, email, city, timestamps.
 Platform-level (shared across operators); operators see customers via their bookings only.
 
-### drivers ⏳P3 (T, SD)
+### drivers ✅ (T, SD)
 id, tenant_id, user_id unique nullable, branch_id, name, phone, licence_number,
 licence_expiry, aadhaar_last4, address, status, is_available, rating, joined_on;
 unique(tenant_id, phone).
 
-### driver_documents ⏳P3 (T) — driver_id, type, number, file_path, expires_on, verified_at.
+### driver documents → `fleet_documents` (polymorphic)
 
 ## OPERATIONS
-- branches ⏳P3 (T, SD): name, code, city, address, phone, is_head_office; unique(tenant_id, code).
-- vehicle_categories ⏳P3: tenant_id nullable (NULL = platform default), name, slug, seats_default.
-- vehicles ⏳P3 (T, SD): branch_id, category_id, registration_number unique(tenant_id, reg),
-  make, model, year, color, seats, is_ac, fuel_type, status, insurance/permit/fitness/puc
-  _expiry (idx), owner_type(own/vendor), vendor_id.
-- vehicle_documents, vehicle_maintenance, vehicle_expenses ⏳P3 (T).
+- branches ✅ (T, SD): name, code, city, address, phone, is_head_office, is_active; unique(tenant_id, code); users.branch_id FK.
+- vehicle_categories ✅ (P3): tenant_id nullable (NULL = platform default), name, slug, seats_default.
+- vehicles ✅ (T, SD): branch_id, vehicle_category_id, registration_number (normalised, unique per tenant), make, model,
+  year, color, fuel_type, seats, is_ac, ownership (owned/attached/vendor), status (active/maintenance/inactive),
+  is_available, insurance/permit/fitness/puc_expiry, odometer_km, image_path, notes.
+- fleet_documents ✅ (T): polymorphic (vehicles & drivers) type, number, expires_on, private file — replaces
+  separate vehicle_documents/driver_documents tables (D22).
+- vehicle_maintenance ✅ (T): vehicle_id, service_date, type, description, odometer_km, cost, vendor, next_service_date/km.
+- vehicle_expenses ✅ (T): vehicle_id, expense_date, category, amount, payment_method, reference, notes.
 
 ## BOOKINGS ⏳P4
 - bookings (T): booking_number unique(tenant_id), customer_id, source enum(manual, website,

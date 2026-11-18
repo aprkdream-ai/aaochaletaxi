@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-18 — Phase 3: Operator management (fleet & team)
+- Branches (head office, plan `max_branches`), operator staff (roles, branch, status; last Owner protected; `max_users`),
+  custom role editor (tenant permissions only; Owner locked).
+- Vehicle categories (7 platform defaults + operator custom), vehicles with Indian registration validation/normalisation,
+  insurance/permit/fitness/PUC expiry, photo, availability, soft delete; documents (private), maintenance, expenses.
+- Drivers with licence validation, Aadhaar last-4 only, pay type, photo, documents, driver app login (mobile + password).
+- `PlanLimitService` enforces vehicles/drivers/branches/users; friendly "Upgrade plan" banner.
+- `fleet:expiry-reminders` daily digest (30/15/7/3/1/0/−1 days) via mail/SMS/WhatsApp; dashboard "documents needing attention".
+- Operator dashboard with real fleet stats, setup checklist and plan usage; admin operator page shows fleet counts.
+- Production switched to MySQL; web-fallback scheduler until hPanel cron exists; E.164 support phone links.
+- UI fixes found via logged-in screenshots: missing `.min-w-0` utility (mobile overflow), Bootstrap progress not imported,
+  expiry badge label bug, tab colours, role shown in sidebar.
+
 ## 2026-11-18 — Integrations (Phase 9 core, pulled forward)
 - Super admin settings split into Payments (Razorpay), Email (SMTP/sendmail), SMS (MSG91 / Fast2SMS), WhatsApp Cloud API,
   Google Maps, Push (Firebase FCM v1) — encrypted secrets, "required secret" validation, live "Send test" per channel.

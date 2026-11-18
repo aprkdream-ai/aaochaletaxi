@@ -22,4 +22,7 @@
 | D19 | 2026-11-18 | Integrations via plain HTTP clients (Razorpay, MSG91, Fast2SMS, Meta Graph, Google, FCM v1) — no SDKs | Fewer dependencies on shared hosting; easy to fake in tests |
 | D20 | 2026-11-18 | WhatsApp notifications use one approved utility template with `{{1}}` = message text | Business-initiated WhatsApp messages require templates |
 | D21 | 2026-11-18 | Online payment activates "after current" when a paid period is running, else immediately | Customers never lose paid days |
+| D22 | 2026-11-18 | One polymorphic `fleet_documents` table for vehicle + driver files | Same rules (private disk, expiry, audit); less duplicated code |
+| D23 | 2026-11-18 | Expiry dates kept as columns on vehicles/drivers (mirrored from uploaded documents) | Fast filters, dashboard and reminders without joins |
+| D24 | 2026-11-18 | Web-fallback scheduler (in-process, after response) when no cron heartbeat | Hostinger has no crontab over SSH; exec/popen disabled |
 | D18 | 2026-11-17 | No fabricated reviews/stats on marketing pages | Honest launch; add real testimonials once collected |

@@ -115,6 +115,7 @@ $utilities: map-remove($utilities,
 @import "bootstrap/scss/toasts";
 @import "bootstrap/scss/modal";
 @import "bootstrap/scss/offcanvas";
+@import "bootstrap/scss/progress";
 @import "bootstrap/scss/spinners";
 @import "bootstrap/scss/placeholders";
 @import "bootstrap/scss/helpers";
@@ -164,6 +165,7 @@ img, svg { vertical-align: middle; }
 
 h1, h2, h3, .h1, .h2, .h3 { letter-spacing: -.025em; }
 .fw-800 { font-weight: 800 !important; }
+.min-w-0 { min-width: 0 !important; }
 .text-muted-2 { color: var(--muted) !important; }
 .text-brand { color: var(--brand-600) !important; }
 .bg-brand { background: var(--brand) !important; }

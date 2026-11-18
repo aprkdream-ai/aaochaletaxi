@@ -139,6 +139,59 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
 
     Route::middleware(['tenant.active', 'subscription'])->group(function () {
         Route::get('/', Operator\DashboardController::class)->middleware('permission:dashboard.view')->name('dashboard');
+
+        // Organisation
+        Route::resource('branches', Operator\BranchController::class)->except('show')->middleware('permission:branches.manage');
+        Route::middleware('permission:staff.manage')->group(function () {
+            Route::get('/staff', [Operator\StaffController::class, 'index'])->name('staff.index');
+            Route::get('/staff/create', [Operator\StaffController::class, 'create'])->name('staff.create');
+            Route::post('/staff', [Operator\StaffController::class, 'store'])->name('staff.store');
+            Route::get('/staff/{member}/edit', [Operator\StaffController::class, 'edit'])->name('staff.edit');
+            Route::put('/staff/{member}', [Operator\StaffController::class, 'update'])->name('staff.update');
+        });
+        Route::resource('roles', Operator\RoleController::class)->except('show')->middleware('permission:roles.manage');
+
+        // Vehicles
+        Route::middleware('permission:vehicles.manage')->group(function () {
+            Route::get('/vehicles/create', [Operator\VehicleController::class, 'create'])->name('vehicles.create');
+            Route::post('/vehicles', [Operator\VehicleController::class, 'store'])->name('vehicles.store');
+            Route::get('/vehicles/{vehicle}/edit', [Operator\VehicleController::class, 'edit'])->name('vehicles.edit');
+            Route::put('/vehicles/{vehicle}', [Operator\VehicleController::class, 'update'])->name('vehicles.update');
+            Route::delete('/vehicles/{vehicle}', [Operator\VehicleController::class, 'destroy'])->name('vehicles.destroy');
+            Route::post('/vehicles/{vehicle}/availability', [Operator\VehicleController::class, 'toggleAvailability'])->name('vehicles.availability');
+            Route::post('/vehicles/{vehicle}/documents', [Operator\FleetRecordController::class, 'storeVehicleDocument'])->name('vehicles.documents.store');
+            Route::post('/vehicles/{vehicle}/maintenance', [Operator\FleetRecordController::class, 'storeMaintenance'])->name('vehicles.maintenance.store');
+            Route::delete('/maintenance/{maintenance}', [Operator\FleetRecordController::class, 'destroyMaintenance'])->name('maintenance.destroy');
+            Route::post('/vehicle-categories', [Operator\VehicleCategoryController::class, 'store'])->name('vehicle-categories.store');
+        });
+        Route::middleware('permission:expenses.manage,vehicles.manage')->group(function () {
+            Route::post('/vehicles/{vehicle}/expenses', [Operator\FleetRecordController::class, 'storeExpense'])->name('vehicles.expenses.store');
+            Route::delete('/expenses/{expense}', [Operator\FleetRecordController::class, 'destroyExpense'])->name('expenses.destroy');
+        });
+        Route::middleware('permission:vehicles.view,vehicles.manage')->group(function () {
+            Route::get('/vehicles', [Operator\VehicleController::class, 'index'])->name('vehicles.index');
+            Route::get('/vehicles/{vehicle}', [Operator\VehicleController::class, 'show'])->name('vehicles.show');
+        });
+
+        // Drivers
+        Route::middleware('permission:drivers.manage')->group(function () {
+            Route::get('/drivers/create', [Operator\DriverController::class, 'create'])->name('drivers.create');
+            Route::post('/drivers', [Operator\DriverController::class, 'store'])->name('drivers.store');
+            Route::get('/drivers/{driver}/edit', [Operator\DriverController::class, 'edit'])->name('drivers.edit');
+            Route::put('/drivers/{driver}', [Operator\DriverController::class, 'update'])->name('drivers.update');
+            Route::delete('/drivers/{driver}', [Operator\DriverController::class, 'destroy'])->name('drivers.destroy');
+            Route::post('/drivers/{driver}/app-access', [Operator\DriverController::class, 'appAccess'])->name('drivers.app-access');
+            Route::post('/drivers/{driver}/availability', [Operator\DriverController::class, 'toggleAvailability'])->name('drivers.availability');
+            Route::post('/drivers/{driver}/documents', [Operator\FleetRecordController::class, 'storeDriverDocument'])->name('drivers.documents.store');
+        });
+        Route::middleware('permission:drivers.view,drivers.manage')->group(function () {
+            Route::get('/drivers', [Operator\DriverController::class, 'index'])->name('drivers.index');
+            Route::get('/drivers/{driver}', [Operator\DriverController::class, 'show'])->name('drivers.show');
+        });
+
+        // Documents (permission checked per owner type in controller)
+        Route::get('/fleet-documents/{document}', [Operator\FleetRecordController::class, 'downloadDocument'])->name('fleet-documents.show');
+        Route::delete('/fleet-documents/{document}', [Operator\FleetRecordController::class, 'destroyDocument'])->name('fleet-documents.destroy');
     });
 });
 

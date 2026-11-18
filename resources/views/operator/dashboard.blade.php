@@ -1,51 +1,95 @@
+@php
+    use App\Support\Money;
+    $plan = $subscription?->plan;
+    $steps = [
+        ['building', __('Complete business profile'), filled($tenant->gstin) || filled($tenant->address_line), route('operator.profile.edit'), 'settings.manage'],
+        ['car-front', __('Add your first vehicle'), $usage['vehicles'] > 0, route('operator.vehicles.create'), 'vehicles.manage'],
+        ['person-badge', __('Add your first driver'), $usage['drivers'] > 0, route('operator.drivers.create'), 'drivers.manage'],
+        ['people', __('Invite your team'), $usage['users'] > 1, route('operator.staff.create'), 'staff.manage'],
+    ];
+    $done = collect($steps)->where(2, true)->count();
+@endphp
 <x-layouts.panel :title="__('Dashboard')" panel="operator">
-    <x-page-header :title="__('Welcome, :name', ['name' => \Illuminate\Support\Str::before(auth()->user()->name, ' ')])" :subtitle="$tenant->name.' · '.now()->format('l, d M Y')" />
+    <x-page-header :title="__('Welcome, :name', ['name' => \Illuminate\Support\Str::before(auth()->user()->name, ' ')])" :subtitle="$tenant->name.' · '.now()->format('l, d M Y')">
+        @can('vehicles.manage')<a href="{{ route('operator.vehicles.create') }}" class="btn btn-light border"><x-icon name="plus-lg" />{{ __('Vehicle') }}</a>@endcan
+        @can('drivers.manage')<a href="{{ route('operator.drivers.create') }}" class="btn btn-primary"><x-icon name="person-plus" />{{ __('Driver') }}</a>@endcan
+    </x-page-header>
 
     @if ($subscription && $subscription->status->value === 'trialing')
         <div class="alert border-0 d-flex flex-wrap align-items-center gap-3 rounded-4 mb-4" style="background: var(--brand-soft)">
             <span class="icon-tile tile-ink tile-sm"><x-icon name="gift" /></span>
-            <div class="flex-grow-1"><div class="fw-bold">{{ __('Free trial: :days days left', ['days' => $subscription->daysLeft()]) }}</div><div class="small">{{ __('You are on the :plan plan trial until :date.', ['plan' => $subscription->plan->name, 'date' => $subscription->ends_at->format('d M Y')]) }}</div></div>
-            <a href="{{ route('partner') }}#pricing" class="btn btn-ink btn-sm">{{ __('View plans') }}</a>
+            <div class="flex-grow-1"><div class="fw-bold">{{ __('Free trial: :days days left', ['days' => $subscription->daysLeft()]) }}</div><div class="small">{{ __('You are on the :plan plan trial until :date.', ['plan' => $plan->name, 'date' => $subscription->ends_at->format('d M Y')]) }}</div></div>
+            @can('subscription.manage')<a href="{{ route('operator.subscription') }}" class="btn btn-ink btn-sm">{{ __('Choose a plan') }}</a>@endcan
         </div>
-    @elseif (! $subscription)
-        <div class="alert alert-danger d-flex gap-2 rounded-4"><x-icon name="exclamation-triangle-fill" class="mt-1" />{{ __('Your subscription has expired. Please contact support to renew — your data is safe.') }}</div>
+    @elseif ($subscription && $subscription->status->value === 'grace')
+        <div class="alert alert-warning d-flex gap-2 rounded-4"><x-icon name="exclamation-triangle-fill" class="mt-1" />{{ __('Your subscription has ended. Renew before :d to avoid interruption.', ['d' => $subscription->grace_ends_at?->format('d M Y')]) }}</div>
     @endif
 
     <div class="row g-3 mb-4">
-        <div class="col-6 col-xl-3"><x-stat-card :label="__('Current plan')" :value="$subscription?->plan->name ?? '—'" icon="award" color="primary" /></div>
-        <div class="col-6 col-xl-3"><x-stat-card :label="__('Valid till')" :value="$subscription?->ends_at->format('d M Y') ?? '—'" icon="calendar-check" color="info" /></div>
-        <div class="col-6 col-xl-3"><x-stat-card :label="__('Team members')" :value="$staffCount" icon="people" color="success" /></div>
-        <div class="col-6 col-xl-3"><x-stat-card :label="__('Vehicle limit')" :value="$subscription?->plan->max_vehicles ?? '—'" icon="truck-front" color="secondary" /></div>
+        <div class="col-6 col-xl-3"><x-stat-card :label="__('Vehicles available')" :value="$fleet['vehicles_available'].' / '.$usage['vehicles']" icon="car-front" color="primary" :href="route('operator.vehicles.index')" :hint="$fleet['vehicles_maintenance'] ? __(':n in maintenance', ['n' => $fleet['vehicles_maintenance']]) : null" /></div>
+        <div class="col-6 col-xl-3"><x-stat-card :label="__('Drivers available')" :value="$fleet['drivers_available'].' / '.$usage['drivers']" icon="person-badge" color="success" :href="route('operator.drivers.index')" /></div>
+        <div class="col-6 col-xl-3"><x-stat-card :label="__('Fleet expenses this month')" :value="Money::format($fleet['expenses_month'], 0)" icon="fuel-pump" color="info" /></div>
+        <div class="col-6 col-xl-3"><x-stat-card :label="__('Documents expiring (30 d)')" :value="count($expiring)" icon="exclamation-triangle" :color="count($expiring) ? 'danger' : 'secondary'" :href="route('operator.vehicles.index', ['compliance' => 'attention'])" /></div>
     </div>
 
     <div class="row g-3">
         <div class="col-lg-7">
-            <div class="card panel-card h-100">
-                <div class="card-header">{{ __('Get started') }}</div>
+            @if ($done < count($steps))
+                <div class="card panel-card mb-3">
+                    <div class="card-header">{{ __('Get started') }} <span class="small fw-normal text-muted-2">{{ __(':done of :total done', ['done' => $done, 'total' => count($steps)]) }}</span></div>
+                    <div class="px-3 pt-3"><div class="progress" style="height:6px" role="progressbar" aria-valuenow="{{ $done }}" aria-valuemax="{{ count($steps) }}" aria-label="{{ __('Setup progress') }}"><div class="progress-bar bg-warning" style="width: {{ $done / count($steps) * 100 }}%"></div></div></div>
+                    <div class="list-group list-group-flush list-modern">
+                        @foreach ($steps as [$icon, $label, $isDone, $url, $perm])
+                            @if (auth()->user()->hasPermission($perm))
+                                <a href="{{ $url }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                                    <x-icon :name="$isDone ? 'check-circle-fill' : $icon" class="{{ $isDone ? 'text-success' : 'text-muted-2' }}" />
+                                    <span @class(['me-auto', 'text-decoration-line-through text-muted-2' => $isDone])>{{ $label }}</span>
+                                    @unless ($isDone)<x-icon name="chevron-right" class="text-muted-2" />@endunless
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+            <div class="card panel-card">
+                <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="calendar-x" class="text-danger" />{{ __('Documents needing attention') }}</span></div>
                 <div class="list-group list-group-flush list-modern">
-                    @foreach ([
-                        ['check-circle-fill', 'text-success', __('Business account created'), __('Your account is verified and active.')],
-                        ['circle', 'text-muted-2', __('Add your vehicles & drivers'), __('Fleet management is coming in the next update.')],
-                        ['circle', 'text-muted-2', __('Set up your fare rules'), __('Configure per-km rates, allowances and GST.')],
-                        ['circle', 'text-muted-2', __('Share your booking page'), __('Let customers book directly with you.')],
-                    ] as [$ico, $tone, $t, $d])
-                        <div class="list-group-item d-flex gap-3"><x-icon :name="$ico" class="{{ $tone }} mt-1" /><div><div class="fw-semibold">{{ $t }}</div><div class="small text-muted-2">{{ $d }}</div></div></div>
-                    @endforeach
+                    @forelse ($expiring as $item)
+                        <a href="{{ $item['url'] }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                            <span class="stat-ico tone-{{ $item['days'] < 0 ? 'danger' : 'warning' }}" style="width:2.2rem;height:2.2rem"><x-icon :name="$item['kind'] === 'vehicle' ? 'car-front' : 'person-badge'" /></span>
+                            <div class="me-auto min-w-0"><div class="fw-semibold text-truncate">{{ $item['name'] }}</div><div class="small text-muted-2">{{ $item['what'] }} · {{ $item['date'] }}</div></div>
+                            <span class="badge-soft {{ $item['days'] < 0 ? 'danger' : ($item['days'] <= 7 ? 'danger' : 'warn') }}">{{ $item['days'] < 0 ? __('Expired') : trans_choice('{0} Today|{1} 1 day|[2,*] :n days', $item['days'], ['n' => $item['days']]) }}</span>
+                        </a>
+                    @empty
+                        <x-empty-state icon="shield-check" :title="__('All documents are valid')" :text="__('We will remind you 30 days before anything expires.')" />
+                    @endforelse
                 </div>
             </div>
         </div>
         <div class="col-lg-5">
-            <div class="card panel-card h-100">
+            <div class="card panel-card mb-3">
+                <div class="card-header">{{ __('Plan usage') }} @if ($plan)<span class="badge-soft info">{{ $plan->name }}</span>@endif</div>
+                <div class="card-body d-grid gap-3">
+                    @foreach (['vehicles' => [__('Vehicles'), 'max_vehicles'], 'drivers' => [__('Drivers'), 'max_drivers'], 'users' => [__('Staff users'), 'max_users'], 'branches' => [__('Branches'), 'max_branches']] as $key => [$label, $col])
+                        @php $max = $plan?->{$col} ?? 0; $pct = $max ? min(100, round($usage[$key] / $max * 100)) : 0; @endphp
+                        <div>
+                            <div class="d-flex justify-content-between small mb-1"><span>{{ $label }}</span><b>{{ $usage[$key] }} / {{ $max ?: '—' }}</b></div>
+                            <div class="progress" style="height:8px" role="progressbar" aria-valuenow="{{ $usage[$key] }}" aria-valuemax="{{ $max }}" aria-label="{{ $label }}"><div class="progress-bar {{ $pct >= 100 ? 'bg-danger' : ($pct >= 80 ? 'bg-warning' : 'bg-success') }}" style="width: {{ $pct }}%"></div></div>
+                        </div>
+                    @endforeach
+                    @can('subscription.manage')<a href="{{ route('operator.subscription') }}" class="btn btn-sm btn-light border">{{ __('Manage subscription') }}</a>@endcan
+                </div>
+            </div>
+            <div class="card panel-card">
                 <div class="card-header">{{ __('Your booking page') }}</div>
                 <div class="card-body" x-data="{ copied: false }">
-                    <p class="small text-muted-2">{{ __('Customers will be able to book directly with you at:') }}</p>
                     <div class="input-group">
                         <input type="text" class="form-control" readonly value="{{ url('/o/'.$tenant->slug) }}" x-ref="link" aria-label="{{ __('Booking page link') }}">
-                        <button class="btn btn-ink" type="button" @click="navigator.clipboard?.writeText($refs.link.value); copied = true; setTimeout(() => copied = false, 2000)">
+                        <button class="btn btn-ink" type="button" @click="navigator.clipboard?.writeText($refs.link.value); copied = true; setTimeout(() => copied = false, 2000)" aria-label="{{ __('Copy link') }}">
                             <span x-show="!copied"><x-icon name="clipboard" /></span><span x-show="copied" x-cloak><x-icon name="check2" /></span>
                         </button>
                     </div>
-                    <div class="small text-muted-2 mt-2">{{ __('Branded booking pages go live in an upcoming release.') }}</div>
+                    <div class="small text-muted-2 mt-2">{{ __('Branded booking pages go live with online bookings (coming next).') }}</div>
                 </div>
             </div>
         </div>

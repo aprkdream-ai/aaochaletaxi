@@ -26,7 +26,7 @@
             <span class="avatar">{{ $panel === 'admin' ? 'SA' : mb_strtoupper(mb_substr($tenant?->name ?? 'A', 0, 2)) }}</span>
             <div class="min-w-0">
                 <div class="text-white fw-semibold text-truncate">{{ $panel === 'admin' ? __('Platform admin') : ($tenant?->name ?? '') }}</div>
-                <div class="text-truncate opacity-75">{{ $user->type->label() }}</div>
+                <div class="text-truncate opacity-75">{{ $panel === 'operator' ? ($user->tenantRoles()->pluck('name')->first() ?? $user->type->label()) : $user->type->label() }}</div>
             </div>
         </div>
     </div>
@@ -76,6 +76,12 @@
         </div>
     </header>
     <main class="p-3 p-lg-4 flex-grow-1" id="main">
+        @error('limit')
+            <div class="alert alert-warning d-flex flex-wrap align-items-center gap-2 rounded-4">
+                <x-icon name="speedometer" class="icon-lg" /><div class="me-auto">{{ $message }}</div>
+                @if (\Illuminate\Support\Facades\Route::has('operator.subscription') && $panel === 'operator')<a href="{{ route('operator.subscription') }}" class="btn btn-sm btn-ink">{{ __('Upgrade plan') }}</a>@endif
+            </div>
+        @enderror
         {{ $slot }}
     </main>
 </div>

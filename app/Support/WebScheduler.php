@@ -54,6 +54,7 @@ class WebScheduler
             }
             if (Cache::add('scheduler:web_daily', 1, 86400)) {
                 Artisan::call('queue:prune-failed', ['--hours' => 720]);
+                Artisan::call('fleet:expiry-reminders');
             }
 
             Cache::put(self::LAST_RUN, ['at' => now()->toIso8601String(), 'via' => 'web'], now()->addDays(7));

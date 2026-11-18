@@ -1,10 +1,10 @@
 # Progress
 
 **Last updated:** 2026-11-17 (UI v2)
-**Current phase:** Phase 2 complete → next Phase 3 (Operator: branches, staff, vehicles, drivers)
+**Current phase:** Phase 3 complete → next Phase 4 (Booking engine & fare calculator)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, MySQL)
-**Completed phases:** 0 (discovery), 1 (foundation + UI v2), 2 (SaaS admin)
-**Tests:** 114 passing (SQLite + MariaDB locally; MySQL 8 in CI)
+**Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), integrations core
+**Tests:** 133 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
 ## Phase 1 — completed
 - [x] Laravel 12 + Bootstrap/Alpine/Vite setup, IST timezone, en/hi locale switch
@@ -51,11 +51,18 @@
 - Super admin: admin@aaochaletaxi.test / password
 - Active operator: owner@shivtravels.test / password1 · Pending operator: owner@ganeshcabs.test / password1
 
-## Next exact tasks (Phase 3 — Operator management)
-1. Branches CRUD (plan `max_branches`), `users.branch_id` usage.
-2. Staff management for operators (invite/create staff, assign tenant roles, deactivate) with `max_users`.
-3. Custom role editor (tenant roles ↔ permission catalog), owner role protected.
-4. Vehicle categories (platform defaults + tenant custom) and vehicles CRUD with documents & expiry dates (`max_vehicles`).
-5. Drivers CRUD + driver documents + driver login user (`max_drivers`); availability flag.
-6. Vehicle maintenance & expenses; expiry reminder command (insurance/permit/fitness/PUC/licence).
-7. Extend `PlanLimitService` usage for vehicles/drivers/branches.
+## Phase 3 — completed
+- [x] Branches, staff, custom roles · vehicle categories, vehicles, drivers (+ app login) · fleet documents
+- [x] Maintenance & expenses · plan limits for all resources · daily expiry digest · real operator dashboard
+
+## Next exact tasks (Phase 4 — Booking engine)
+1. `fare_rules` (per tenant × category × booking type: base, per-km, min km, driver allowance/day, night window+charge,
+   waiting/min, GST %, toll/parking/state-tax flags) + admin-free operator UI; seed sensible defaults per new tenant.
+2. `FareCalculator` service (bcmath, breakdown array) incl. one-way vs round-trip min-km/day rules; uses
+   `GoogleMapsService::distance()` when configured else manual km.
+3. `bookings`, `booking_stops`, `booking_quotations` (snapshot JSON), `booking_status_logs`, booking numbers via `sequences`.
+4. Workflow service: enquiry → quoted → confirmed → advance_paid → vehicle/driver assigned → started → completed →
+   billed → settled; cancellation with reason; status log.
+5. `trips` with assignment under `lockForUpdate()` + overlap check (vehicle & driver), idempotency key on create.
+6. Operator UI: bookings list (filters, calendar-day view), create/edit wizard, quote send (WhatsApp/SMS link), assign modal.
+7. Convert website enquiries → bookings (admin/operator).
