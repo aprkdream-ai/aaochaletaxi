@@ -39,7 +39,7 @@ class DashboardController extends Controller
         return view('admin.dashboard', [
             'stats' => $stats,
             'pendingTenants' => Tenant::query()->where('status', TenantStatus::Pending)->latest()->limit(5)->get(),
-            'recentActivity' => AuditLog::query()->with(['user:id,name', 'tenant:id,name'])->where('action', 'not like', 'auth.%')->latest('id')->limit(8)->get(),
+            'recentActivity' => AuditLog::query()->with(['user:id,name', 'tenant:id,name'])->where('event', 'not like', 'auth.%')->latest('id')->limit(8)->get(),
         ]);
     }
 }

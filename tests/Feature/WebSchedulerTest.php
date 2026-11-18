@@ -35,7 +35,7 @@ class WebSchedulerTest extends TestCase
     public function test_admin_dashboard_warns_without_cron(): void
     {
         $admin = User::factory()->superAdmin()->create();
-        $this->actingAs($admin)->get(route('admin.dashboard'))->assertSee('Cron job not detected');
+        $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk()->assertSee('Cron job not detected');
         WebScheduler::cronHeartbeat();
         $this->actingAs($admin)->get(route('admin.dashboard'))->assertDontSee('Cron job not detected');
     }
