@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-18 — Phase 5: Customer portal
+- Operator booking page `/o/{slug}` (branding, verified badge, fleet, ratings, JSON-LD) with server-side fare estimate
+  (Google distance only — client km ignored); no maps → booking saved as enquiry for a call-back quote.
+- Mobile OTP (`OtpService`: SMS → WhatsApp → e-mail → log in non-prod; hashed, 10 min, 5 attempts, 3 sends/15 min);
+  verified guests get a customer account automatically; passwordless "Mobile OTP" login.
+- Customer tracking page `/b/{token}`: progress, trip OTP (encrypted at rest), driver & vehicle, fare, online advance
+  (Razorpay, operator-configurable %), cancellation, 1–5★ review; reviews shown on the operator page.
+- Customer account: all bookings across operators + profile; customer SMS/WhatsApp/e-mail updates (quoted, confirmed,
+  assigned with OTP, completed, cancelled) — never blocks the workflow; operator alerts for online bookings/payments/cancellations.
+- Operator profile: booking page on/off, customer notifications, online advance %, about text.
+- Fix: plain `throttle:x,y` limits share one counter per IP/user across routes → replaced with named per-action limiters.
+
 ## 2026-11-18 — Phase 4: Booking engine
 - Fare rules per operator × vehicle category × trip type (auto-seeded suggested rates; editable; GST 0/5/12/18).
 - `FareCalculator` (bcmath): min km (per day for round trips), driver allowance, rental packages with extra km/hours,

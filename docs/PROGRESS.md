@@ -1,10 +1,10 @@
 # Progress
 
 **Last updated:** 2026-11-17 (UI v2)
-**Current phase:** Phase 4 complete → next Phase 5 (Customer portal & online booking)
+**Current phase:** Phase 5 complete → next Phase 6 (Finance: invoices, reports, exports)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, MySQL)
-**Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), integrations core
-**Tests:** 149 passing (SQLite + MariaDB locally; MySQL 8 in CI)
+**Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), 5 (customer portal), integrations core
+**Tests:** 160 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
 ## Phase 1 — completed
 - [x] Laravel 12 + Bootstrap/Alpine/Vite setup, IST timezone, en/hi locale switch
@@ -62,11 +62,17 @@
 - Local: `php artisan migrate:fresh --seed` (logins in DemoSeeder). Production: `php artisan demo:data install|remove --force`
   (labelled "(Demo)", no invoices). Current production demo logins: owner@shivtravels.test / Demo@2026, driver 9811122233 / Drive@2026.
 
-## Next exact tasks (Phase 5 — Customer portal)
-1. Public booking flow on home/quote form: pick operator (marketplace later) — for now route website enquiries to platform
-   admin → "Create booking for operator" conversion; operator microsite `/o/{slug}` with its own booking form.
-2. Customer account: bookings list/detail, cancellation request, invoice download, rating after completion.
-3. Guest booking with phone OTP verification (SMS provider) + `customer_user_id` linking on registration.
-4. Online advance payment via Razorpay for bookings (reuse gateway; payments ledger kind=advance, method=razorpay).
-5. Booking notifications to customers (confirmation, assignment with driver details, completion) via SMS/WhatsApp/mail.
-6. Google Places autocomplete on address fields when browser key is configured.
+## Phase 5 — completed
+- [x] Operator booking page · OTP verification & OTP login · tracking page · online advance · reviews · customer account · notifications
+
+## Deployment (while GitHub Actions is blocked by account billing)
+- `SSH_KEY=~/.ssh/aaochaletaxi_deploy bash deploy/release.sh` (clean origin/main build → deploy.sh). Git identity in this repo:
+  aprkdream-ai noreply address.
+
+## Next exact tasks (Phase 6 — Finance)
+1. Customer invoices for completed bookings (GST-ready numbering per operator & FY, operator GSTIN, SAC 996412/996601),
+   printable + PDF (dompdf), credit notes for corrections; link from tracking page.
+2. Operator expenses (non-vehicle), driver settlements (trips × pay type, advances, payouts — append-only), vendor settlements.
+3. Platform → operator settlement of online advances collected via Razorpay (ledger + payout records).
+4. Reports: daily/monthly revenue, booking-wise & vehicle-wise profitability, GST summary, outstanding balances; CSV export.
+5. Admin reports: platform revenue, operators by activity, online collections.

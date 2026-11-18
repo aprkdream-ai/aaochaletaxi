@@ -29,4 +29,8 @@
 | D26 | 2026-11-18 | Fare snapshot stores the rule's rates; final fare is recomputed from the snapshot, not the live rule | Rate edits never change confirmed bookings |
 | D27 | 2026-11-18 | Trip time window (pickup → estimated end incl. return/buffer) used for overlap checks under row locks | Prevents double assignment without a scheduler service |
 | D28 | 2026-11-18 | Tolls/parking/state tax are pass-through (no GST) | Reimbursements at actuals are outside taxable value |
+| D29 | 2026-11-18 | Public fares use server-side Google distance only; without Maps the booking is an enquiry | Prevents fare manipulation from the browser |
+| D30 | 2026-11-18 | Trip OTP stored encrypted (not hashed) | Customer must be able to view it on the tracking page |
+| D31 | 2026-11-18 | Online advances are collected on the platform's Razorpay account and settled to operators (Phase 6) | Single gateway, no per-operator KYC with Razorpay |
+| D32 | 2026-11-18 | Named rate limiters per action | Laravel's numeric `throttle:x,y` shares one counter per client across routes |
 | D18 | 2026-11-17 | No fabricated reviews/stats on marketing pages | Honest launch; add real testimonials once collected |

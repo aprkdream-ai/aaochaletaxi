@@ -4,15 +4,19 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\Auth\CustomerRegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\OperatorRegisterController;
+use App\Http\Controllers\Auth\OtpLoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Customer;
 use App\Http\Controllers\Driver;
 use App\Http\Controllers\Operator;
+use App\Http\Controllers\Public\BookingTrackController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\LocaleController;
+use App\Http\Controllers\Public\MicrositeController;
 use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\SitemapController;
 use App\Http\Controllers\Webhooks\RazorpayWebhookController;
+use App\Http\Middleware\ResolveMicrositeTenant;
 use Illuminate\Support\Facades\Route;
 
 // ---------- Public website ----------
@@ -30,7 +34,22 @@ Route::post('/contact', [ContactController::class, 'store'])->middleware('thrott
 Route::post('/enquiry', [ContactController::class, 'enquiry'])->middleware('throttle:forms')->name('enquiry.store');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/locale/{locale}', LocaleController::class)->name('locale');
-Route::post('/webhooks/razorpay', RazorpayWebhookController::class)->middleware('throttle:120,1')->name('webhooks.razorpay');
+// ---------- Operator booking page & customer booking tracking ----------
+Route::prefix('o/{slug}')->name('microsite.')->middleware(ResolveMicrositeTenant::class)->where(['slug' => '[a-z0-9-]+'])->group(function () {
+    Route::get('/', [MicrositeController::class, 'show'])->name('show');
+    Route::post('/fare', [MicrositeController::class, 'preview'])->middleware('throttle:fare-preview')->name('preview');
+    Route::post('/otp', [MicrositeController::class, 'sendOtp'])->middleware('throttle:otp-send')->name('otp.send');
+    Route::post('/otp/verify', [MicrositeController::class, 'verifyOtp'])->middleware('throttle:otp-verify')->name('otp.verify');
+    Route::post('/book', [MicrositeController::class, 'store'])->middleware('throttle:public-booking')->name('store');
+});
+Route::prefix('b/{token}')->name('booking.track')->where(['token' => '[A-Za-z0-9]{40}'])->controller(BookingTrackController::class)->group(function () {
+    Route::get('/', 'show')->name('');
+    Route::post('/cancel', 'cancel')->middleware('throttle:track-actions')->name('.cancel');
+    Route::post('/review', 'review')->middleware('throttle:track-actions')->name('.review');
+    Route::post('/pay', 'checkout')->middleware('throttle:track-actions')->name('.pay');
+    Route::post('/pay/verify', 'verify')->middleware('throttle:track-actions')->name('.verify');
+});
+Route::post('/webhooks/razorpay', RazorpayWebhookController::class)->middleware('throttle:webhooks')->name('webhooks.razorpay');
 
 // ---------- Authentication ----------
 Route::middleware('guest')->group(function () {
@@ -42,6 +61,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [CustomerRegisterController::class, 'create'])->name('register.customer');
     Route::post('/register', [CustomerRegisterController::class, 'store'])->middleware('throttle:register')->name('register.customer.store');
 
+    Route::post('/login/otp', [OtpLoginController::class, 'send'])->middleware('throttle:otp-send')->name('login.otp.send');
+    Route::post('/login/otp/verify', [OtpLoginController::class, 'verify'])->middleware('throttle:otp-verify')->name('login.otp.verify');
     Route::get('/forgot-password', [PasswordResetController::class, 'requestForm'])->name('password.request');
     Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->middleware('throttle:forms')->name('password.email');
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'resetForm'])->name('password.reset');
@@ -193,8 +214,8 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
         Route::middleware('permission:bookings.create')->group(function () {
             Route::get('/bookings/create', [Operator\BookingController::class, 'create'])->name('bookings.create');
             Route::post('/bookings', [Operator\BookingController::class, 'store'])->name('bookings.store');
-            Route::post('/bookings/preview', [Operator\BookingController::class, 'preview'])->middleware('throttle:60,1')->name('bookings.preview');
-            Route::post('/bookings/distance', [Operator\BookingController::class, 'distance'])->middleware('throttle:30,1')->name('bookings.distance');
+            Route::post('/bookings/preview', [Operator\BookingController::class, 'preview'])->middleware('throttle:operator-preview')->name('bookings.preview');
+            Route::post('/bookings/distance', [Operator\BookingController::class, 'distance'])->middleware('throttle:operator-distance')->name('bookings.distance');
         });
         Route::middleware('permission:bookings.view')->group(function () {
             Route::get('/bookings', [Operator\BookingController::class, 'index'])->name('bookings.index');
@@ -231,4 +252,5 @@ Route::prefix('driver')->name('driver.')->middleware(['auth', 'type:driver', 'te
 // ---------- Customer account ----------
 Route::prefix('account')->name('account.')->middleware(['auth', 'type:customer'])->group(function () {
     Route::get('/', Customer\DashboardController::class)->name('dashboard');
+    Route::put('/profile', [Customer\DashboardController::class, 'updateProfile'])->name('profile.update');
 });

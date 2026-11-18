@@ -42,6 +42,10 @@ class ProfileController extends Controller
             'primary_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
             'remove_logo' => ['nullable', 'boolean'],
+            'booking_page_enabled' => ['nullable', 'boolean'],
+            'notify_customers' => ['nullable', 'boolean'],
+            'online_advance_percent' => ['nullable', 'integer', 'in:0,10,20,25,30,50,100'],
+            'about' => ['nullable', 'string', 'max:600'],
         ], [
             'phone.regex' => __('Enter a valid 10-digit Indian mobile number.'),
             'gstin.regex' => __('Enter a valid 15-character GSTIN.'),
@@ -49,7 +53,14 @@ class ProfileController extends Controller
         ]);
 
         $old = $tenant->only(['name', 'legal_name', 'email', 'phone', 'gstin', 'pan', 'city', 'state']);
-        $tenant->fill(collect($data)->except(['logo', 'remove_logo'])->all());
+        $settingKeys = ['booking_page_enabled', 'notify_customers', 'online_advance_percent', 'about'];
+        $tenant->fill(collect($data)->except(array_merge(['logo', 'remove_logo'], $settingKeys))->all());
+        $tenant->settings = array_merge($tenant->settings ?? [], [
+            'booking_page_enabled' => $request->boolean('booking_page_enabled'),
+            'notify_customers' => $request->boolean('notify_customers'),
+            'online_advance_percent' => (int) ($data['online_advance_percent'] ?? 0),
+            'about' => $data['about'] ?? null,
+        ]);
 
         if ($request->hasFile('logo')) {
             $previous = $tenant->logo_path;

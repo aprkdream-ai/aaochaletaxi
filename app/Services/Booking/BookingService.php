@@ -17,12 +17,12 @@ use App\Models\Trip;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Services\AuditLogger;
-use App\Services\Messaging\SmsService;
 use App\Services\SequenceService;
 use App\Support\Money;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class BookingService
@@ -32,7 +32,7 @@ class BookingService
         private FareRuleService $rules,
         private SequenceService $sequences,
         private AuditLogger $audit,
-        private SmsService $sms,
+        private CustomerNotifier $notifier,
     ) {}
 
     /** Fare preview without saving. */
@@ -49,19 +49,22 @@ class BookingService
      * @param  list<string>  $stops
      * @param  array  $fareInput  tolls/parking/state_tax/discount/waiting_min
      */
-    public function create(Tenant $tenant, array $data, array $stops, array $fareInput, User $user, ?string $idempotencyKey): Booking
+    public function create(Tenant $tenant, array $data, array $stops, array $fareInput, ?User $user, ?string $idempotencyKey, bool $phoneVerified = false): Booking
     {
         if ($idempotencyKey && ($existing = Booking::query()->where('idempotency_key', $idempotencyKey)->first())) {
             return $existing; // double-submit / retry → same booking
         }
 
-        return DB::transaction(function () use ($tenant, $data, $stops, $fareInput, $user, $idempotencyKey) {
+        $booking = DB::transaction(function () use ($tenant, $data, $stops, $fareInput, $user, $idempotencyKey, $phoneVerified) {
             $booking = new Booking($data);
             $booking->booking_number = $this->nextNumber($tenant, $booking->pickup_at);
             $booking->idempotency_key = $idempotencyKey;
             $booking->status = BookingStatus::Enquiry;
             $booking->payment_status = PaymentStatus::Unpaid;
-            $booking->created_by = $user->id;
+            $booking->created_by = $user?->id;
+            $booking->public_token = Str::random(40);
+            $booking->phone_verified = $phoneVerified;
+            $booking->customer_user_id = User::query()->where('phone', $booking->customer_phone)->where('type', 'customer')->value('id');
             $booking->save();
 
             foreach (array_values(array_filter(array_map('trim', $stops))) as $i => $address) {
@@ -76,10 +79,16 @@ class BookingService
 
             return $booking->refresh();
         });
+
+        if ($booking->status === BookingStatus::Quoted) {
+            $this->notifier->notify($booking, 'quoted');
+        }
+
+        return $booking;
     }
 
     /** Creates a new quotation version from the current fare rule. */
-    public function quote(Booking $booking, array $fareInput, User $user): BookingQuotation
+    public function quote(Booking $booking, array $fareInput, ?User $user): BookingQuotation
     {
         $this->assertTransition($booking, BookingStatus::Quoted);
         $snapshot = $this->preview($booking->vehicle_category_id, $booking->type, $this->fareInputFor($booking, $fareInput));
@@ -87,7 +96,7 @@ class BookingService
         return DB::transaction(function () use ($booking, $snapshot, $user) {
             $version = (int) $booking->quotations()->max('version') + 1;
             $q = new BookingQuotation(['booking_id' => $booking->id, 'version' => $version, 'breakdown' => $snapshot, 'total' => $snapshot['total'], 'valid_until' => now()->addDays(3)]);
-            $q->created_by = $user->id;
+            $q->created_by = $user?->id;
             $q->save();
 
             $from = $booking->status;
@@ -103,16 +112,17 @@ class BookingService
         });
     }
 
-    public function confirm(Booking $booking, User $user): void
+    public function confirm(Booking $booking, ?User $user): void
     {
         if (! $booking->quoted_total) {
             throw ValidationException::withMessages(['status' => __('Create a quotation before confirming.')]);
         }
-        $this->transition($booking, BookingStatus::Confirmed, $user, __('Customer confirmed'));
+        $this->transition($booking, BookingStatus::Confirmed, $user, $user ? __('Customer confirmed') : __('Confirmed by online advance payment'));
         $booking->quotations()->first()?->forceFill(['accepted_at' => now()])->save();
+        $this->notifier->notify($booking, 'confirmed');
     }
 
-    public function recordPayment(Booking $booking, string $kind, string|float $amount, string $method, ?string $reference, User $user, ?string $notes = null): Payment
+    public function recordPayment(Booking $booking, string $kind, string|float $amount, string $method, ?string $reference, ?User $user, ?string $notes = null): Payment
     {
         $amount = number_format((float) $amount, 2, '.', '');
         if ((float) $amount <= 0) {
@@ -125,7 +135,7 @@ class BookingService
         return DB::transaction(function () use ($booking, $kind, $amount, $method, $reference, $user, $notes) {
             $locked = Booking::query()->lockForUpdate()->findOrFail($booking->id);
             $p = new Payment(['booking_id' => $locked->id, 'kind' => $kind, 'amount' => $kind === 'refund' ? '-'.$amount : $amount, 'method' => $method, 'reference' => $reference, 'paid_at' => now(), 'notes' => $notes]);
-            $p->recorded_by = $user->id;
+            $p->recorded_by = $user?->id;
             $p->save();
 
             $locked->amount_paid = Money::add((string) $locked->amount_paid, (string) $p->amount);
@@ -178,7 +188,7 @@ class BookingService
 
             $trip = Trip::query()->firstOrNew(['booking_id' => $booking->id]);
             $trip->fill(['vehicle_id' => $vehicle->id, 'driver_id' => $driver->id, 'start_at' => $start, 'end_at' => $end, 'status' => 'assigned']);
-            $trip->start_otp = Hash::make($otp);
+            $trip->start_otp = Crypt::encryptString($otp); // encrypted (not hashed) so the customer can see it on the tracking page
             $trip->assigned_by = $user->id;
             $trip->save();
 
@@ -187,10 +197,9 @@ class BookingService
             return $trip;
         });
 
-        $this->sms->send($booking->customer_phone, __('AaoChaleTaxi :no: :driver (:phone) will pick you up on :at in :reg. Share OTP :otp only when the trip starts.', [
-            'no' => $booking->booking_number, 'driver' => $trip->driver->name, 'phone' => $trip->driver->phone,
-            'at' => $booking->pickup_at->format('d M h:i A'), 'reg' => $trip->vehicle->displayRegistration(), 'otp' => $otp,
-        ]), $booking->tenant_id, 'booking.assigned');
+        $this->notifier->notify($booking, 'assigned', [
+            'driver' => $trip->driver->name, 'driver_phone' => $trip->driver->phone, 'vehicle' => $trip->vehicle->displayRegistration(), 'otp' => $otp,
+        ]);
 
         return ['trip' => $trip, 'otp' => $otp];
     }
@@ -199,7 +208,7 @@ class BookingService
     {
         $this->assertTransition($booking, BookingStatus::Started);
         $trip = $booking->trip ?? throw ValidationException::withMessages(['otp' => __('Assign a vehicle and driver first.')]);
-        if (! $trip->start_otp || ! Hash::check($otp, $trip->start_otp)) {
+        if (! $trip->start_otp || ! hash_equals($this->tripOtp($trip) ?? '', $otp)) {
             throw ValidationException::withMessages(['otp' => __('Incorrect OTP. Ask the customer for the 4-digit code.')]);
         }
 
@@ -238,9 +247,10 @@ class BookingService
             $this->transition($booking, BookingStatus::Completed, $user, __('Final fare :amt', ['amt' => Money::format($final['total'])]));
             $this->refreshPaymentStatus($booking);
         });
+        $this->notifier->notify($booking, 'completed');
     }
 
-    public function cancel(Booking $booking, string $reason, User $user): void
+    public function cancel(Booking $booking, string $reason, ?User $user): void
     {
         $this->assertTransition($booking, BookingStatus::Cancelled);
         DB::transaction(function () use ($booking, $reason, $user) {
@@ -248,6 +258,20 @@ class BookingService
             $booking->forceFill(['cancelled_at' => now(), 'cancel_reason' => $reason])->save();
             $this->transition($booking, BookingStatus::Cancelled, $user, $reason);
         });
+        $this->notifier->notify($booking, 'cancelled');
+    }
+
+    /** Plain trip OTP for the customer's tracking page (null once the trip has started). */
+    public function tripOtp(?Trip $trip): ?string
+    {
+        if (! $trip?->start_otp) {
+            return null;
+        }
+        try {
+            return Crypt::decryptString($trip->start_otp);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /** Vehicles and drivers free for this booking's window (for the assign dialog). */
@@ -349,7 +373,7 @@ class BookingService
         }
     }
 
-    private function transition(Booking $booking, BookingStatus $to, User $user, ?string $note): void
+    private function transition(Booking $booking, BookingStatus $to, ?User $user, ?string $note): void
     {
         $this->assertTransition($booking, $to);
         $from = $booking->status;
@@ -358,8 +382,8 @@ class BookingService
         $this->log($booking, $from, $to, $user, $note);
     }
 
-    private function log(Booking $booking, ?BookingStatus $from, BookingStatus $to, User $user, ?string $note): void
+    private function log(Booking $booking, ?BookingStatus $from, BookingStatus $to, ?User $user, ?string $note): void
     {
-        BookingStatusLog::create(['booking_id' => $booking->id, 'from_status' => $from?->value, 'to_status' => $to->value, 'user_id' => $user->id, 'note' => $note ? mb_substr($note, 0, 255) : null]);
+        BookingStatusLog::create(['booking_id' => $booking->id, 'from_status' => $from?->value, 'to_status' => $to->value, 'user_id' => $user?->id, 'note' => $note ? mb_substr($note, 0, 255) : null]);
     }
 }

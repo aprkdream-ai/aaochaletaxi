@@ -1,6 +1,29 @@
 <x-layouts.auth :title="__('Login')">
     <h1 class="h3 mb-1">{{ __('Welcome back 👋') }}</h1>
-    <p class="text-muted-2 mb-4">{{ __('Login with your email or mobile number.') }}</p>
+    <p class="text-muted-2 mb-3">{{ __('Login with your email or mobile number.') }}</p>
+    <div x-data="{ tab: @js(session('otp_sent') || $errors->has('otp') || $errors->has('phone') ? 'otp' : 'password') }">
+    <div class="seg mb-4 w-100" role="tablist">
+        <button type="button" class="flex-fill" :class="{ active: tab === 'password' }" @click="tab = 'password'" role="tab">{{ __('Password') }}</button>
+        <button type="button" class="flex-fill" :class="{ active: tab === 'otp' }" @click="tab = 'otp'" role="tab">{{ __('Mobile OTP') }}</button>
+    </div>
+    <div x-show="tab === 'otp'" x-cloak>
+        @if (session('otp_sent') || $errors->has('otp'))
+            <form method="POST" action="{{ route('login.otp.verify') }}" data-loading novalidate>
+                @csrf
+                <p class="small text-muted-2">{{ __('Enter the 6-digit code sent to :p', ['p' => session('otp_login_phone')]) }}</p>
+                <x-input name="otp" icon="shield-lock" :label="__('Verification code')" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required autofocus />
+                <button type="submit" class="btn btn-primary btn-lg w-100">{{ __('Verify & login') }}</button>
+            </form>
+        @else
+            <form method="POST" action="{{ route('login.otp.send') }}" data-loading novalidate>
+                @csrf
+                <x-input name="phone" type="tel" icon="phone" :label="__('Mobile number')" inputmode="numeric" maxlength="14" autocomplete="tel-national" required />
+                <button type="submit" class="btn btn-primary btn-lg w-100">{{ __('Send code') }}<x-icon name="arrow-right" /></button>
+                <div class="form-text text-center mt-2">{{ __('For customers. New here? Your account is created automatically.') }}</div>
+            </form>
+        @endif
+    </div>
+    <div x-show="tab === 'password'">
 
 
     <form method="POST" action="{{ route('login.store') }}" data-loading novalidate>
@@ -14,6 +37,8 @@
         </div>
         <button type="submit" class="btn btn-primary btn-lg w-100">{{ __('Login') }}<x-icon name="arrow-right" /></button>
     </form>
+    </div>
+    </div>
 
     <div class="divider-text my-4">{{ __('New here?') }}</div>
     <div class="row g-2">

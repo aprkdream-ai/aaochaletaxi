@@ -25,7 +25,7 @@ class Booking extends Model
     {
         return [
             'type' => BookingType::class, 'status' => BookingStatus::class, 'payment_status' => PaymentStatus::class,
-            'pickup_at' => 'datetime', 'return_at' => 'datetime', 'cancelled_at' => 'datetime',
+            'pickup_at' => 'datetime', 'return_at' => 'datetime', 'cancelled_at' => 'datetime', 'phone_verified' => 'boolean',
             'distance_km' => 'decimal:1', 'quoted_total' => 'decimal:2', 'final_total' => 'decimal:2', 'amount_paid' => 'decimal:2',
             'fare_snapshot' => 'array', 'final_snapshot' => 'array',
         ];
@@ -64,6 +64,16 @@ class Booking extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class)->orderBy('id');
+    }
+
+    public function review(): HasOne
+    {
+        return $this->hasOne(BookingReview::class);
+    }
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
     }
 
     public function creator(): BelongsTo

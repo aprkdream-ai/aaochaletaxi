@@ -79,5 +79,18 @@ class AppServiceProvider extends ServiceProvider
         ]);
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip()));
         RateLimiter::for('forms', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
+
+        // Named limiters: plain `throttle:x,y` shares ONE counter per IP/user across all routes, so each
+        // action gets its own key here (e.g. fare previews must never block the OTP request).
+        $byIp = fn (string $name, int $perMinute) => RateLimiter::for($name, fn (Request $r) => Limit::perMinute($perMinute)->by($name.'|'.$r->ip()));
+        $byUser = fn (string $name, int $perMinute) => RateLimiter::for($name, fn (Request $r) => Limit::perMinute($perMinute)->by($name.'|'.($r->user()?->id ?? $r->ip())));
+        $byIp('otp-send', 6);
+        $byIp('otp-verify', 12);
+        $byIp('fare-preview', 40);
+        $byIp('track-actions', 10);
+        $byIp('webhooks', 300);
+        $byUser('operator-preview', 120);
+        $byUser('operator-distance', 40);
+        RateLimiter::for('public-booking', fn (Request $r) => Limit::perHour(15)->by('public-booking|'.$r->ip()));
     }
 }

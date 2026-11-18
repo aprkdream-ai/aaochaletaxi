@@ -34,9 +34,16 @@
                     <label class="form-label mt-2" for="primary_color">{{ __('Brand colour') }}</label>
                     <input type="color" name="primary_color" id="primary_color" value="{{ old('primary_color', $tenant->primary_color ?: '#ffb703') }}" class="form-control form-control-color w-100">
                 </div></div>
+                @php $st = $tenant->settings ?? []; @endphp
+                <div class="card panel-card mb-3"><div class="card-header">{{ __('Online booking page') }}</div><div class="card-body">
+                    <x-switch name="booking_page_enabled" :label="__('Accept bookings on my page')" :checked="$st['booking_page_enabled'] ?? true" />
+                    <x-switch name="notify_customers" :label="__('Send SMS / WhatsApp updates to customers')" :checked="$st['notify_customers'] ?? true" />
+                    <x-select name="online_advance_percent" :label="__('Online advance (Razorpay)')" :options="['0' => __('Off'), '10' => '10%', '20' => '20%', '25' => '25%', '30' => '30%', '50' => '50%', '100' => __('Full amount')]" :value="(string) ($st['online_advance_percent'] ?? 0)" :help="__('Collected by AaoChaleTaxi and settled to you. Works when online payments are enabled by the platform.')" />
+                    <x-textarea name="about" :label="__('About your service (shown on your page)')" :value="$st['about'] ?? null" rows="3" maxlength="600" />
+                </div></div>
                 <div class="card panel-card"><div class="card-body">
                     <div class="small text-muted-2 mb-1">{{ __('Booking page address') }}</div>
-                    <code>{{ url('/o/'.$tenant->slug) }}</code>
+                    <a href="{{ route('microsite.show', $tenant->slug) }}" target="_blank" rel="noopener"><code>{{ url('/o/'.$tenant->slug) }}</code></a>
                     <button class="btn btn-primary w-100 mt-3"><x-icon name="check2" />{{ __('Save profile') }}</button>
                 </div></div>
             </div>
