@@ -67,7 +67,7 @@ class InvoiceController extends Controller
         $invoice->load(['items', 'booking', 'original']);
 
         return Pdf::loadView('shared.booking-invoice', ['invoice' => $invoice, 'pdf' => true, 'backUrl' => null])
-            ->setPaper('a4')->setOption(['defaultFont' => 'DejaVu Sans', 'isRemoteEnabled' => false])
+            ->setPaper('a4')->setOption(['defaultFont' => 'DejaVu Sans', 'isRemoteEnabled' => false, 'isFontSubsettingEnabled' => true])
             ->download(str_replace('/', '-', $invoice->number).'.pdf');
     }
 }
