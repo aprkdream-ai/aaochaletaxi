@@ -10,10 +10,19 @@
     $done = collect($steps)->where(2, true)->count();
 @endphp
 <x-layouts.panel :title="__('Dashboard')" panel="operator">
-    <x-page-header :title="__('Welcome, :name', ['name' => \Illuminate\Support\Str::before(auth()->user()->name, ' ')])" :subtitle="$tenant->name.' · '.now()->format('l, d M Y')">
-        @can('vehicles.manage')<a href="{{ route('operator.vehicles.create') }}" class="btn btn-light border"><x-icon name="plus-lg" />{{ __('Vehicle') }}</a>@endcan
-        @can('drivers.manage')<a href="{{ route('operator.drivers.create') }}" class="btn btn-primary"><x-icon name="person-plus" />{{ __('Driver') }}</a>@endcan
-    </x-page-header>
+    <x-hero-banner
+        :title="__('Welcome, :name', ['name' => \Illuminate\Support\Str::before(auth()->user()->name, ' ')])"
+        :subtitle="$tenant->name.' · '.now()->format('l, d M Y')"
+        :kpis="[
+            ['label' => __('Pickups today'), 'value' => $today['pickups'], 'icon' => 'calendar-event', 'href' => auth()->user()->hasPermission('bookings.view') ? route('operator.bookings.index', ['view' => 'today']) : null],
+            ['label' => __('On trip now'), 'value' => $today['on_trip'], 'icon' => 'sign-turn-right'],
+            ['label' => __('Enquiries & quotes'), 'value' => $today['to_quote'], 'icon' => 'chat-square-text', 'href' => auth()->user()->hasPermission('bookings.view') ? route('operator.bookings.index') : null],
+            ['label' => __('Revenue this month'), 'value' => Money::format($today['revenue_month'], 0), 'icon' => 'graph-up-arrow'],
+        ]">
+        @can('bookings.create')<a href="{{ route('operator.bookings.create') }}" class="btn btn-primary"><x-icon name="plus-lg" />{{ __('New booking') }}</a>@endcan
+        @can('vehicles.manage')<a href="{{ route('operator.vehicles.create') }}" class="btn btn-glass"><x-icon name="car-front" />{{ __('Vehicle') }}</a>@endcan
+        @can('drivers.manage')<a href="{{ route('operator.drivers.create') }}" class="btn btn-glass"><x-icon name="person-plus" />{{ __('Driver') }}</a>@endcan
+    </x-hero-banner>
 
     @if ($subscription && $subscription->status->value === 'trialing')
         <div class="alert border-0 d-flex flex-wrap align-items-center gap-3 rounded-4 mb-4" style="background: var(--brand-soft)">
@@ -34,6 +43,29 @@
 
     <div class="row g-3">
         <div class="col-lg-7">
+            @can('bookings.view')
+            <div class="card panel-card mb-3">
+                <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="calendar-event" class="text-warning" />{{ __('Upcoming pickups') }}</span><a href="{{ route('operator.bookings.index', ['view' => 'upcoming']) }}" class="small fw-semibold">{{ __('View all') }}</a></div>
+                <div class="list-group list-group-flush list-modern">
+                    @forelse ($upcoming as $b)
+                        <a href="{{ route('operator.bookings.show', $b) }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                            <span class="date-tile"><b>{{ $b->pickup_at->format('d') }}</b><small>{{ $b->pickup_at->format('M') }}</small></span>
+                            <div class="me-auto min-w-0">
+                                <div class="fw-semibold text-truncate">{{ $b->pickup_address }}@if ($b->drop_address) → {{ $b->drop_address }}@endif</div>
+                                <div class="small text-muted-2 text-truncate">{{ $b->pickup_at->format('h:i A') }} · {{ $b->customer_name }}@if ($b->trip?->driver) · {{ $b->trip->driver->name }}@endif</div>
+                            </div>
+                            <x-status-badge :status="$b->status" />
+                        </a>
+                    @empty
+                        <x-empty-state icon="calendar-event" :title="__('No upcoming pickups')" :text="__('New bookings will show up here.')" />
+                    @endforelse
+                </div>
+            </div>
+            <div class="card panel-card mb-3">
+                <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="bar-chart" class="text-warning" />{{ __('Bookings · last 14 days') }}</span></div>
+                <div class="card-body"><x-bar-chart :series="$chart" :label="__('Bookings per day')" /></div>
+            </div>
+            @endcan
             @if ($done < count($steps))
                 <div class="card panel-card mb-3">
                     <div class="card-header">{{ __('Get started') }} <span class="small fw-normal text-muted-2">{{ __(':done of :total done', ['done' => $done, 'total' => count($steps)]) }}</span></div>

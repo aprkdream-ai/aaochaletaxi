@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-18 — UI v3 (dashboards, confirm dialog, home visuals)
+- Branded confirm dialog replaces the browser `confirm()` for every `form[data-confirm]` (danger/primary tone, action label,
+  focus trap, Esc/backdrop to cancel). Driver "Complete trip" uses it too.
+- Dashboards: dark hero banner with KPIs + quick actions (`x-hero-banner`); operator: upcoming pickups + 14-day bookings chart;
+  admin: bookings this month + 30-day sign-ups chart (`x-bar-chart`, single series, hover/focus tooltips).
+- Panel look: gradient sidebar with glowing active item, layered card shadows, gradient stat icons, soft page background.
+- Home: animated "how a trip looks" route card in the hero, gradient service/fleet icons, connected steps.
+
 ## 2026-11-18 — Payment-gateway compliance pages
 - New `/shipping-delivery-policy` (services only, ride & subscription delivery timelines) in footer + sitemap.
 - Owner/legal name, registered address and GSTIN (Admin → Settings → Company) shown on contact, terms, refund, privacy,

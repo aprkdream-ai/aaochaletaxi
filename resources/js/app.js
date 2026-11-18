@@ -197,15 +197,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Confirm dialogs for destructive actions.
-    document.querySelectorAll('form[data-confirm]').forEach((form) => {
-        form.addEventListener('submit', (e) => {
-            if (!window.confirm(form.dataset.confirm)) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-            }
-        }, { capture: true });
-    });
+    // Branded confirm dialog for <form data-confirm="…"> (replaces the browser's native confirm()).
+    document.addEventListener('submit', (e) => {
+        const form = e.target;
+        if (!(form instanceof HTMLFormElement) || !form.dataset.confirm) return;
+        if (form.dataset.confirmed === '1') { delete form.dataset.confirmed; return; }
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const submitter = e.submitter || form.querySelector('[type="submit"]');
+        const danger = form.dataset.confirmTone === 'danger' || (form.dataset.confirmTone !== 'primary' && !!(submitter && /btn-(outline-)?danger/.test(submitter.className)));
+        uiConfirm({
+            message: form.dataset.confirm,
+            title: form.dataset.confirmTitle,
+            ok: form.dataset.confirmOk || (submitter ? submitter.textContent.trim() : ''),
+            danger,
+        }).then((yes) => {
+            if (!yes) return;
+            form.dataset.confirmed = '1';
+            if (form.requestSubmit) form.requestSubmit(submitter && submitter.form === form ? submitter : undefined); else form.submit();
+        });
+    }, { capture: true });
 
     // Reveal-on-scroll (content is visible without JS; .js class added in <head>).
     const items = document.querySelectorAll('.reveal');
@@ -245,6 +256,57 @@ document.addEventListener('DOMContentLoaded', () => {
         targets.forEach((t) => io2.observe(t));
     }
 });
+
+// ---------- Confirm dialog ----------
+function uiConfirm({ message, title, ok, danger }) {
+    const t = window.__ui || {};
+    return new Promise((resolve) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'ui-confirm';
+        wrap.innerHTML = `<div class="ui-confirm-backdrop"></div>
+            <div class="ui-confirm-card ${danger ? 'is-danger' : ''}" role="alertdialog" aria-modal="true" aria-labelledby="uic-title" aria-describedby="uic-msg">
+                <div class="ui-confirm-ico" aria-hidden="true">${danger
+                    ? '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></svg>'
+                    : '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>'}</div>
+                <h2 class="ui-confirm-title" id="uic-title"></h2>
+                <p class="ui-confirm-msg" id="uic-msg"></p>
+                <div class="ui-confirm-actions">
+                    <button type="button" class="btn btn-light border" data-act="no"></button>
+                    <button type="button" class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-act="yes"></button>
+                </div>
+            </div>`;
+        wrap.querySelector('.ui-confirm-title').textContent = title || (danger ? (t.confirmDangerTitle || 'Are you sure?') : (t.confirmTitle || 'Please confirm'));
+        wrap.querySelector('.ui-confirm-msg').textContent = message;
+        wrap.querySelector('[data-act="no"]').textContent = t.cancel || 'Cancel';
+        wrap.querySelector('[data-act="yes"]').textContent = (ok && ok.length <= 32 ? ok : '') || t.confirm || 'Yes, continue';
+        const prev = document.activeElement;
+        const close = (val) => {
+            wrap.classList.remove('show');
+            document.removeEventListener('keydown', onKey, true);
+            setTimeout(() => wrap.remove(), 180);
+            if (prev && prev.focus) prev.focus();
+            resolve(val);
+        };
+        const onKey = (e) => {
+            if (e.key === 'Escape') { e.preventDefault(); close(false); }
+            if (e.key === 'Tab') { // keep focus inside
+                const btns = [...wrap.querySelectorAll('button')];
+                const i = btns.indexOf(document.activeElement);
+                e.preventDefault();
+                btns[(i + (e.shiftKey ? -1 : 1) + btns.length) % btns.length].focus();
+            }
+        };
+        wrap.addEventListener('click', (e) => {
+            const act = e.target.closest('[data-act]')?.dataset.act;
+            if (act) close(act === 'yes');
+            else if (e.target.classList.contains('ui-confirm-backdrop')) close(false);
+        });
+        document.addEventListener('keydown', onKey, true);
+        document.body.appendChild(wrap);
+        requestAnimationFrame(() => { wrap.classList.add('show'); wrap.querySelector(danger ? '[data-act="no"]' : '[data-act="yes"]').focus(); });
+    });
+}
+window.uiConfirm = uiConfirm;
 
 // ---------- Driver PWA ----------
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.content;

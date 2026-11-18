@@ -63,7 +63,7 @@
         <div class="small text-muted-2 mb-2 d-flex align-items-center gap-2" x-data="tripTracker(@js(route('driver.trips.location', $trip)))" x-init="start()">
             <x-icon name="broadcast" /><span x-text="status">{{ __('Sharing live location with your operator during this trip.') }}</span>
         </div>
-        <form method="POST" action="{{ route('driver.trips.complete', $trip) }}" class="card panel-card mb-3" x-data="{ more: {{ $errors->hasAny(['tolls', 'parking', 'state_tax', 'waiting_min']) ? 'true' : 'false' }} }">@csrf
+        <form method="POST" action="{{ route('driver.trips.complete', $trip) }}" class="card panel-card mb-3" data-confirm="{{ __('Complete this trip? The final fare will be calculated from the closing km.') }}" data-confirm-tone="primary" x-data="{ more: {{ $errors->hasAny(['tolls', 'parking', 'state_tax', 'waiting_min']) ? 'true' : 'false' }} }">@csrf
             <div class="card-body">
                 <div class="fw-bold mb-3">{{ __('Complete trip') }}</div>
                 <label class="form-label small" for="end_km">{{ __('Closing odometer (km)') }}</label>
@@ -79,7 +79,7 @@
                         <div class="col-6"><x-input name="waiting_min" type="number" min="0" :label="__('Waiting (min)')" inputmode="numeric" /></div>
                     </div>
                 </template>
-                <button class="btn btn-ink btn-lg w-100 mt-3" onclick="return confirm(@js(__('Complete this trip?')))"><x-icon name="flag-fill" />{{ __('Complete trip') }}</button>
+                <button class="btn btn-ink btn-lg w-100 mt-3"><x-icon name="flag-fill" />{{ __('Complete trip') }}</button>
             </div>
         </form>
     @endif

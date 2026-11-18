@@ -7,6 +7,7 @@ use App\Enums\TenantStatus;
 use App\Enums\UserType;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Booking;
 use App\Models\ContactMessage;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
@@ -36,7 +37,14 @@ class DashboardController extends Controller
             'kyc_pending' => TenantDocument::query()->where('status', 'pending')->count(),
         ];
 
+        $from = now()->subDays(29)->startOfDay();
+        $signups = Tenant::query()->where('created_at', '>=', $from)->pluck('created_at')->countBy(fn ($d) => $d->toDateString());
+        $chart = collect(range(29, 0))->map(fn ($i) => now()->subDays($i))
+            ->map(fn ($d) => ['label' => $d->format('d M'), 'value' => (int) ($signups[$d->toDateString()] ?? 0)])->values()->all();
+        $stats['bookings_month'] = Booking::withoutGlobalScopes()->where('created_at', '>=', now()->startOfMonth())->count();
+
         return view('admin.dashboard', [
+            'chart' => $chart,
             'stats' => $stats,
             'pendingTenants' => Tenant::query()->where('status', TenantStatus::Pending)->latest()->limit(5)->get(),
             'recentActivity' => AuditLog::query()->with(['user:id,name', 'tenant:id,name'])->where('event', 'not like', 'auth.%')->latest('id')->limit(8)->get(),

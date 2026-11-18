@@ -69,6 +69,26 @@
                         <a href="{{ route('services') }}" class="btn btn-glass">{{ __('Explore services') }}<x-icon name="arrow-right" /></a>
                         <a href="{{ route('partner') }}" class="text-white-50 small fw-semibold">{{ __('Own taxis? Grow with us →') }}</a>
                     </div>
+                    <div class="trip-visual d-none d-lg-block mt-5" aria-hidden="true">
+                        <div class="trip-visual-head">
+                            <span class="trip-visual-tag"><span class="live-dot"></span>{{ __('How a trip looks') }}</span>
+                            <span class="small text-white-50">{{ __('Sedan · One-way') }}</span>
+                        </div>
+                        <svg class="trip-visual-map" viewBox="0 0 520 120" preserveAspectRatio="none">
+                            <defs><linearGradient id="tv-grad" x1="0" x2="1"><stop offset="0" stop-color="#22c55e"/><stop offset="1" stop-color="#ffc21a"/></linearGradient></defs>
+                            <path id="tv-path" d="M20 90 C 120 20, 200 120, 290 60 S 440 10, 500 40" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10" stroke-linecap="round"/>
+                            <path d="M20 90 C 120 20, 200 120, 290 60 S 440 10, 500 40" fill="none" stroke="url(#tv-grad)" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
+                            <circle cx="20" cy="90" r="7" fill="#22c55e"/><circle cx="20" cy="90" r="13" fill="#22c55e" opacity=".25"/>
+                            <circle cx="500" cy="40" r="7" fill="#ffc21a"/><circle cx="500" cy="40" r="13" fill="#ffc21a" opacity=".25"/>
+                            <g class="tv-car"><circle r="11" fill="#ffc21a"/><circle r="18" fill="#ffc21a" opacity=".2"/><path d="M-5.5 2.5h11v-2.2l-1.6-3.6h-7.8L-5.5.3z" fill="#0b1220"/><animateMotion dur="7s" repeatCount="indefinite" rotate="0"><mpath href="#tv-path"/></animateMotion></g>
+                        </svg>
+                        <div class="trip-visual-foot">
+                            <span><x-icon name="geo-alt-fill" class="text-success" />{{ __('Pickup') }}</span>
+                            <span class="tv-chip"><x-icon name="shield-lock-fill" />{{ __('OTP to start') }}</span>
+                            <span class="tv-chip"><x-icon name="receipt" />{{ __('GST invoice') }}</span>
+                            <span><x-icon name="geo-alt-fill" class="text-brand" />{{ __('Drop') }}</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="col-lg-6 col-xl-5 offset-xl-1" id="quote">
@@ -150,11 +170,11 @@
         <div class="container">
             <x-section-head :eyebrow="__('Our services')" :title="__('A taxi for every journey')" :text="__('From a quick airport drop to a week-long family road trip — choose the ride that fits.')" />
             <div class="row g-3 g-lg-4">
-                @foreach ($services as [$ico, $title, $text, $trip])
+                @foreach ($services as $i => [$ico, $title, $text, $trip])
                     <div class="col-6 col-lg-3 reveal">
-                        <a href="{{ route('home', ['trip' => $trip]) }}#quote" class="card card-hover h-100 text-reset text-decoration-none">
+                        <a href="{{ route('home', ['trip' => $trip]) }}#quote" class="card card-hover service-card h-100 text-reset text-decoration-none">
                             <div class="card-body p-3 p-md-4">
-                                <span class="icon-tile mb-3"><x-icon :name="$ico" /></span>
+                                <span class="icon-tile grad-{{ $i % 4 }} mb-3"><x-icon :name="$ico" /></span>
                                 <h3 class="h6 fw-800 mb-2">{{ $title }}</h3>
                                 <p class="small text-muted-2 mb-3 d-none d-sm-block">{{ $text }}</p>
                                 <span class="small fw-bold text-brand d-inline-flex align-items-center gap-1">{{ __('Get quote') }}<x-icon name="arrow-right" /></span>
@@ -171,9 +191,9 @@
         <div class="container">
             <x-section-head :eyebrow="__('Choose your car')" :title="__('The right vehicle for every group')" :text="__('All vehicles are commercially registered with valid permits, insurance and fitness certificates.')" />
             <div class="fleet-scroll reveal">
-                @foreach ($fleet as [$ico, $name, $seats, $best])
+                @foreach ($fleet as $i => [$ico, $name, $seats, $best])
                     <div class="fleet-card card-hover">
-                        <div class="fleet-ico"><x-icon :name="$ico" /></div>
+                        <div class="fleet-ico grad-{{ $i % 4 }}"><x-icon :name="$ico" /></div>
                         <div class="fw-800">{{ $name }}</div>
                         <div class="seats mb-1"><x-icon name="people-fill" />{{ $seats }} {{ __('seats') }}</div>
                         <div class="small text-muted-2">{{ $best }}</div>

@@ -1,7 +1,16 @@
 <x-layouts.panel :title="__('Dashboard')" panel="admin">
-    <x-page-header :title="__('Good :part, :name', ['part' => now()->hour < 12 ? __('morning') : (now()->hour < 17 ? __('afternoon') : __('evening')), 'name' => \Illuminate\Support\Str::before(auth()->user()->name, ' ')])" :subtitle="now()->format('l, d M Y')">
-        <a href="{{ route('admin.tenants.index', ['status' => 'pending']) }}" class="btn btn-primary"><x-icon name="hourglass-split" />{{ __('Review pending') }}</a>
-    </x-page-header>
+    <x-hero-banner
+        :title="__('Good :part, :name', ['part' => now()->hour < 12 ? __('morning') : (now()->hour < 17 ? __('afternoon') : __('evening')), 'name' => \Illuminate\Support\Str::before(auth()->user()->name, ' ')])"
+        :subtitle="__('Platform overview').' · '.now()->format('l, d M Y')"
+        :kpis="[
+            ['label' => __('Active operators'), 'value' => $stats['operators_active'], 'icon' => 'buildings', 'href' => route('admin.tenants.index', ['status' => 'active'])],
+            ['label' => __('Revenue this month'), 'value' => \App\Support\Money::format($stats['revenue_month'], 0), 'icon' => 'graph-up-arrow', 'href' => route('admin.finance.reports')],
+            ['label' => __('Bookings this month'), 'value' => number_format($stats['bookings_month']), 'icon' => 'journal-text'],
+            ['label' => __('Pending approval'), 'value' => $stats['operators_pending'], 'icon' => 'hourglass-split', 'href' => route('admin.tenants.index', ['status' => 'pending'])],
+        ]">
+        <a href="{{ route('admin.tenants.index', ['status' => 'pending']) }}" class="btn btn-primary"><x-icon name="patch-check" />{{ __('Review pending') }}</a>
+        @if (auth()->user()->hasPermission('admin.settings.manage'))<a href="{{ route('admin.settings.edit') }}" class="btn btn-glass"><x-icon name="gear" />{{ __('Settings') }}</a>@endif
+    </x-hero-banner>
 
     @php
         $run = \App\Support\WebScheduler::lastRun();
@@ -19,17 +28,15 @@
     @endif
 
     <div class="row g-3 mb-4">
-        <div class="col-6 col-xl-3"><x-stat-card :label="__('Active operators')" :value="$stats['operators_active']" icon="buildings" color="success" :href="route('admin.tenants.index', ['status' => 'active'])" /></div>
-        <div class="col-6 col-xl-3"><x-stat-card :label="__('Pending approval')" :value="$stats['operators_pending']" icon="hourglass-split" color="warning" :href="route('admin.tenants.index', ['status' => 'pending'])" /></div>
-        <div class="col-6 col-xl-3"><x-stat-card :label="__('Trial / Paid')" :value="$stats['trials'].' / '.$stats['paid']" icon="credit-card" color="info" /></div>
+        <div class="col-6 col-xl-3"><x-stat-card :label="__('Trial / Paid')" :value="$stats['trials'].' / '.$stats['paid']" icon="credit-card" color="info" :href="route('admin.subscriptions.index')" /></div>
         <div class="col-6 col-xl-3"><x-stat-card :label="__('Customers')" :value="$stats['customers']" icon="people" color="primary" :hint="trans_choice('{0} No new enquiries|{1} :n new enquiry|[2,*] :n new enquiries', $stats['enquiries'], ['n' => $stats['enquiries']])" /></div>
+        <div class="col-6 col-xl-3"><x-stat-card :label="__('Expiring in 7 days')" :value="$stats['expiring']" icon="alarm" color="warning" :href="route('admin.subscriptions.index', ['expiring' => 1])" /></div>
+        <div class="col-6 col-xl-3"><x-stat-card :label="__('Open tickets · KYC')" :value="$stats['tickets'].' · '.$stats['kyc_pending']" icon="life-preserver" color="danger" :href="route('admin.support.index')" /></div>
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-xl-3"><x-stat-card :label="__('Revenue this month')" :value="\App\Support\Money::format($stats['revenue_month'], 0)" icon="cash-stack" color="success" :href="route('admin.subscriptions.index')" /></div>
-        <div class="col-6 col-xl-3"><x-stat-card :label="__('Expiring in 7 days')" :value="$stats['expiring']" icon="alarm" color="warning" :href="route('admin.subscriptions.index', ['expiring' => 1])" /></div>
-        <div class="col-6 col-xl-3"><x-stat-card :label="__('Open tickets')" :value="$stats['tickets']" icon="life-preserver" color="info" :href="route('admin.support.index')" /></div>
-        <div class="col-6 col-xl-3"><x-stat-card :label="__('KYC docs to review')" :value="$stats['kyc_pending']" icon="patch-check" color="danger" /></div>
+    <div class="card panel-card mb-4">
+        <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="bar-chart" class="text-warning" />{{ __('New operator sign-ups · last 30 days') }}</span></div>
+        <div class="card-body"><x-bar-chart :series="$chart" :label="__('New operator sign-ups per day')" /></div>
     </div>
 
     <div class="row g-3 align-items-start">
