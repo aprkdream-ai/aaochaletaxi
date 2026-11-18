@@ -32,7 +32,7 @@
         <div class="col-6 col-xl-3"><x-stat-card :label="__('KYC docs to review')" :value="$stats['kyc_pending']" icon="patch-check" color="danger" /></div>
     </div>
 
-    <div class="row g-3">
+    <div class="row g-3 align-items-start">
         <div class="col-lg-6">
             <div class="card panel-card h-100">
                 <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="hourglass-split" class="text-warning" />{{ __('Awaiting approval') }}</span><a href="{{ route('admin.tenants.index', ['status' => 'pending']) }}" class="small fw-semibold">{{ __('View all') }}</a></div>

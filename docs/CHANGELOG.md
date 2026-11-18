@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-18 — UI polish (panels + mobile)
+- Admin/operator panels: denser type (15 px), slimmer inputs/buttons/cards, smaller stat cards on phones, full-width
+  header actions on mobile.
+- All panel tables stack into labelled cards on phones (labels auto-generated from `<thead>`; opt out with `.table-keep`).
+- Public site: shorter mobile hero, wider mobile gutters, faster reveal; mobile sticky CTA hides while the quote form/footer is visible.
+- Operator dashboard booking-page card: open + WhatsApp share (removed stale "coming next" text); booking payments table fits phones;
+  reports date filter fits phones; fare preview shows paise consistently (₹92.50).
+- Admin dashboard activity hides login noise.
+- Tests: finance tests freeze time (night-charge window made them fail after 22:00).
+
 ## 2026-11-18 — Phase 7: Driver app (PWA)
 - Installable driver app at `/driver` (manifest + service worker scoped to `/driver/`, cache-first build assets,
   network-only pages with offline fallback, install button, bottom tab navigation, safe-area aware).

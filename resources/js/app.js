@@ -41,7 +41,7 @@ Alpine.data('bookingForm', (previewUrl, distanceUrl, initialType, initialStops) 
     distanceNote: '',
     seq: 0,
     init() { this.$nextTick(() => this.refresh()); },
-    inr(v) { return '₹' + Number(v).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); },
+    inr(v) { const n = Number(v); const d = Number.isInteger(n) ? 0 : 2; return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: d, maximumFractionDigits: d }); },
     headers() { return { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }; },
     async refresh() {
         const data = Object.fromEntries(new FormData(this.$refs.form).entries());
@@ -216,6 +216,33 @@ document.addEventListener('DOMContentLoaded', () => {
         items.forEach((el) => io.observe(el));
     } else {
         items.forEach((el) => el.classList.add('in'));
+    }
+
+    // Panel tables stack into cards on phones: copy each header into its cells' data-label.
+    document.querySelectorAll('.panel-body table.table-modern:not(.table-keep)').forEach((table) => {
+        const heads = [...table.querySelectorAll('thead th')].map((th) => th.textContent.trim());
+        if (!heads.length) return;
+        table.classList.add('table-stack');
+        table.querySelectorAll('tbody tr, tfoot tr').forEach((tr) => {
+            let col = 0;
+            [...tr.children].forEach((cell) => {
+                const span = Number(cell.getAttribute('colspan') || 1);
+                if (span === 1 && heads[col] && !cell.hasAttribute('data-label')) cell.setAttribute('data-label', heads[col]);
+                col += span;
+            });
+        });
+    });
+
+    // Mobile sticky CTA hides while the quote form (or footer) is on screen, so it never covers inputs.
+    const cta = document.querySelector('.mobile-cta');
+    const targets = [document.getElementById('quote'), document.querySelector('footer')].filter(Boolean);
+    if (cta && targets.length && 'IntersectionObserver' in window) {
+        const seen = new Set();
+        const io2 = new IntersectionObserver((entries) => {
+            entries.forEach((en) => (en.isIntersecting ? seen.add(en.target) : seen.delete(en.target)));
+            cta.classList.toggle('is-hidden', seen.size > 0);
+        });
+        targets.forEach((t) => io2.observe(t));
     }
 });
 

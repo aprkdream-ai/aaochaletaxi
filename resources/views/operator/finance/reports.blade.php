@@ -3,9 +3,9 @@
     <x-page-header :title="__('Reports')" :subtitle="$from->format('d M Y').' – '.$to->format('d M Y')">
         <form method="GET" class="d-flex flex-nowrap gap-2 align-items-center">
             <input type="hidden" name="tab" value="{{ $tab === 'locked' ? 'summary' : $tab }}">
-            <input type="date" name="from" value="{{ $from->toDateString() }}" class="form-control form-control-sm w-auto" aria-label="{{ __('From') }}"><span>–</span>
-            <input type="date" name="to" value="{{ $to->toDateString() }}" class="form-control form-control-sm w-auto" aria-label="{{ __('To') }}">
-            <button class="btn btn-sm btn-ink">{{ __('Apply') }}</button>
+            <input type="date" name="from" value="{{ $from->toDateString() }}" class="form-control form-control-sm flex-grow-1 min-w-0" style="max-width:10.5rem" aria-label="{{ __('From') }}"><span>–</span>
+            <input type="date" name="to" value="{{ $to->toDateString() }}" class="form-control form-control-sm flex-grow-1 min-w-0" style="max-width:10.5rem" aria-label="{{ __('To') }}">
+            <button class="btn btn-sm btn-ink flex-shrink-0">{{ __('Apply') }}</button>
         </form>
         @if ($tab !== 'locked')<a href="{{ route('operator.reports.export', $q + ['tab' => $tab]) }}" class="btn btn-sm btn-light border"><x-icon name="filetype-csv" />{{ __('Export CSV') }}</a>@endif
     </x-page-header>

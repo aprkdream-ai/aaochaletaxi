@@ -31,6 +31,7 @@ class FinanceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->travelTo(now()->setTime(11, 0)); // fares must not depend on the wall clock (night window)
         $this->tenant = Tenant::factory()->create(['slug' => 'shiv-travels', 'state' => 'Gujarat', 'gstin' => '24ABCDE1234F1Z5', 'legal_name' => 'Shiv Travels Pvt Ltd']);
         $this->owner = $this->owner($this->tenant);
         app(FareRuleService::class)->seedDefaults($this->tenant);

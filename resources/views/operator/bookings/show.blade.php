@@ -175,10 +175,10 @@
                     </div>
                 @endif
                 <div class="table-responsive"><table class="table table-modern align-middle small">
-                    <thead><tr><th>{{ __('Date') }}</th><th>{{ __('Type') }}</th><th>{{ __('Method') }}</th><th>{{ __('By') }}</th><th class="text-end">{{ __('Amount') }}</th></tr></thead>
+                    <thead><tr><th>{{ __('Date') }}</th><th>{{ __('Type') }}</th><th>{{ __('Method') }}</th><th class="d-none d-md-table-cell">{{ __('By') }}</th><th class="text-end">{{ __('Amount') }}</th></tr></thead>
                     <tbody>
                         @forelse ($booking->payments as $p)
-                            <tr><td class="text-nowrap">{{ $p->paid_at->format('d M, h:i A') }}</td><td class="text-capitalize">{{ $p->kind }}</td><td class="text-uppercase">{{ $p->method }}@if ($p->reference)<div class="text-muted-2 text-none">{{ $p->reference }}</div>@endif</td><td>{{ $p->recorder?->name }}</td><td class="text-end fw-semibold {{ (float) $p->amount < 0 ? 'text-danger' : '' }}">{{ Money::format($p->amount) }}</td></tr>
+                            <tr><td class="text-nowrap">{{ $p->paid_at->format('d M') }}<div class="text-muted-2">{{ $p->paid_at->format('h:i A') }}</div></td><td class="text-capitalize">{{ $p->kind }}</td><td class="text-uppercase">{{ $p->method }}@if ($p->reference)<div class="text-muted-2 text-none text-break" style="max-width:9rem">{{ $p->reference }}</div>@endif</td><td class="d-none d-md-table-cell">{{ $p->recorder?->name }}</td><td class="text-end fw-semibold {{ (float) $p->amount < 0 ? 'text-danger' : '' }}">{{ Money::format($p->amount) }}</td></tr>
                         @empty
                             <tr><td colspan="5"><x-empty-state icon="wallet2" :title="__('No payments yet')" /></td></tr>
                         @endforelse

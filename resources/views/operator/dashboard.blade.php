@@ -89,7 +89,11 @@
                             <span x-show="!copied"><x-icon name="clipboard" /></span><span x-show="copied" x-cloak><x-icon name="check2" /></span>
                         </button>
                     </div>
-                    <div class="small text-muted-2 mt-2">{{ __('Branded booking pages go live with online bookings (coming next).') }}</div>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <a href="{{ url('/o/'.$tenant->slug) }}" target="_blank" rel="noopener" class="btn btn-sm btn-light border"><x-icon name="box-arrow-up-right" />{{ __('Open') }}</a>
+                        <a href="https://wa.me/?text={{ rawurlencode(__('Book your taxi with :name: :url', ['name' => $tenant->name, 'url' => url('/o/'.$tenant->slug)])) }}" target="_blank" rel="noopener" class="btn btn-sm btn-light border"><x-icon name="whatsapp" class="text-success" />{{ __('Share on WhatsApp') }}</a>
+                    </div>
+                    <div class="small text-muted-2 mt-2">{{ __('Customers can get a fare, verify their mobile and book online from this page.') }}</div>
                 </div>
             </div>
         </div>

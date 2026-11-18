@@ -24,7 +24,8 @@
 
 ## Pending (needs owner action)
 - [x] Production DB on MySQL (2026-11-18)
-- [ ] hPanel cron for `schedule:run` (no crontab over SSH; web-fallback scheduler active meanwhile)
+- [x] hPanel cron for `schedule:run` (verified heartbeat 2026-11-18)
+- [ ] Firebase: service-account JSON + Web app config + VAPID key in Admin → Settings → Push (the Android google-services.json is not enough)
 - [ ] GitHub Actions secrets (SSH_HOST/PORT/USER/PRIVATE_KEY/KNOWN_HOSTS) so pushes to `main` auto-deploy
 - [x] SUPPORT_PHONE set (+91 90094 34118)
 

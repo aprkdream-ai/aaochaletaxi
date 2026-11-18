@@ -243,8 +243,9 @@ h1, h2, h3, .h1, .h2, .h3 { letter-spacing: -.025em; }
 // Hero
 .hero {
     position: relative; overflow: hidden; color: #fff; background: $ink;
-    padding: 4.5rem 0 5rem;
+    padding: 2.75rem 0 3.5rem;
     margin-top: -1px;
+    @include media-breakpoint-up(md) { padding: 4.5rem 0 5rem; }
     &::before { // glow
         content: ""; position: absolute; inset: -20% -10% auto auto; width: 70vw; height: 70vw; max-width: 900px; max-height: 900px;
         background: radial-gradient(closest-side, rgba($brand, .38), transparent 70%); pointer-events: none;
@@ -423,6 +424,7 @@ h1, h2, h3, .h1, .h2, .h3 { letter-spacing: -.025em; }
     .btn { flex: 1; }
     @include media-breakpoint-up(lg) { display: none; }
 }
+.mobile-cta { transition: transform .25s ease; &.is-hidden { transform: translateY(110%); } }
 .has-mobile-cta { padding-bottom: 76px; @include media-breakpoint-up(lg) { padding-bottom: 0; } }
 
 // Offcanvas mobile nav
@@ -431,7 +433,7 @@ h1, h2, h3, .h1, .h2, .h3 { letter-spacing: -.025em; }
 }
 
 // Reveal-on-scroll (progressive: content visible without JS)
-.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+.js .reveal { opacity: 0; transform: translateY(12px); transition: opacity .45s ease, transform .45s ease; }
 .js .reveal.in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
@@ -549,3 +551,55 @@ h1, h2, h3, .h1, .h2, .h3 { letter-spacing: -.025em; }
 }
 .trip-card { transition: transform .12s ease; &:active { transform: scale(.985); } }
 .otp-input { letter-spacing: .6em; font-size: 1.75rem; font-weight: 800; }
+
+// Comfortable mobile gutters on public pages
+@include media-breakpoint-down(md) { body:not(.panel-body) .container { --bs-gutter-x: 2rem; } }
+
+// =====================================================================
+// Panel density: admin/operator screens are used all day — tighter type & controls than marketing pages
+// =====================================================================
+.panel-body {
+    font-size: .9375rem;
+    .form-control:not(.form-control-lg):not(.form-control-sm), .form-select:not(.form-select-lg):not(.form-select-sm) { padding-top: .5rem; padding-bottom: .5rem; font-size: .9375rem; }
+    .input-icon > .form-control, .input-icon > .form-select { padding-left: 2.4rem; }
+    .form-label { margin-bottom: .35rem; font-size: .82rem; }
+    .btn:not(.btn-sm):not(.btn-lg) { --bs-btn-padding-y: .5rem; --bs-btn-padding-x: 1rem; --bs-btn-font-size: .9rem; }
+    .card-header { padding: .85rem 1.1rem; font-size: .95rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+    .card-body { padding: 1.1rem; }
+    .list-modern .list-group-item { padding: .75rem 1.1rem; }
+    h1.h3 { font-size: 1.5rem; letter-spacing: -.02em; }
+    .stat { padding: 1rem 1.1rem; border-radius: 1rem;
+        .stat-value { font-size: 1.45rem; }
+        .stat-ico { width: 2.3rem; height: 2.3rem; border-radius: .7rem; font-size: 1.05rem; }
+    }
+    @include media-breakpoint-down(md) {
+        h1.h3 { font-size: 1.3rem; }
+        .stat { padding: .85rem;
+            .stat-label { font-size: .75rem; line-height: 1.3; }
+            .stat-value { font-size: 1.2rem; }
+            .stat-ico { width: 1.9rem; height: 1.9rem; font-size: .9rem; }
+            .small { font-size: .75rem; }
+        }
+        main > .d-flex.flex-wrap:first-child > .d-flex { width: 100%; > .btn { flex: 1; } > form { flex: 1 1 100%; } }
+    }
+}
+
+// Stacked tables on phones (labels added by JS from <thead>)
+@include media-breakpoint-down(md) {
+    .table-responsive:has(> .table-stack) { overflow-x: visible; }
+    .table-stack {
+        thead { display: none; }
+        tbody, tfoot, tr, td, th { display: block; width: 100%; }
+        tr { padding: .7rem 1rem; border-bottom: 1px solid var(--line); }
+        tr:last-child { border-bottom: 0; }
+        td, th { border: 0 !important; padding: .15rem 0 !important; text-align: left !important; background: transparent !important; }
+        td[data-label] { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: .25rem .5rem;
+            &::before { content: attr(data-label); flex-shrink: 0; margin-right: auto; color: var(--muted); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+            > * { text-align: right; min-width: 0; }
+        }
+        td:first-child { display: block; padding-bottom: .35rem !important; &::before { display: none; } > * { text-align: left; } }
+        td:empty, td[data-label=""]::before { display: none; }
+        .d-none.d-md-table-cell { display: none !important; }
+        tbody tr:hover { background: transparent; }
+    }
+}
