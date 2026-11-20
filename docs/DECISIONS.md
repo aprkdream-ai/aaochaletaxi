@@ -41,4 +41,6 @@
 | D38 | 2026-11-18 | Driver app is a PWA served by Laravel (manifest + SW at `/driver/…`, scope `/driver/`) | No app-store build; works on shared hosting; installable on Android |
 | D39 | 2026-11-18 | Driver alerts = database notifications + 30 s polling; FCM web push optional (Firebase JS from gstatic, loaded only when configured) | No WebSockets on shared hosting; push is a bonus |
 | D40 | 2026-11-18 | Only the latest driver position is stored, only while a trip is started | Privacy (DPDP) and tiny storage; operators need "where is the car now", not tracks |
+| D41 | 2026-11-20 | Self-host Plus Jakarta Sans (latin + latin-ext woff2 via Vite, preloaded) | Removes 2 third-party origins from the critical path; ₹ glyph lives in latin-ext; no Google requests (privacy) |
+| D42 | 2026-11-20 | Speculation Rules prefetch (moderate) + hover `<link rel=prefetch>` fallback; side-effect GETs excluded (/driver, /b, /locale, pdf/file/export/invoice) | Near-instant page switches on shared hosting without a SPA |
 | D18 | 2026-11-17 | No fabricated reviews/stats on marketing pages | Honest launch; add real testimonials once collected |

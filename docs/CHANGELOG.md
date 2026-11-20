@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-20 — Performance
+- Server profiled on production: panel pages render in 13–100 ms with 7–28 queries; opcache, config/route cache, Brotli
+  and immutable asset caching already on — the slowness was client-side.
+- Fonts self-hosted and preloaded (no fonts.googleapis/gstatic round-trips); instant navigation via Speculation Rules
+  prefetch on hover/press (+ fallback), excluding pages with side effects.
+
 ## 2026-11-20 — Auth pages v3
 - Operator registration is a 2-step wizard (Business → Owner login; opens on the step with server errors); customer
   sign-up uses a 2-column form; both fit a 720 px-high laptop screen without scrolling.

@@ -257,6 +257,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ---------- Instant navigation fallback (browsers without Speculation Rules, e.g. Firefox) ----------
+(() => {
+    if (window.HTMLScriptElement?.supports?.('speculationrules')) return;
+    const skip = /^\/(logout|locale\/|driver\/|b\/|webhooks\/)|\/(pdf|file)$|\/export|\/download|invoice/;
+    const done = new Set();
+    let timer;
+    const prefetch = (a) => {
+        if (!a || a.target === '_blank' || a.hasAttribute('download') || a.closest('[data-no-prefetch]')) return;
+        const url = new URL(a.href, location.href);
+        if (url.origin !== location.origin || url.hash && url.pathname === location.pathname || skip.test(url.pathname) || done.has(url.href)) return;
+        done.add(url.href);
+        const l = document.createElement('link');
+        l.rel = 'prefetch'; l.href = url.href;
+        document.head.appendChild(l);
+    };
+    document.addEventListener('mouseover', (e) => { const a = e.target.closest?.('a[href]'); clearTimeout(timer); if (a) timer = setTimeout(() => prefetch(a), 80); }, { passive: true });
+    document.addEventListener('touchstart', (e) => prefetch(e.target.closest?.('a[href]')), { passive: true });
+})();
+
 // ---------- Confirm dialog ----------
 function uiConfirm({ message, title, ok, danger }) {
     const t = window.__ui || {};

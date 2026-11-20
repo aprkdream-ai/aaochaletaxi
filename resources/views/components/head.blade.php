@@ -14,7 +14,8 @@
 <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
 <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 <link rel="manifest" href="{{ $manifest ?? asset('site.webmanifest') }}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap">
+@php try { $fontUrl = \Illuminate\Support\Facades\Vite::asset('resources/fonts/plus-jakarta-sans-latin.woff2'); } catch (\Throwable) { $fontUrl = null; } @endphp
+@if ($fontUrl)<link rel="preload" href="{{ $fontUrl }}" as="font" type="font/woff2" crossorigin>@endif
 @vite(['resources/scss/app.scss', 'resources/js/app.js'])
+{{-- Instant navigation: fetch a page when the user hovers/presses a link (Chrome/Edge). Pages with side effects are excluded. --}}
+<script type="speculationrules">{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/logout","/locale/*","/driver/*","/b/*","/webhooks/*","/*/pdf","/*/file","/*/export*","/*/download*","/*invoice*"]}},{"not":{"selector_matches":"[data-no-prefetch], [target=_blank], [download]"}}]},"eagerness":"moderate"}]}</script>
