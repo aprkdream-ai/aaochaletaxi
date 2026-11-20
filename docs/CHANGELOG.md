@@ -1,6 +1,8 @@
 # Changelog
 
 ## 2026-11-20 — Auth pages v3
+- Operator registration is a 2-step wizard (Business → Owner login; opens on the step with server errors); customer
+  sign-up uses a 2-column form; both fit a 720 px-high laptop screen without scrolling.
 - Login/register: richer left panel (feature tiles, illustrative trip-status card, floating chips, grid + glow), dotted
   background, accent bar on the card, "Forgot password?" beside the Password label (`x-input` `aside` slot), sign-up
   choices as cards, autofill no longer paints inputs blue.
