@@ -6,7 +6,11 @@
 @endphp
 <div class="mb-3">
     @if ($label)
-        <label for="{{ $id }}" class="form-label">{{ $label }}@if ($required)<span class="text-danger" aria-hidden="true"> *</span>@endif</label>
+        @isset($aside)
+            <div class="d-flex justify-content-between align-items-baseline gap-2"><label for="{{ $id }}" class="form-label">{{ $label }}@if ($required)<span class="text-danger" aria-hidden="true"> *</span>@endif</label>{{ $aside }}</div>
+        @else
+            <label for="{{ $id }}" class="form-label">{{ $label }}@if ($required)<span class="text-danger" aria-hidden="true"> *</span>@endif</label>
+        @endisset
     @endif
     <div @class(['position-relative', 'input-icon' => $icon]) @if ($isPassword) x-data="{ show: false }" @endif>
         @if ($icon)<x-icon :name="$icon" />@endif

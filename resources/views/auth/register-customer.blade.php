@@ -1,6 +1,10 @@
 <x-layouts.auth :title="__('Create account')"
     :aside-title="__('Your trips, all in one place.')"
-    :aside-points="[__('Faster bookings with saved details'), __('Track bookings and invoices'), __('Exclusive offers from verified operators')]">
+    :aside-points="[
+        ['lightning-charge', __('Faster bookings'), __('Your details saved for next time')],
+        ['geo-alt', __('Track every trip'), __('Driver, vehicle, OTP and invoices in one place')],
+        ['shield-check', __('Verified operators'), __('KYC-checked taxi businesses only')],
+    ]">
     <h1 class="h3 mb-1">{{ __('Create your account') }}</h1>
     <p class="text-muted-2 mb-4">{{ __('It takes less than a minute.') }}</p>
     <form method="POST" action="{{ route('register.customer.store') }}" data-loading novalidate>

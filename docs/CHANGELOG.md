@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-20 — Auth pages v3
+- Login/register: richer left panel (feature tiles, illustrative trip-status card, floating chips, grid + glow), dotted
+  background, accent bar on the card, "Forgot password?" beside the Password label (`x-input` `aside` slot), sign-up
+  choices as cards, autofill no longer paints inputs blue.
+
 ## 2026-11-18 — UI v3 (dashboards, confirm dialog, home visuals)
 - Branded confirm dialog replaces the browser `confirm()` for every `form[data-confirm]` (danger/primary tone, action label,
   focus trap, Esc/backdrop to cancel). Driver "Complete trip" uses it too.

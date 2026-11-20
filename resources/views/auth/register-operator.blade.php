@@ -1,6 +1,11 @@
 <x-layouts.auth :title="__('Register your taxi business')" wide
     :aside-title="__('Run your taxi business smarter — free for :days days.', ['days' => 14])"
-    :aside-points="[__('Bookings, dispatch & driver assignment'), __('Fleet documents with expiry reminders'), __('GST invoices & payment tracking'), __('No credit card required')]">
+    :aside-points="[
+        ['journal-text', __('Bookings & dispatch'), __('Quotes, driver assignment and OTP trips')],
+        ['car-front', __('Fleet & drivers'), __('Documents with expiry reminders, driver app')],
+        ['receipt', __('GST invoices & payments'), __('Online advances, invoices and reports')],
+        ['credit-card', __('No credit card required'), __('Start free, upgrade when you grow')],
+    ]">
     <span class="badge-soft ok mb-3 d-inline-block">{{ __('Free trial · No credit card') }}</span>
     <h1 class="h3 mb-1">{{ __('Register your taxi business') }}</h1>
     <p class="text-muted-2 mb-4">{{ __('Our team verifies every operator before activation — usually within one working day.') }}</p>
