@@ -228,4 +228,11 @@ class BookingFlowTest extends TestCase
         $t = Tenant::where('name', 'Fresh Cabs')->sole();
         $this->assertSame(7 * 8, FareRule::withoutGlobalScopes()->where('tenant_id', $t->id)->count());
     }
+
+    public function test_operator_sees_customer_link_and_quote_share_includes_it(): void
+    {
+        $b = $this->create();
+        $url = route('booking.track', $b->public_token);
+        $this->actingAs($this->owner)->get(route('operator.bookings.show', $b))->assertOk()->assertSee($url, false)->assertSee(rawurlencode($url), false);
+    }
 }

@@ -5,10 +5,11 @@
     $s = $booking->status;
     $snap = $booking->final_snapshot ?? $booking->fare_snapshot;
     $trip = $booking->trip;
+    $trackUrl = $booking->public_token ? route('booking.track', $booking->public_token) : null;
     $waText = rawurlencode(__("Hello :name,\nYour AaoChaleTaxi quote :no\n:from → :to\n:date\nVehicle: :cat\nTotal: :amt (incl. GST)\nReply YES to confirm.", [
         'name' => $booking->customer_name, 'no' => $booking->booking_number, 'from' => $booking->pickup_address, 'to' => $booking->drop_address ?? $booking->type->label(),
         'date' => $booking->pickup_at->format('d M Y, h:i A'), 'cat' => $booking->category->name, 'amt' => Money::format($booking->quoted_total ?? 0, 0),
-    ]));
+    ]).($trackUrl ? "\n\n".__('View, track or pay online: :url', ['url' => $trackUrl]) : ''));
 @endphp
 <x-layouts.panel :title="$booking->booking_number" panel="operator">
     <x-page-header :title="$booking->booking_number" :subtitle="$booking->type->label().' · '.$booking->pickup_at->format('D, d M Y · h:i A')">
@@ -209,6 +210,16 @@
                 <div class="fw-bold">{{ $booking->customer_name }}</div>
                 <div class="small text-muted-2 mb-2">{{ $booking->customer_phone }}@if ($booking->customer_email) · {{ $booking->customer_email }}@endif</div>
                 <div class="d-flex gap-2"><a href="tel:+91{{ $booking->customer_phone }}" class="btn btn-sm btn-light border"><x-icon name="telephone" />{{ __('Call') }}</a><a href="https://wa.me/91{{ $booking->customer_phone }}" target="_blank" rel="noopener" class="btn btn-sm btn-light border"><x-icon name="whatsapp" />WhatsApp</a></div>
+                @if ($trackUrl)
+                    <div class="mt-3 pt-3 border-top" x-data="{ copied: false }">
+                        <div class="small fw-semibold mb-1">{{ __('Customer link') }} <span class="text-muted-2 fw-normal">· {{ __('track, OTP, pay advance, invoice') }}</span></div>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" readonly value="{{ $trackUrl }}" x-ref="link" aria-label="{{ __('Customer link') }}">
+                            <button class="btn btn-ink" type="button" @click="navigator.clipboard?.writeText($refs.link.value); copied = true; setTimeout(() => copied = false, 2000)" aria-label="{{ __('Copy link') }}"><span x-show="!copied"><x-icon name="clipboard" /></span><span x-show="copied" x-cloak><x-icon name="check2" /></span></button>
+                            <a href="{{ $trackUrl }}" target="_blank" rel="noopener" class="btn btn-light border" aria-label="{{ __('Open') }}"><x-icon name="box-arrow-up-right" /></a>
+                        </div>
+                    </div>
+                @endif
             </div></div>
             <div class="card panel-card mb-3"><div class="card-header">{{ __('Timeline') }}</div>
                 <div class="list-group list-group-flush list-modern small">
