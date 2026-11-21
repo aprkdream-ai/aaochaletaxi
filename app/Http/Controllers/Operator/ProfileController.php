@@ -37,7 +37,7 @@ class ProfileController extends Controller
             'pan' => ['nullable', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/'],
             'address_line' => ['nullable', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:100'],
-            'state' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100', new \App\Rules\IndianState],
             'pincode' => ['nullable', 'digits:6'],
             'primary_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
@@ -52,6 +52,7 @@ class ProfileController extends Controller
             'pan.regex' => __('Enter a valid PAN (e.g. ABCDE1234F).'),
         ]);
 
+        $data['state'] = \App\Support\India::normalizeState($data['state'] ?? null);
         $old = $tenant->only(['name', 'legal_name', 'email', 'phone', 'gstin', 'pan', 'city', 'state']);
         $settingKeys = ['booking_page_enabled', 'notify_customers', 'online_advance_percent', 'about'];
         $tenant->fill(collect($data)->except(array_merge(['logo', 'remove_logo'], $settingKeys))->all());

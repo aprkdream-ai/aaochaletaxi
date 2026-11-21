@@ -14,8 +14,8 @@
                 </div></div></div>
                 <div class="card panel-card"><div class="card-header">{{ __('Address') }}</div><div class="card-body"><div class="row g-2">
                     <div class="col-12"><x-input name="address_line" icon="geo-alt" :label="__('Street address')" :value="$tenant->address_line" maxlength="255" /></div>
-                    <div class="col-md-5"><x-input name="city" :label="__('City')" :value="$tenant->city" required /></div>
-                    <div class="col-md-4"><x-input name="state" :label="__('State')" :value="$tenant->state" /></div>
+                    <div class="col-md-4"><x-state-select name="state" :label="__('State')" :value="$tenant->state" /></div>
+                    <div class="col-md-5"><x-city-input name="city" state-field="state" :label="__('City')" :value="$tenant->city" required /></div>
                     <div class="col-md-3"><x-input name="pincode" :label="__('PIN code')" :value="$tenant->pincode" inputmode="numeric" maxlength="6" /></div>
                 </div></div></div>
             </div>

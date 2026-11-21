@@ -144,12 +144,16 @@
                                 @endif
                             </div>
                         @elseif ($u->hasPermission('invoices.manage'))
-                            <form method="POST" action="{{ route('operator.invoices.store', $booking) }}" class="row g-2 align-items-end" data-loading>@csrf
+                            <form method="POST" action="{{ route('operator.invoices.store', $booking) }}" class="row g-2 align-items-end" data-loading
+                                  x-data="{ home: @js(\App\Support\India::normalizeState(app(\App\Support\Tenancy\TenantContext::class)->get()?->state)), codes: @js(\App\Support\India::STATES),
+                                            fromGstin(v) { const st = this.codes[(v || '').slice(0, 2)]; if (v.length >= 2 && st) { this.$refs.st.value = st; this.syncInter(); } },
+                                            syncInter() { const v = this.$refs.st.value; if (this.home && v) this.$refs.inter.checked = v !== this.home; } }"
+                                  @suggest:select="syncInter()">@csrf
                                 <div class="col-md-4"><label class="form-label small" for="i_name">{{ __('Bill to (name / company)') }}</label><input type="text" name="name" id="i_name" value="{{ $booking->customer_name }}" class="form-control form-control-sm" maxlength="150"></div>
-                                <div class="col-md-3"><label class="form-label small" for="i_gstin">{{ __('Customer GSTIN (B2B)') }}</label><input type="text" name="gstin" id="i_gstin" class="form-control form-control-sm" maxlength="15" style="text-transform:uppercase"></div>
-                                <div class="col-md-3"><label class="form-label small" for="i_state">{{ __('State') }}</label><input type="text" name="state" id="i_state" class="form-control form-control-sm" maxlength="60"></div>
+                                <div class="col-md-3"><label class="form-label small" for="i_gstin">{{ __('Customer GSTIN (B2B)') }}</label><input type="text" name="gstin" id="i_gstin" class="form-control form-control-sm" maxlength="15" style="text-transform:uppercase" x-on:input="fromGstin($el.value.toUpperCase())"></div>
+                                <div class="col-md-3"><label class="form-label small" for="i_state">{{ __('State') }}</label><div class="position-relative"><input type="text" name="state" id="i_state" class="form-control form-control-sm" maxlength="60" x-ref="st" @change="syncInter()" data-suggest="states" data-options="{{ json_encode(\App\Support\India::states()) }}" autocomplete="off" placeholder="{{ __('Search state') }}"></div></div>
                                 <div class="col-md-2"><button class="btn btn-sm btn-primary w-100">{{ __('Issue invoice') }}</button></div>
-                                <div class="col-12"><div class="form-check small"><input class="form-check-input" type="checkbox" name="inter_state" value="1" id="i_inter"><label class="form-check-label" for="i_inter">{{ __('Inter-state supply (IGST instead of CGST + SGST)') }}</label></div></div>
+                                <div class="col-12"><div class="form-check small"><input class="form-check-input" type="checkbox" name="inter_state" value="1" id="i_inter" x-ref="inter"><label class="form-check-label" for="i_inter">{{ __('Inter-state supply (IGST instead of CGST + SGST)') }}</label></div></div>
                             </form>
                             @error('gstin')<div class="text-danger small">{{ $message }}</div>@enderror
                             @error('invoice')<div class="text-danger small">{{ $message }}</div>@enderror

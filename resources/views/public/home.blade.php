@@ -130,8 +130,8 @@
                             @error('trip_type')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
 
                             <div class="row g-2">
-                                <div class="col-sm-6"><x-input name="pickup" icon="geo-alt-fill" :label="__('Pickup')" :value="$prefill('pickup')" :placeholder="__('City or location')" required maxlength="150" autocomplete="address-level2" /></div>
-                                <div class="col-sm-6"><x-input name="drop" icon="pin-map-fill" :label="__('Drop')" :value="$prefill('drop')" :placeholder="__('Optional for rentals')" maxlength="150" /></div>
+                                <div class="col-sm-6"><x-place-input name="pickup" :label="__('Pickup')" :value="$prefill('pickup')" :placeholder="__('City or location')" required maxlength="150" /></div>
+                                <div class="col-sm-6"><x-place-input name="drop" icon="flag-fill" :label="__('Drop')" :value="$prefill('drop')" :placeholder="__('Optional for rentals')" maxlength="150" /></div>
                                 <div class="col-sm-6"><x-input name="travel_date" type="date" icon="calendar-event" :label="__('Travel date')" required :min="now()->toDateString()" :value="now()->addDay()->toDateString()" /></div>
                                 <div class="col-sm-6"><x-input name="phone" type="tel" icon="phone" :label="__('Mobile number')" required inputmode="numeric" maxlength="14" placeholder="98XXXXXXXX" autocomplete="tel-national" /></div>
                                 <div class="col-12"><x-input name="name" icon="person" :label="__('Your name')" required maxlength="150" autocomplete="name" /></div>

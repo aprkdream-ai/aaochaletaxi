@@ -59,8 +59,7 @@ class PlatformSettings
                 'whatsapp_template_language' => ['label' => __('Template language'), 'type' => 'text', 'rules' => ['nullable', 'string', 'max:10'], 'default' => 'en'],
             ]],
             'maps' => ['label' => __('Google Maps'), 'icon' => 'geo-alt', 'test' => 'maps', 'fields' => [
-                'google_maps_browser_key' => ['label' => __('Browser key (Places autocomplete)'), 'type' => 'text', 'rules' => ['nullable', 'string', 'max:200'], 'help' => __('Restrict this key to your domain in Google Cloud console.')],
-                'google_maps_api_key' => ['label' => __('Server key (Distance Matrix)'), 'type' => 'secret', 'rules' => ['nullable', 'string', 'max:200']],
+                'google_maps_api_key' => ['label' => __('Server key (Distance Matrix + Places autocomplete)'), 'type' => 'secret', 'rules' => ['nullable', 'string', 'max:200'], 'help' => __('Enable "Distance Matrix API" and "Places API (New)" for this key and restrict it to your server IP. Without it, pickup/drop suggestions use the built-in list of Indian cities.')],
             ]],
             'push' => ['label' => __('Push (Firebase)'), 'icon' => 'bell', 'test' => 'push', 'fields' => [
                 'fcm_project_id' => ['label' => __('Firebase project ID'), 'type' => 'text', 'rules' => ['nullable', 'string', 'max:100']],

@@ -43,4 +43,5 @@
 | D40 | 2026-11-18 | Only the latest driver position is stored, only while a trip is started | Privacy (DPDP) and tiny storage; operators need "where is the car now", not tracks |
 | D41 | 2026-11-20 | Self-host Plus Jakarta Sans (latin + latin-ext woff2 via Vite, preloaded) | Removes 2 third-party origins from the critical path; ₹ glyph lives in latin-ext; no Google requests (privacy) |
 | D42 | 2026-11-20 | Speculation Rules prefetch (moderate) + hover `<link rel=prefetch>` fallback; side-effect GETs excluded (/driver, /b, /locale, pdf/file/export/invoice) | Near-instant page switches on shared hosting without a SPA |
+| D43 | 2026-11-21 | Place suggestions via a server proxy (`/suggest/places`) to Places API (New) + a static India city list (`App\Support\India`) as fallback | Key stays server-side, results cached, works with no Google key, one UI for all sources; no extra JS SDK |
 | D18 | 2026-11-17 | No fabricated reviews/stats on marketing pages | Honest launch; add real testimonials once collected |

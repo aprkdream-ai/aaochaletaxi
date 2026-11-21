@@ -15,11 +15,6 @@ class GoogleMapsService
         return filled(PlatformSetting::getValue('google_maps_api_key'));
     }
 
-    public function browserKey(): ?string
-    {
-        return PlatformSetting::getValue('google_maps_browser_key');
-    }
-
     /** @return array{km: float, minutes: int, origin: string, destination: string}|null */
     public function distance(string $origin, string $destination): ?array
     {

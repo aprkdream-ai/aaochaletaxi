@@ -87,6 +87,7 @@ class AppServiceProvider extends ServiceProvider
         $byIp('otp-send', 6);
         $byIp('otp-verify', 12);
         $byIp('fare-preview', 40);
+        $byIp('suggest', 90);
         $byIp('track-actions', 10);
         $byIp('webhooks', 300);
         $byUser('operator-preview', 120);

@@ -113,6 +113,18 @@ class SettingsController extends Controller
         }
     }
 
+    /** @return array{ok:bool, message:string} */
+    private function testMaps(): array
+    {
+        $dm = app(GoogleMapsService::class)->test();
+        if (! $dm['ok']) {
+            return $dm;
+        }
+        $ac = app(\App\Services\Maps\PlaceSuggestService::class)->test();
+
+        return ['ok' => true, 'message' => $dm['message'].' '.$ac['message']]; // Places is optional (city list fallback)
+    }
+
     /** "Send test" for an integration; results are shown as a flash message and logged. */
     public function test(Request $request, string $integration): RedirectResponse
     {
@@ -122,7 +134,7 @@ class SettingsController extends Controller
 
         $result = match ($integration) {
             'razorpay' => app(RazorpayGateway::class)->test(),
-            'maps' => app(GoogleMapsService::class)->test(),
+            'maps' => $this->testMaps(),
             'push' => app(FcmService::class)->test($to ?: null),
             'mail' => $this->testMail($request, $to),
             'sms' => $this->fromLog(app(SmsService::class)->send($to, __('AaoChaleTaxi test SMS. If you received this, SMS is working.'), null, 'admin.test')),

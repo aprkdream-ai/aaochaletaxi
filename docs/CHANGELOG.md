@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-21 — Autosuggest (pickup/drop, state, city)
+- Pickup/drop/stops (operator new booking, microsite, home quote) suggest as you type: operator's own recent addresses →
+  Google Places Autocomplete (New, via the server key, cached 7 days, auto-off 1 h on auth errors) → built-in list of
+  ~850 Indian cities/towns/airports. Free text always allowed; keyboard + screen-reader friendly (ARIA combobox).
+- Picking pickup and drop on the operator form calculates the road distance automatically (when Maps is configured).
+- State fields (operator registration, business profile, invoice buyer) are searchable dropdowns of the 36 states/UTs,
+  validated server-side (`IndianState` rule) and normalised ("MP", "Orissa" → canonical). City fields suggest cities of
+  the selected state and fill an empty state. Invoice form: GSTIN fills the state; inter-state ticks itself when the buyer
+  state differs from the operator's.
+- Endpoints `/suggest/places`, `/suggest/cities` (throttled 90/min/IP). Recent addresses only for operator/vendor users of
+  that tenant — never on public pages. Unused "Browser key" Maps setting removed.
+
 ## 2026-11-20 — Performance
 - Server profiled on production: panel pages render in 13–100 ms with 7–28 queries; opcache, config/route cache, Brotli
   and immutable asset caching already on — the slowness was client-side.

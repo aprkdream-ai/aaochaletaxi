@@ -77,6 +77,9 @@
 - [x] Driver PWA (manifest, service worker, offline, install) · trips list/detail/history · OTP start & complete
 - [x] Duty toggle · earnings · profile & document expiry · polling alerts + FCM web push · last-location sharing
 
+Autosuggest done 2026-11-21: `x-place-input`, `x-state-select`, `x-city-input` (resources/js/suggest.js); reuse them for
+Phase 8 search (from/to city) and service areas.
+
 ## Next exact tasks (Phase 8 — Marketplace)
 1. Public search `/cabs` (from/to city, date, category) listing approved operators with booking pages enabled, fares from
    their fare rules (server-side), rating, verified badge; city pages for SEO (`/cabs/{city}`).

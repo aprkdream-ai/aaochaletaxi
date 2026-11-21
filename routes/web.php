@@ -15,6 +15,7 @@ use App\Http\Controllers\Public\LocaleController;
 use App\Http\Controllers\Public\MicrositeController;
 use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\SitemapController;
+use App\Http\Controllers\Public\SuggestController;
 use App\Http\Controllers\Webhooks\RazorpayWebhookController;
 use App\Http\Middleware\ResolveMicrositeTenant;
 use Illuminate\Support\Facades\Route;
@@ -51,6 +52,12 @@ Route::prefix('b/{token}')->name('booking.track')->where(['token' => '[A-Za-z0-9
     Route::post('/pay/verify', 'verify')->middleware('throttle:track-actions')->name('.verify');
     Route::get('/invoice', 'invoice')->middleware('throttle:track-actions')->name('.invoice');
 });
+// ---------- Autosuggest (pickup/drop, cities) ----------
+Route::middleware('throttle:suggest')->controller(SuggestController::class)->group(function () {
+    Route::get('/suggest/places', 'places')->name('suggest.places');
+    Route::get('/suggest/cities', 'cities')->name('suggest.cities');
+});
+
 Route::post('/webhooks/razorpay', RazorpayWebhookController::class)->middleware('throttle:webhooks')->name('webhooks.razorpay');
 
 // ---------- Authentication ----------

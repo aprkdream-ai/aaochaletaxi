@@ -4,7 +4,7 @@
     </x-page-header>
     <form method="POST" action="{{ route('operator.bookings.store') }}" data-loading novalidate
           x-data="bookingForm(@js(route('operator.bookings.preview')), @js(route('operator.bookings.distance')), @js(old('type', 'outstation_oneway')), @js(old('stops', [])))"
-          x-init="init()" @input.debounce.600ms="refresh()" @change="refresh()" x-ref="form">
+          x-init="init()" @input.debounce.600ms="refresh()" @change="refresh()" @if ($mapsEnabled) @suggest:select="autoDistance($event)" @endif x-ref="form">
         @csrf
         <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', $idempotencyKey) }}">
         <div class="row g-3">
@@ -13,12 +13,12 @@
                     <div class="col-md-6"><div class="mb-3"><label class="form-label" for="f_type">{{ __('Trip type') }}</label>
                         <select name="type" id="f_type" class="form-select @error('type') is-invalid @enderror" x-model="type">@foreach ($types as $v => $l)<option value="{{ $v }}">{{ $l }}</option>@endforeach</select></div></div>
                     <div class="col-md-6"><x-select name="vehicle_category_id" :label="__('Vehicle type')" :options="$categories->mapWithKeys(fn ($c) => [$c->id => $c->name.' ('.$c->seats.' '.__('seats').')'])->all()" :value="old('vehicle_category_id', $categories->firstWhere('slug', 'sedan')?->id)" required /></div>
-                    <div class="col-12"><x-input name="pickup_address" icon="geo-alt-fill" :label="__('Pickup')" :value="$prefill['pickup_address'] ?? null" required maxlength="255" x-ref="from" /></div>
+                    <div class="col-12"><x-place-input name="pickup_address" :label="__('Pickup')" :placeholder="__('Area, landmark, city')" :value="$prefill['pickup_address'] ?? null" required maxlength="255" x-ref="from" /></div>
                     <template x-for="(stop, i) in stops" :key="i">
-                        <div class="col-12 d-flex gap-2 mb-2"><input type="text" name="stops[]" class="form-control" :aria-label="'{{ __('Stop') }} ' + (i + 1)" :placeholder="'{{ __('Stop') }} ' + (i + 1)" x-model="stops[i]" maxlength="255"><button type="button" class="btn btn-light border" @click="stops.splice(i, 1)" aria-label="{{ __('Remove stop') }}"><x-icon name="x-lg" /></button></div>
+                        <div class="col-12 d-flex gap-2 mb-2"><div class="position-relative flex-grow-1"><input type="text" name="stops[]" class="form-control" data-suggest="places" data-suggest-url="{{ route('suggest.places') }}" autocomplete="off" :aria-label="'{{ __('Stop') }} ' + (i + 1)" :placeholder="'{{ __('Stop') }} ' + (i + 1)" x-model="stops[i]" maxlength="255"></div><button type="button" class="btn btn-light border" @click="stops.splice(i, 1)" aria-label="{{ __('Remove stop') }}"><x-icon name="x-lg" /></button></div>
                     </template>
                     <div class="col-12 mb-2"><button type="button" class="btn btn-sm btn-link px-0" @click="stops.push('')" x-show="stops.length < 8"><x-icon name="plus-circle" /> {{ __('Add a stop') }}</button></div>
-                    <div class="col-12" x-show="type !== 'hourly' && type !== 'full_day'"><x-input name="drop_address" icon="pin-map-fill" :label="__('Drop')" :value="$prefill['drop_address'] ?? null" maxlength="255" x-ref="to" /></div>
+                    <div class="col-12" x-show="type !== 'hourly' && type !== 'full_day'"><x-place-input name="drop_address" icon="flag-fill" :label="__('Drop')" :placeholder="__('Destination')" :value="$prefill['drop_address'] ?? null" maxlength="255" x-ref="to" /></div>
                     <div class="col-md-6"><x-input name="pickup_at" type="datetime-local" :label="__('Pickup date & time')" :value="now()->addHours(3)->startOfHour()->format('Y-m-d\TH:i')" required /></div>
                     <div class="col-md-6" x-show="type === 'outstation_round'" x-cloak><x-input name="return_at" type="datetime-local" :label="__('Return date & time')" /></div>
                     <div class="col-md-6" x-show="type === 'hourly' || type === 'full_day'" x-cloak><x-input name="rental_hours" type="number" min="1" max="24" :label="__('Hours')" value="4" /></div>

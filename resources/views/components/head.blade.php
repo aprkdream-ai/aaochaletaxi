@@ -4,7 +4,7 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="theme-color" content="#0b1220">
 <meta name="format-detection" content="telephone=no">
-<script>window.__ui = @js(['cancel' => __('Cancel'), 'confirm' => __('Yes, continue'), 'confirmTitle' => __('Please confirm'), 'confirmDangerTitle' => __('Are you sure?')]);</script>
+<script>window.__ui = @js(['cancel' => __('Cancel'), 'confirm' => __('Yes, continue'), 'confirmTitle' => __('Please confirm'), 'confirmDangerTitle' => __('Are you sure?'), 'suggestNone' => __('No suggestions — you can type the full address.'), 'suggestRecent' => __('Recent')]);</script>
 <script>
     (function () {
         var d = document.documentElement; d.classList.add('js');

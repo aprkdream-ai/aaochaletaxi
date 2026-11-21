@@ -4,6 +4,7 @@ import Modal from 'bootstrap/js/src/modal.js';
 import Offcanvas from 'bootstrap/js/src/offcanvas.js';
 import Toast from 'bootstrap/js/src/toast.js';
 import Alpine from 'alpinejs';
+import './suggest.js';
 
 window.bootstrap = { Collapse, Dropdown, Modal, Offcanvas, Toast };
 
@@ -56,6 +57,11 @@ Alpine.data('bookingForm', (previewUrl, distanceUrl, initialType, initialStops) 
             if (mine !== this.seq) return;
             if (res.ok) { this.fare = json; this.error = ''; } else { this.fare = null; this.error = Object.values(json.errors || {})[0]?.[0] || json.message || ''; }
         } catch { if (mine === this.seq) this.error = 'Could not calculate fare.'; } finally { if (mine === this.seq) this.busy = false; }
+    },
+    // After picking both pickup and drop from suggestions, calculate the road distance automatically.
+    autoDistance(e) {
+        if (e.target !== this.$refs.from && e.target !== this.$refs.to) return;
+        if (this.$refs.from?.value && this.$refs.to?.value && this.$refs.to.offsetParent !== null) this.fetchDistance();
     },
     async fetchDistance() {
         const from = this.$refs.from?.value, to = this.$refs.to?.value;

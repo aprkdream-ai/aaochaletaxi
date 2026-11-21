@@ -889,3 +889,20 @@ input.form-control:-webkit-autofill, input.form-control:-webkit-autofill:hover, 
     .auth-card .form-check.my-3 { margin: .6rem 0 !important; }
     .auth-card .form-text.mb-2 { margin-bottom: .35rem !important; }
 }
+
+// ---------- Autosuggest (pickup/drop, city, state) ----------
+.suggest-list { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 1060; margin: 0; padding: .35rem; list-style: none;
+    background: var(--surface); border: 1px solid var(--bs-border-color); border-radius: .85rem; box-shadow: 0 16px 40px rgba(11, 18, 32, .16);
+    max-height: 18rem; overflow-y: auto; overscroll-behavior: contain;
+    li[role=option] { display: flex; align-items: center; gap: .65rem; padding: .5rem .6rem; border-radius: .6rem; cursor: pointer; line-height: 1.25; }
+    li[role=option]:hover, li[aria-selected=true] { background: var(--brand-soft); }
+    .suggest-ico { flex: none; width: 1.9rem; height: 1.9rem; display: grid; place-items: center; border-radius: .55rem; background: var(--bs-tertiary-bg); color: var(--brand-600);
+        svg { width: .95rem; height: .95rem; fill: currentColor; } }
+    .suggest-ico.src-recent { color: #7c3aed; background: rgba(124, 58, 237, .1); }
+    .suggest-text { min-width: 0; flex: 1; display: flex; flex-direction: column;
+        b { font-weight: 600; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        small { color: var(--bs-secondary-color); font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
+    em { flex: none; font-style: normal; font-size: .7rem; font-weight: 600; color: #7c3aed; background: rgba(124, 58, 237, .1); padding: .1rem .45rem; border-radius: 1rem; }
+    .suggest-empty { padding: .55rem .6rem; font-size: .82rem; color: var(--bs-secondary-color); }
+}
+.form-control-sm + .suggest-list li[role=option] { padding: .35rem .5rem; }

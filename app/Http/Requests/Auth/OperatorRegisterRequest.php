@@ -12,6 +12,7 @@ class OperatorRegisterRequest extends FormRequest
     {
         $this->merge([
             'phone' => Phone::normalize($this->input('phone')),
+            'state' => \App\Support\India::normalizeState($this->input('state')) ?? $this->input('state'),
             'email' => is_string($this->input('email')) ? strtolower(trim($this->input('email'))) : $this->input('email'),
         ]);
     }
@@ -21,7 +22,7 @@ class OperatorRegisterRequest extends FormRequest
         return [
             'business_name' => ['required', 'string', 'min:3', 'max:150'],
             'city' => ['required', 'string', 'max:100'],
-            'state' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100', new \App\Rules\IndianState],
             'name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'email:rfc', 'max:150', 'unique:users,email'],
             'phone' => ['required', 'regex:/^[6-9]\d{9}$/', 'unique:users,phone'],

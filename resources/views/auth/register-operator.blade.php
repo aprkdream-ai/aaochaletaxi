@@ -27,8 +27,8 @@
         <div x-ref="s1" x-show="step === 1">
             <x-input name="business_name" icon="building" :label="__('Business name')" required maxlength="150" autocomplete="organization" x-on:input="$el.classList.remove('is-invalid')" />
             <div class="row g-2">
-                <div class="col-sm-6"><x-input name="city" icon="geo-alt" :label="__('City')" required maxlength="100" autocomplete="address-level2" x-on:input="$el.classList.remove('is-invalid')" /></div>
-                <div class="col-sm-6"><x-input name="state" icon="map" :label="__('State')" maxlength="100" autocomplete="address-level1" /></div>
+                <div class="col-sm-6"><x-state-select name="state" :label="__('State')" /></div>
+                <div class="col-sm-6"><x-city-input name="city" state-field="state" :label="__('City')" required x-on:input="$el.classList.remove('is-invalid')" /></div>
             </div>
             <div class="wizard-note"><x-icon name="info-circle" />{{ __('You can add GSTIN, address and logo later from your business profile.') }}</div>
             <button type="button" class="btn btn-primary btn-lg w-100" @click="next()">{{ __('Continue') }}<x-icon name="arrow-right" /></button>

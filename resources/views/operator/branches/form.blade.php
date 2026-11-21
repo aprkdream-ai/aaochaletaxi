@@ -6,7 +6,7 @@
         <div class="card-body"><div class="row g-2">
             <div class="col-md-8"><x-input name="name" :label="__('Branch name')" :value="$branch->name" required maxlength="120" placeholder="Ahmedabad – Navrangpura" /></div>
             <div class="col-md-4"><x-input name="code" :label="__('Code')" :value="$branch->code" required maxlength="20" placeholder="AMD" style="text-transform:uppercase" /></div>
-            <div class="col-md-6"><x-input name="city" :label="__('City')" :value="$branch->city" required /></div>
+            <div class="col-md-6"><x-city-input name="city" :label="__('City')" :value="$branch->city" required /></div>
             <div class="col-md-6"><x-input name="phone" type="tel" :label="__('Phone')" :value="$branch->phone" inputmode="numeric" /></div>
             <div class="col-12"><x-input name="address" :label="__('Address')" :value="$branch->address" maxlength="255" /></div>
             <div class="col-md-6"><x-switch name="is_head_office" :label="__('Head office')" :checked="$branch->is_head_office" /></div>
