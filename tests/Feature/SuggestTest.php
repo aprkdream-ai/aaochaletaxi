@@ -88,6 +88,41 @@ class SuggestTest extends TestCase
         $this->assertTrue(Cache::has('maps:places:off'));
     }
 
+    public function test_free_openstreetmap_suggestions_and_distance_without_google_key(): void
+    {
+        Http::fake([
+            'photon.komoot.io/*' => fn ($r) => Http::response(['features' => [
+                str_contains($r['q'], 'Pune')
+                    ? ['properties' => ['name' => 'Pune', 'state' => 'Maharashtra', 'countrycode' => 'IN'], 'geometry' => ['coordinates' => [73.8567, 18.5204]]]
+                    : ['properties' => ['name' => 'Rajwada Palace', 'city' => 'Indore', 'state' => 'Madhya Pradesh', 'countrycode' => 'IN'], 'geometry' => ['coordinates' => [75.8547, 22.7180]]],
+                ['properties' => ['name' => 'Rajwada', 'state' => 'Punjab', 'countrycode' => 'PK'], 'geometry' => ['coordinates' => [74.3, 31.5]]],
+            ]]),
+            'router.project-osrm.org/*' => Http::response(['code' => 'Ok', 'routes' => [['distance' => 590400, 'duration' => 25200]]]),
+        ]);
+
+        $items = $this->getJson(route('suggest.places', ['q' => 'rajwada']))->json('items');
+        $this->assertSame('Rajwada Palace, Indore, Madhya Pradesh', $items[0]['value']);
+        $this->assertSame('place', $items[0]['source']);
+        $this->assertArrayNotHasKey('lat', $items[0]);
+        $this->assertNotContains('PK', array_column($items, 'sub'));
+
+        $d = app(\App\Services\Maps\GoogleMapsService::class)->distance('Rajwada Indore', 'Pune');
+        $this->assertSame(590.4, $d['km']);
+        $this->assertSame(588, $d['minutes']); // 420 min × 1.4 Indian-road factor
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'router.project-osrm.org/route/v1/driving/75.854700,22.718000;73.856700,18.520400'));
+
+        PlatformSetting::setValue('maps_free', 'off');
+        $this->assertFalse(app(\App\Services\Maps\GoogleMapsService::class)->isEnabled());
+    }
+
+    public function test_free_service_errors_fall_back_to_city_list(): void
+    {
+        Http::fake(['photon.komoot.io/*' => Http::response('busy', 429)]);
+        $items = $this->getJson(route('suggest.places', ['q' => 'shirdi']))->json('items');
+        $this->assertSame('city', $items[0]['source']);
+        $this->assertTrue(Cache::has('maps:photon:off'));
+    }
+
     public function test_state_fields_are_validated_and_normalised(): void
     {
         $tenant = Tenant::factory()->create();

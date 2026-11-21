@@ -16,6 +16,7 @@ use Throwable;
  * Pickup / drop suggestions, merged from:
  *  1. the operator's own recent booking addresses (operator & vendor users only — never shown on public pages),
  *  2. Google Places Autocomplete (New) when the server key has Places API enabled (cached; switches itself off for an hour on auth errors),
+ *     or, without a Google key, free OpenStreetMap search (Photon),
  *  3. the built-in list of Indian cities (always available).
  */
 class PlaceSuggestService
@@ -43,7 +44,11 @@ class PlaceSuggestService
         foreach ($this->recent($q, $user) as $item) {
             $push($item);
         }
-        foreach ($this->google($q, $sessionToken) as $item) {
+        $places = $this->google($q, $sessionToken);
+        if (! $places) {
+            $places = array_map(fn ($i) => array_diff_key($i, ['lat' => 1, 'lng' => 1]), app(OsmService::class)->autocomplete($q));
+        }
+        foreach ($places as $item) {
             $push($item);
         }
         if (count($out) < $limit) {

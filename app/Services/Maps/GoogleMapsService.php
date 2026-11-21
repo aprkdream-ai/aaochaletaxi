@@ -7,10 +7,21 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
-/** Road distance via Google Distance Matrix (cached 30 days). Returns null when unavailable — callers fall back to manual km. */
+/**
+ * Road distance: Google Distance Matrix when a server key is set (cached 30 days), otherwise free OpenStreetMap (OSRM).
+ * Returns null when unavailable — callers fall back to manual km.
+ */
 class GoogleMapsService
 {
+    public function __construct(private OsmService $osm) {}
+
+    /** Any distance provider available (Google or free OpenStreetMap). */
     public function isEnabled(): bool
+    {
+        return $this->googleEnabled() || $this->osm->isEnabled();
+    }
+
+    public function googleEnabled(): bool
     {
         return filled(PlatformSetting::getValue('google_maps_api_key'));
     }
@@ -18,8 +29,8 @@ class GoogleMapsService
     /** @return array{km: float, minutes: int, origin: string, destination: string}|null */
     public function distance(string $origin, string $destination): ?array
     {
-        if (! $this->isEnabled()) {
-            return null;
+        if (! $this->googleEnabled()) {
+            return $this->osm->distance($origin, $destination);
         }
 
         $key = 'maps:dm:'.md5(mb_strtolower(trim($origin)).'|'.mb_strtolower(trim($destination)));
@@ -50,8 +61,15 @@ class GoogleMapsService
     /** @return array{ok:bool, message:string} */
     public function test(): array
     {
-        if (! $this->isEnabled()) {
-            return ['ok' => false, 'message' => __('Server key is not set.')];
+        if (! $this->googleEnabled()) {
+            if (! $this->osm->isEnabled()) {
+                return ['ok' => false, 'message' => __('No Google key and free OpenStreetMap is turned off.')];
+            }
+            $d = $this->osm->distance('Mumbai', 'Pune');
+
+            return $d
+                ? ['ok' => true, 'message' => __('Free OpenStreetMap: Mumbai → Pune :km km.', ['km' => $d['km']])]
+                : ['ok' => false, 'message' => __('Free OpenStreetMap servers did not respond. Try again in a few minutes.')];
         }
         Cache::forget('maps:dm:'.md5('mumbai|pune'));
         $d = $this->distance('Mumbai', 'Pune');

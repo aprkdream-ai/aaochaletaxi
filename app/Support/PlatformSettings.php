@@ -59,7 +59,8 @@ class PlatformSettings
                 'whatsapp_template_language' => ['label' => __('Template language'), 'type' => 'text', 'rules' => ['nullable', 'string', 'max:10'], 'default' => 'en'],
             ]],
             'maps' => ['label' => __('Google Maps'), 'icon' => 'geo-alt', 'test' => 'maps', 'fields' => [
-                'google_maps_api_key' => ['label' => __('Server key (Distance Matrix + Places autocomplete)'), 'type' => 'secret', 'rules' => ['nullable', 'string', 'max:200'], 'help' => __('Enable "Distance Matrix API" and "Places API (New)" for this key and restrict it to your server IP. Without it, pickup/drop suggestions use the built-in list of Indian cities.')],
+                'maps_free' => ['label' => __('Free maps (OpenStreetMap)'), 'type' => 'select', 'options' => ['on' => __('On — used when no Google key is set'), 'off' => __('Off')], 'rules' => ['required', 'in:on,off'], 'default' => 'on', 'help' => __('Place suggestions (Photon) and road distance (OSRM) from free public OpenStreetMap servers. Fair use, no guarantee — results are cached. A Google key, when set, takes priority.')],
+                'google_maps_api_key' => ['label' => __('Server key (Distance Matrix + Places autocomplete)'), 'type' => 'secret', 'rules' => ['nullable', 'string', 'max:200'], 'help' => __('Enable "Distance Matrix API" and "Places API (New)" for this key and restrict it to your server IP. Optional — without it the free OpenStreetMap services are used.')],
             ]],
             'push' => ['label' => __('Push (Firebase)'), 'icon' => 'bell', 'test' => 'push', 'fields' => [
                 'fcm_project_id' => ['label' => __('Firebase project ID'), 'type' => 'text', 'rules' => ['nullable', 'string', 'max:100']],

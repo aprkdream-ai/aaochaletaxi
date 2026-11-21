@@ -11,6 +11,9 @@
   state differs from the operator's.
 - Endpoints `/suggest/places`, `/suggest/cities` (throttled 90/min/IP). Recent addresses only for operator/vendor users of
   that tenant — never on public pages. Unused "Browser key" Maps setting removed.
+- Free maps without a Google key (default on, Admin → Settings → Google Maps → "Free maps"): place suggestions from
+  OpenStreetMap Photon and road distance from OSRM (×1.4 time factor for Indian roads); cached, 4 s timeout, auto-off
+  10 min on 429/5xx; Google takes priority when a key is set. Tests block all stray HTTP calls.
 
 ## 2026-11-20 — Performance
 - Server profiled on production: panel pages render in 13–100 ms with 7–28 queries; opcache, config/route cache, Brotli

@@ -44,4 +44,5 @@
 | D41 | 2026-11-20 | Self-host Plus Jakarta Sans (latin + latin-ext woff2 via Vite, preloaded) | Removes 2 third-party origins from the critical path; ₹ glyph lives in latin-ext; no Google requests (privacy) |
 | D42 | 2026-11-20 | Speculation Rules prefetch (moderate) + hover `<link rel=prefetch>` fallback; side-effect GETs excluded (/driver, /b, /locale, pdf/file/export/invoice) | Near-instant page switches on shared hosting without a SPA |
 | D43 | 2026-11-21 | Place suggestions via a server proxy (`/suggest/places`) to Places API (New) + a static India city list (`App\Support\India`) as fallback | Key stays server-side, results cached, works with no Google key, one UI for all sources; no extra JS SDK |
+| D44 | 2026-11-21 | Free OpenStreetMap fallback: Photon (autocomplete/geocode) + OSRM demo server (distance), toggle `maps_free` | Zero cost for launch; both are fair-use without SLA, so heavy caching, short timeouts, self-disable on errors, manual km always possible; switch to Google (or self-hosted/paid OSM) when volume grows |
 | D18 | 2026-11-17 | No fabricated reviews/stats on marketing pages | Honest launch; add real testimonials once collected |

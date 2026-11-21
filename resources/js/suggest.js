@@ -6,7 +6,7 @@ import pinIcon from 'bootstrap-icons/icons/geo-alt.svg?raw';
 import cityIcon from 'bootstrap-icons/icons/buildings.svg?raw';
 import mapIcon from 'bootstrap-icons/icons/map.svg?raw';
 
-const ICONS = { recent: clockIcon, google: pinIcon, city: cityIcon, state: mapIcon };
+const ICONS = { recent: clockIcon, google: pinIcon, place: pinIcon, city: cityIcon, state: mapIcon };
 const t = (k, d) => window.__ui?.[k] || d;
 let uid = 0;
 

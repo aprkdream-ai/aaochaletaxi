@@ -98,7 +98,7 @@ class BookingController extends Controller
         $data = $request->validate(['from' => ['required', 'string', 'max:255'], 'to' => ['required', 'string', 'max:255'], 'round' => ['nullable', 'boolean']]);
         $d = $maps->distance($data['from'], $data['to']);
         if (! $d) {
-            return response()->json(['message' => $maps->isEnabled() ? __('Could not find a route. Enter km manually.') : __('Google Maps is not configured. Enter km manually.')], 422);
+            return response()->json(['message' => $maps->isEnabled() ? __('Could not find a route. Enter km manually.') : __('Maps are turned off. Enter km manually.')], 422);
         }
         $factor = ($data['round'] ?? false) ? 2 : 1;
 

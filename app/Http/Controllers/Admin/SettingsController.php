@@ -117,7 +117,7 @@ class SettingsController extends Controller
     private function testMaps(): array
     {
         $dm = app(GoogleMapsService::class)->test();
-        if (! $dm['ok']) {
+        if (! $dm['ok'] || ! app(GoogleMapsService::class)->googleEnabled()) {
             return $dm;
         }
         $ac = app(\App\Services\Maps\PlaceSuggestService::class)->test();
