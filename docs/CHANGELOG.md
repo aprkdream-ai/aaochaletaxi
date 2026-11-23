@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-24 — Phase 8C: fleet operations
+- Fleet trips (Fleet module): assign a vehicle and driver for official use with purpose, department, requester, from/to and
+  passengers; numbered FTyymm-NNNN; the driver gets an alert. Edit/reassign until started, cancel with reason.
+- Driver app shows fleet trips; drivers start with the odometer (no customer OTP) and complete with closing km. Operators can
+  start/complete for drivers without the app.
+- Departments / cost centres. Dashboard "Fleet trips today" and a "New trip" button.
+- Fleet cost report (all plans): km, hours, fuel and mileage, fuel/other/maintenance cost and cost per km per vehicle;
+  department allocation; CSV export.
+- Fix: vehicle/driver double-booking checks now also see trips without a booking (shared `TripScheduler`).
+- Existing businesses get the new permissions automatically on deploy. 13 new tests (220 total, SQLite + MariaDB).
+
 ## 2026-11-23 — Phase 8B: core fleet upgrades
 - Vehicles: type (car, SUV/MUV, van, tempo, bus, pickup, auto, two-wheeler), FASTag ID, road tax expiry (optional — blank =
   lifetime) with reminders and a "Road tax" document type.

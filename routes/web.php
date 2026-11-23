@@ -255,6 +255,31 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
             Route::put('/fare-rules/{fareRule}', [Operator\FareRuleController::class, 'update'])->name('fares.update');
         });
 
+        // Fleet operations (Fleet module)
+        Route::middleware('permission:fleet_trips.manage')->controller(Operator\FleetTripController::class)->group(function () {
+            Route::get('/fleet-trips/create', 'create')->name('fleet-trips.create');
+            Route::post('/fleet-trips', 'store')->name('fleet-trips.store');
+            Route::get('/fleet-trips/availability', 'availability')->middleware('throttle:operator-preview')->name('fleet-trips.availability');
+            Route::get('/fleet-trips/{trip}/edit', 'edit')->name('fleet-trips.edit');
+            Route::put('/fleet-trips/{trip}', 'update')->name('fleet-trips.update');
+            Route::post('/fleet-trips/{trip}/start', 'start')->name('fleet-trips.start');
+            Route::post('/fleet-trips/{trip}/complete', 'complete')->name('fleet-trips.complete');
+            Route::post('/fleet-trips/{trip}/cancel', 'cancel')->name('fleet-trips.cancel');
+        });
+        Route::middleware('permission:fleet_trips.view,fleet_trips.manage')->controller(Operator\FleetTripController::class)->group(function () {
+            Route::get('/fleet-trips', 'index')->name('fleet-trips.index');
+            Route::get('/fleet-trips/{trip}', 'show')->name('fleet-trips.show');
+        });
+        Route::middleware('permission:departments.manage')->group(function () {
+            Route::get('/departments', [Operator\DepartmentController::class, 'index'])->name('departments.index');
+            Route::post('/departments', [Operator\DepartmentController::class, 'store'])->name('departments.store');
+            Route::put('/departments/{department}', [Operator\DepartmentController::class, 'update'])->name('departments.update');
+        });
+        Route::middleware('permission:reports.view')->group(function () {
+            Route::get('/fleet-report', [Operator\FleetReportController::class, 'index'])->name('fleet-report.index');
+            Route::get('/fleet-report/export', [Operator\FleetReportController::class, 'export'])->name('fleet-report.export');
+        });
+
         // Finance
         Route::middleware('permission:invoices.view,invoices.manage')->group(function () {
             Route::get('/invoices', [Operator\InvoiceController::class, 'index'])->name('invoices.index');

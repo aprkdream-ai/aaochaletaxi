@@ -2,19 +2,27 @@
 
 namespace App\Notifications;
 
-use App\Models\Booking;
 use App\Models\Driver;
+use App\Models\Trip;
 use App\Notifications\Channels\FcmChannel;
 use App\Services\Push\FcmService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
-/** Sent synchronously (database row is what the driver app polls for); push when Firebase is configured. */
+/**
+ * Sent synchronously (database row is what the driver app polls for); push when Firebase is configured.
+ * Works for customer bookings (Taxi) and fleet trips (Fleet); carries plain values only.
+ */
 class DriverTripAssigned extends Notification
 {
     use Queueable;
 
-    public function __construct(public Booking $booking, public ?string $fcmToken = null) {}
+    public function __construct(public int $tripId, public string $number, public string $at, public string $from, public ?string $fcmToken = null) {}
+
+    public static function forDriver(Driver $driver, Trip $trip): void
+    {
+        $driver->user?->notify(new self($trip->id, $trip->number(), $trip->start_at->toIso8601String(), $trip->pickupLabel(), $driver->fcm_token));
+    }
 
     public function via(object $notifiable): array
     {
@@ -29,20 +37,14 @@ class DriverTripAssigned extends Notification
     public function toPush(object $notifiable): array
     {
         return [
-            'title' => __('New trip :no', ['no' => $this->booking->booking_number]),
-            'body' => __(':at · :from', ['at' => $this->booking->pickup_at->format('d M h:i A'), 'from' => $this->booking->pickup_address]),
-            'data' => ['link' => route('driver.trips.show', $this->booking->trip), 'booking' => $this->booking->booking_number],
+            'title' => __('New trip :no', ['no' => $this->number]),
+            'body' => __(':at · :from', ['at' => \Illuminate\Support\Carbon::parse($this->at)->timezone(config('app.timezone'))->format('d M h:i A'), 'from' => $this->from]),
+            'data' => ['link' => route('driver.trips.show', $this->tripId), 'booking' => $this->number],
         ];
     }
 
     public function toArray(object $notifiable): array
     {
-        return ['kind' => 'trip_assigned', 'booking' => $this->booking->booking_number, 'pickup_at' => $this->booking->pickup_at->toIso8601String(),
-            'pickup' => $this->booking->pickup_address, 'trip_id' => $this->booking->trip?->id];
-    }
-
-    public static function forDriver(Driver $driver, Booking $booking): void
-    {
-        $driver->user?->notify(new self($booking, $driver->fcm_token));
+        return ['kind' => 'trip_assigned', 'booking' => $this->number, 'pickup_at' => $this->at, 'pickup' => $this->from, 'trip_id' => $this->tripId];
     }
 }

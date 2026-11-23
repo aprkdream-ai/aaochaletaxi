@@ -67,6 +67,8 @@ asset URLs resolve to `public_html`.
 gates, policies and `config/navigation.php` follow. New module features MUST add their permissions to the map. Public
 microsite `/o/{slug}` additionally requires the taxi module. Prices: `SubscriptionPlan::priceFor($cycle, $type)` is the
 only place that computes plan price (+ add-on for both).
+Trips: customer bookings and fleet trips share `trips`; `Trip::isFleet()` (booking_id NULL), `number()/pickupLabel()` for views.
+All assignment overlap checks go through `App\Services\TripScheduler` — never query overlaps by booking_id.
 
 ## 5. Application structure
 ```

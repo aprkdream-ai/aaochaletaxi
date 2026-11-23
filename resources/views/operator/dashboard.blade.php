@@ -26,6 +26,7 @@
         :subtitle="$tenant->name.' · '.now()->format('l, d M Y')"
         :kpis="$kpis">
         @can('bookings.create')<a href="{{ route('operator.bookings.create') }}" class="btn btn-primary"><x-icon name="plus-lg" />{{ __('New booking') }}</a>@endcan
+        @can('fleet_trips.manage')<a href="{{ route('operator.fleet-trips.create') }}" class="btn {{ $taxi ? 'btn-glass' : 'btn-primary' }}"><x-icon name="signpost-split" />{{ __('New trip') }}</a>@endcan
         @can('vehicles.manage')<a href="{{ route('operator.vehicles.create') }}" class="btn btn-glass"><x-icon name="car-front" />{{ __('Vehicle') }}</a>@endcan
         @can('drivers.manage')<a href="{{ route('operator.drivers.create') }}" class="btn btn-glass"><x-icon name="person-plus" />{{ __('Driver') }}</a>@endcan
     </x-hero-banner>
@@ -49,6 +50,23 @@
 
     <div class="row g-3">
         <div class="col-lg-7">
+            @can('fleet_trips.view')
+            <div class="card panel-card mb-3">
+                <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="signpost-split" class="text-warning" />{{ __('Fleet trips today') }}</span><a href="{{ route('operator.fleet-trips.index', ['status' => 'open']) }}" class="small fw-semibold">{{ __('View all') }}</a></div>
+                <div class="list-group list-group-flush list-modern">
+                    @forelse ($fleetToday as $t)
+                        <a href="{{ route('operator.fleet-trips.show', $t) }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                            <span class="date-tile"><b>{{ $t->start_at->format('H:i') }}</b><small>{{ $t->start_at->isToday() ? __('today') : $t->start_at->format('d M') }}</small></span>
+                            <div class="me-auto min-w-0"><div class="fw-semibold text-truncate">{{ $t->purpose }}</div>
+                                <div class="small text-muted-2 text-truncate">{{ $t->vehicle?->displayRegistration() }} · {{ $t->driver?->name }}@if ($t->department) · {{ $t->department->name }}@endif</div></div>
+                            @include('operator.fleet-trips._status', ['status' => $t->status])
+                        </a>
+                    @empty
+                        <x-empty-state icon="signpost-split" :title="__('No trips today')" :text="__('Create a trip to assign a vehicle and driver.')" />
+                    @endforelse
+                </div>
+            </div>
+            @endcan
             @can('bookings.view')
             <div class="card panel-card mb-3">
                 <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="calendar-event" class="text-warning" />{{ __('Upcoming pickups') }}</span><a href="{{ route('operator.bookings.index', ['view' => 'upcoming']) }}" class="small fw-semibold">{{ __('View all') }}</a></div>

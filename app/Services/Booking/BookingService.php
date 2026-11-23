@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Models\Vehicle;
 use App\Notifications\DriverTripAssigned;
 use App\Services\AuditLogger;
+use App\Services\TripScheduler;
 use App\Services\SequenceService;
 use App\Support\Money;
 use Carbon\CarbonInterface;
@@ -34,6 +35,7 @@ class BookingService
         private SequenceService $sequences,
         private AuditLogger $audit,
         private CustomerNotifier $notifier,
+        private TripScheduler $scheduler,
     ) {}
 
     /** Fare preview without saving. */
@@ -161,31 +163,10 @@ class BookingService
         $otp = (string) random_int(1000, 9999);
 
         $trip = DB::transaction(function () use ($booking, $vehicleId, $driverId, $user, $start, $end, $otp) {
-            // Lock in a fixed order (vehicle → driver) to avoid deadlocks between concurrent assignments.
-            $vehicle = Vehicle::query()->whereKey($vehicleId)->lockForUpdate()->first();
-            $driver = Driver::query()->whereKey($driverId)->lockForUpdate()->first();
+            // Lock in a fixed order (vehicle → driver → booking) to avoid deadlocks between concurrent assignments.
+            $own = Trip::query()->where('booking_id', $booking->id)->value('id');
+            [$vehicle, $driver] = $this->scheduler->lockAndCheck($vehicleId, $driverId, $start, $end, $own, (int) $booking->passengers);
             Booking::query()->whereKey($booking->id)->lockForUpdate()->first();
-
-            if (! $vehicle || ! $vehicle->isAssignable()) {
-                throw ValidationException::withMessages(['vehicle_id' => __('This vehicle is not available (inactive, in maintenance, unavailable or documents expired).')]);
-            }
-            if (! $driver || ! $driver->isAssignable()) {
-                throw ValidationException::withMessages(['driver_id' => __('This driver is not available (inactive, off duty or licence expired).')]);
-            }
-            if ($vehicle->seats < $booking->passengers) {
-                throw ValidationException::withMessages(['vehicle_id' => __('This vehicle has only :n seats.', ['n' => $vehicle->seats])]);
-            }
-
-            $clash = fn (string $column, int $id) => Trip::query()->where($column, $id)->whereIn('status', ['assigned', 'started'])
-                ->where('booking_id', '!=', $booking->id)->where('start_at', '<', $end)->where('end_at', '>', $start)
-                ->with('booking:id,booking_number')->first();
-
-            if ($c = $clash('vehicle_id', $vehicle->id)) {
-                throw ValidationException::withMessages(['vehicle_id' => __('Vehicle is already booked :from–:to (:no).', ['from' => $c->start_at->format('d M H:i'), 'to' => $c->end_at->format('d M H:i'), 'no' => $c->booking->booking_number])]);
-            }
-            if ($c = $clash('driver_id', $driver->id)) {
-                throw ValidationException::withMessages(['driver_id' => __('Driver is already on duty :from–:to (:no).', ['from' => $c->start_at->format('d M H:i'), 'to' => $c->end_at->format('d M H:i'), 'no' => $c->booking->booking_number])]);
-            }
 
             $trip = Trip::query()->firstOrNew(['booking_id' => $booking->id]);
             $trip->fill(['vehicle_id' => $vehicle->id, 'driver_id' => $driver->id, 'start_at' => $start, 'end_at' => $end, 'status' => 'assigned']);
@@ -199,7 +180,7 @@ class BookingService
         });
 
         try {
-            DriverTripAssigned::forDriver($trip->driver, $booking->setRelation('trip', $trip));
+            DriverTripAssigned::forDriver($trip->driver, $trip->setRelation('booking', $booking));
         } catch (\Throwable $e) {
             report($e); // never block assignment because a push failed
         }
@@ -284,10 +265,9 @@ class BookingService
     public function availability(Booking $booking): array
     {
         [$start, $end] = $this->window($booking);
-        $busy = fn (string $col) => Trip::query()->whereIn('status', ['assigned', 'started'])->where('booking_id', '!=', $booking->id)
-            ->where('start_at', '<', $end)->where('end_at', '>', $start)->pluck($col)->all();
-        $busyVehicles = $busy('vehicle_id');
-        $busyDrivers = $busy('driver_id');
+        $own = Trip::query()->where('booking_id', $booking->id)->value('id');
+        $busyVehicles = $this->scheduler->busy('vehicle_id', $start, $end, $own);
+        $busyDrivers = $this->scheduler->busy('driver_id', $start, $end, $own);
 
         $vehicles = Vehicle::query()->with('category:id,name')->where('status', 'active')->where('is_available', true)->where('seats', '>=', $booking->passengers)
             ->orderByRaw('case when vehicle_category_id = ? then 0 else 1 end', [$booking->vehicle_category_id])->orderBy('registration_number')->get()

@@ -1,10 +1,10 @@
 # Progress
 
-**Last updated:** 2026-11-23 (Phase 8B)
-**Current phase:** Phase 8B (core fleet upgrades) complete → next Phase 8C (fleet operations)
+**Last updated:** 2026-11-24 (Phase 8C)
+**Current phase:** Phase 8C (fleet operations) complete → next Phase 8D (fleet extras)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, MySQL)
 **Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), 5 (customer portal), 6 (finance), 7 (driver PWA), integrations core
-**Tests:** 207 passing (SQLite + MariaDB locally; MySQL 8 in CI)
+**Tests:** 220 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
 ## Phase 1 — completed
 - [x] Laravel 12 + Bootstrap/Alpine/Vite setup, IST timezone, en/hi locale switch
@@ -97,16 +97,25 @@ Phase 8 search (from/to city) and service areas.
       vehicle "Daily checks" tab with resolve; dashboard "Daily check problems"; Hindi labels for the driver screen
 - Server: nothing to seed — run migrations only (deploy does it).
 
-## Next exact tasks (Phase 8C — fleet operations, fleet module)
-1. Departments / cost centres (tenant-scoped CRUD, `departments` table) — fleet module permission `departments.manage`.
-2. Fleet trips without booking: make `trips.booking_id` nullable + add `purpose`, `department_id`, `requested_by_name`, `requested_by_phone`,
-   `pickup`/`drop` text; new `FleetTripService` reusing the assignment overlap check under row locks (same as BookingService) and the
-   driver app start/complete (start without customer OTP; start/end km required). Permissions `fleet_trips.view|manage` → map to fleet
-   in `App\Support\Modules`. Driver app must handle trips with no booking (null-safe views).
-3. Operator screens: trip list/calendar, create & assign, complete; vehicle "Trips" tab.
-4. Fleet dashboard + reports: utilisation (km, hours, trips per vehicle), cost per km (fuel + maintenance + expenses ÷ km), per department;
-   CSV export. Add fuel litres/mileage columns to the vehicle report.
-5. Tests: fleet trip overlap race, driver flow without OTP, module gating (taxi-only cannot see fleet trips), department isolation.
+## Phase 8C — completed (2026-11-24): fleet operations (Fleet module)
+- [x] Departments / cost centres (`departments.manage`); fleet trips without booking (`fleet_trips.view|manage`, mapped to Fleet module)
+- [x] `TripScheduler` shared overlap rules (fixed: NULL-booking trips were invisible to booking assignment); `FleetTripService`
+      create/edit/start/complete/cancel with row locks; `FTyymm-NNNN` numbers; driver notified (generalised `DriverTripAssigned`)
+- [x] Driver PWA: fleet trips in list/history, start with km (no OTP), complete with km; earnings null-safe
+- [x] Operator: trips list/filters, form with live busy hints, detail with start/complete/cancel; dashboard "Fleet trips today"
+- [x] Fleet cost report (all plans): per vehicle km/hours/fuel/km-l/costs/₹ per km; per department allocated cost; CSV
+- Server: migrations only; PlatformSeeder (runs on deploy) now gives existing Owner roles the new permissions.
+
+## Next exact tasks (Phase 8D — fleet extras)
+1. Tyre / battery / parts inventory: `fleet_parts` (type, brand, serial, purchase date/cost, vendor, warranty till, status in-stock/fitted/scrapped),
+   fit/remove on a vehicle with odometer → per-part km run; warranty-expiry reminders in digest.
+2. Accident / challan / insurance claim register (`vehicle_incidents`: type, date, place, driver, fine/estimate, claim no., status, settled amount,
+   photos on private disk); money rows append-only (link to expense when paid).
+3. Loan / EMI schedule per vehicle (`vehicle_loans`: lender, principal, rate, tenure, EMI day) → upcoming EMI reminders; mark paid → creates EMI expense.
+4. Purchase cost + depreciation (WDV % or straight line) on vehicle; book value in fleet report.
+5. Attached-vehicle owner settlement (ownership attached/vendor): owner details on vehicle, monthly statement (trips/km × agreed rate − expenses),
+   append-only payouts like driver payouts.
+6. Tests per module, docs.
 
 ## Later: Phase 8E — Marketplace (taxi module only)
 1. Public search `/cabs` (from/to city, date, category) listing approved operators with booking pages enabled, fares from

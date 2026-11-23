@@ -6,6 +6,7 @@ use App\Enums\UserStatus;
 use App\Enums\UserType;
 use App\Models\PlatformSetting;
 use App\Models\SubscriptionPlan;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Models\VehicleCategory;
 use App\Services\RoleService;
@@ -22,6 +23,8 @@ class PlatformSeeder extends Seeder
     {
         $roles->syncPermissions();
         $roles->seedPlatformRoles();
+        // Existing tenants: Owner role picks up permissions added since they registered (idempotent).
+        Tenant::query()->each(fn (Tenant $tenant) => $roles->seedTenantRoles($tenant));
 
         $plans = [
             ['code' => 'starter', 'name' => 'Starter', 'description' => 'For small operators getting started.', 'price_monthly' => 799, 'price_yearly' => 7990, 'addon_price_monthly' => 399, 'addon_price_yearly' => 3990,

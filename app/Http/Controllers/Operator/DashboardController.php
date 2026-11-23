@@ -40,6 +40,11 @@ class DashboardController extends Controller
                 ->where('issues_count', '>', 0)->whereNull('resolved_at')->where('inspected_on', '>=', now()->subDays(14)->toDateString())
                 ->latest('inspected_on')->limit(6)->get(),
             'on_trip' => Trip::query()->where('status', 'started')->count(),
+            'fleetToday' => $tenant->hasModule(Modules::FLEET)
+                ? Trip::query()->with(['vehicle:id,registration_number', 'driver:id,name', 'department:id,name'])->whereNull('booking_id')
+                    ->where(fn ($q) => $q->where('status', 'started')->orWhere(fn ($w) => $w->where('status', 'assigned')->where('start_at', '<=', today()->endOfDay())))
+                    ->orderByRaw("case when status = 'started' then 0 else 1 end")->orderBy('start_at')->limit(8)->get()
+                : collect(),
         ] + ($taxi ? $this->bookingStats() : ['today' => null, 'upcoming' => collect(), 'chart' => []]));
     }
 

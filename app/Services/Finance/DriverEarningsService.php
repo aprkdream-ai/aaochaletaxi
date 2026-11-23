@@ -30,12 +30,12 @@ class DriverEarningsService
         $allowances = '0.00';
         $lines = [];
         foreach ($trips as $trip) {
-            $snap = $trip->booking->final_snapshot ?? [];
+            $snap = $trip->booking?->final_snapshot ?? []; // fleet trips: no fare
             $taxable = (string) ($snap['taxable'] ?? '0');
             $allow = collect($snap['lines'] ?? [])->where('code', 'driver_allowance')->sum(fn ($l) => (float) $l['amount']);
             $fare = Money::add($fare, $taxable);
             $allowances = Money::add($allowances, (string) $allow);
-            $lines[] = ['booking' => $trip->booking->booking_number, 'date' => $trip->completed_at->toDateString(), 'fare' => $taxable, 'allowance' => number_format($allow, 2, '.', '')];
+            $lines[] = ['booking' => $trip->number(), 'date' => $trip->completed_at->toDateString(), 'fare' => $taxable, 'allowance' => number_format($allow, 2, '.', '')];
         }
 
         $rate = (string) ($driver->pay_amount ?? '0');

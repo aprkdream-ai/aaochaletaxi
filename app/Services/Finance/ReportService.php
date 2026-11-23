@@ -102,7 +102,7 @@ class ReportService
 
         return Vehicle::withTrashed()->with('category:id,name')->orderBy('registration_number')->get()->map(function (Vehicle $v) use ($exp, $mnt, $trips) {
             $vt = $trips->get($v->id, collect());
-            $revenue = Money::add('0', ...$vt->map(fn ($t) => (string) ($t->booking->final_snapshot['taxable'] ?? 0))->all());
+            $revenue = Money::add('0', ...$vt->map(fn ($t) => (string) ($t->booking?->final_snapshot['taxable'] ?? 0))->all());
             $km = $vt->sum(fn ($t) => ($t->end_km && $t->start_km) ? $t->end_km - $t->start_km : 0);
             $costs = Money::add((string) ($exp[$v->id] ?? 0), (string) ($mnt[$v->id] ?? 0));
 

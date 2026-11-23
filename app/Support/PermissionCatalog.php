@@ -22,6 +22,9 @@ class PermissionCatalog
             'bookings.manage' => ['Bookings', 'Edit / cancel bookings'],
             'bookings.assign' => ['Bookings', 'Assign vehicles & drivers'],
             'fares.manage' => ['Pricing', 'Manage fare rules'],
+            'fleet_trips.view' => ['Fleet trips', 'View fleet trips'],
+            'fleet_trips.manage' => ['Fleet trips', 'Create, assign & close fleet trips'],
+            'departments.manage' => ['Fleet trips', 'Manage departments / cost centres'],
             'customers.view' => ['Customers', 'View customers'],
             'invoices.view' => ['Finance', 'View invoices'],
             'invoices.manage' => ['Finance', 'Create / issue invoices'],
@@ -82,7 +85,7 @@ class PermissionCatalog
             'booking-manager' => [
                 'name' => 'Booking Manager',
                 'description' => 'Handles bookings and dispatch',
-                'permissions' => ['dashboard.view', 'bookings.view', 'bookings.create', 'bookings.manage', 'bookings.assign', 'customers.view', 'vehicles.view', 'drivers.view'],
+                'permissions' => ['dashboard.view', 'bookings.view', 'bookings.create', 'bookings.manage', 'bookings.assign', 'customers.view', 'vehicles.view', 'drivers.view', 'fleet_trips.view', 'fleet_trips.manage'],
             ],
             'accountant' => [
                 'name' => 'Accountant',

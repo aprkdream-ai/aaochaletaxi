@@ -8,6 +8,7 @@ use App\Models\Driver;
 use App\Models\DriverSettlement;
 use App\Models\Trip;
 use App\Services\Booking\BookingService;
+use App\Services\FleetTripService;
 use App\Services\Finance\DriverEarningsService;
 use App\Support\FleetOptions;
 use App\Support\Money;
@@ -31,7 +32,7 @@ class AppController extends Controller
         $driver->forceFill(['app_seen_at' => now()])->saveQuietly();
         $request->user()->unreadNotifications()->where('data->kind', 'trip_assigned')->update(['read_at' => now()]);
 
-        $base = fn () => Trip::query()->with(['booking.category:id,name', 'vehicle:id,registration_number,make,model'])->where('driver_id', $driver->id);
+        $base = fn () => Trip::query()->with(['booking.category:id,name', 'vehicle:id,registration_number,make,model', 'department:id,name'])->where('driver_id', $driver->id);
 
         return view('driver.home', [
             'driver' => $driver,
@@ -54,26 +55,42 @@ class AppController extends Controller
     public function show(Request $request, Trip $trip): View
     {
         $this->own($request, $trip);
+        if ($trip->isFleet()) {
+            $trip->load(['vehicle', 'department']);
+
+            return view('driver.fleet-trip', ['trip' => $trip, 'mapsUrl' => $this->mapsUrl($trip)]);
+        }
         $trip->load(['booking.stops', 'booking.category', 'vehicle']);
 
         return view('driver.trip', ['trip' => $trip, 'booking' => $trip->booking, 'mapsUrl' => $this->mapsUrl($trip)]);
     }
 
-    public function start(Request $request, Trip $trip): RedirectResponse
+    public function start(Request $request, Trip $trip, FleetTripService $fleet): RedirectResponse
     {
         $this->own($request, $trip);
-        $data = $request->validate(['otp' => ['required', 'digits:4'], 'start_km' => ['required', 'integer', 'min:0', 'max:5000000']], ['otp.digits' => __('Enter the 4-digit OTP from the customer.')]);
-        if ($trip->start_at->gt(now()->addHours(2))) {
-            throw ValidationException::withMessages(['otp' => __('This trip starts at :t. You can start it up to 2 hours early.', ['t' => $trip->start_at->format('d M h:i A')])]);
+        if ($trip->isFleet()) {
+            $data = $request->validate(['start_km' => ['required', 'integer', 'min:0', 'max:5000000']]);
+            $this->assertNotTooEarly($trip, 'start_km');
+            $fleet->start($trip, (int) $data['start_km'], $request->user());
+
+            return redirect()->route('driver.trips.show', $trip)->with('success', __('Trip started. Drive safe!'));
         }
+        $data = $request->validate(['otp' => ['required', 'digits:4'], 'start_km' => ['required', 'integer', 'min:0', 'max:5000000']], ['otp.digits' => __('Enter the 4-digit OTP from the customer.')]);
+        $this->assertNotTooEarly($trip, 'otp');
         $this->bookings->start($trip->booking, $data['otp'], (int) $data['start_km'], $request->user());
 
         return redirect()->route('driver.trips.show', $trip)->with('success', __('Trip started. Drive safe!'));
     }
 
-    public function complete(Request $request, Trip $trip): RedirectResponse
+    public function complete(Request $request, Trip $trip, FleetTripService $fleet): RedirectResponse
     {
         $this->own($request, $trip);
+        if ($trip->isFleet()) {
+            $data = $request->validate(['end_km' => ['required', 'integer', 'min:0', 'max:5000000']]);
+            $fleet->complete($trip, (int) $data['end_km'], $request->user());
+
+            return redirect()->route('driver.trips.show', $trip)->with('success', __('Trip completed. Thank you!'));
+        }
         $data = $request->validate([
             'end_km' => ['required', 'integer', 'min:0', 'max:5000000'],
             'waiting_min' => ['nullable', 'integer', 'min:0', 'max:1440'],
@@ -151,6 +168,13 @@ class AppController extends Controller
         return Driver::query()->where('user_id', $request->user()->id)->firstOrFail();
     }
 
+    private function assertNotTooEarly(Trip $trip, string $field): void
+    {
+        if ($trip->start_at->gt(now()->addHours(2))) {
+            throw ValidationException::withMessages([$field => __('This trip starts at :t. You can start it up to 2 hours early.', ['t' => $trip->start_at->format('d M h:i A')])]);
+        }
+    }
+
     private function own(Request $request, Trip $trip): void
     {
         abort_unless($trip->driver_id === $this->driver($request)->id, 404);
@@ -159,6 +183,11 @@ class AppController extends Controller
 
     private function mapsUrl(Trip $trip): string
     {
+        if ($trip->isFleet()) {
+            $dest = $trip->status === 'started' ? ($trip->drop_point ?: $trip->pickup_point) : $trip->pickup_point;
+
+            return 'https://www.google.com/maps/dir/?'.http_build_query(['api' => 1, 'destination' => (string) $dest, 'travelmode' => 'driving']);
+        }
         $b = $trip->booking;
         $started = $b->status === BookingStatus::Started;
         $dest = $started ? ($b->drop_address ?: $b->pickup_address) : $b->pickup_address;

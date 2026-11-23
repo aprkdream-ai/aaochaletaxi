@@ -199,3 +199,8 @@ through scoped models only.
 - vehicle_inspections ✅ (T): id, tenant_id, vehicle_id FK, driver_id FK NULL, inspected_on DATE, odometer_km, items JSON {key: ok|issue},
   issues_count TINYINT, notes, photo_path (private disk), recorded_by FK users, resolved_at DATETIME, resolved_by FK users, timestamps.
   unique (vehicle_id, driver_id, inspected_on); idx (tenant_id, inspected_on, issues_count).
+
+## Phase 8C additions (2026-11-24)
+- departments ✅ (T): id, tenant_id, name (unique per tenant), code (cost centre), head_name, is_active, timestamps.
+- trips: booking_id now NULLable (NULL = fleet trip); trip_number (unique per tenant, `FTyymm-NNNN`), purpose, department_id FK NULL,
+  requested_by, requested_phone, pickup_point, drop_point, passengers, notes, cancel_reason; idx (tenant_id, department_id, completed_at).

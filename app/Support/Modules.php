@@ -23,6 +23,8 @@ class Modules
         'customers.view' => self::TAXI,
         'invoices.' => self::TAXI,
         'payments.manage' => self::TAXI,
+        'fleet_trips.' => self::FLEET,
+        'departments.manage' => self::FLEET,
     ];
 
     public static function forPermission(string $key): ?string
