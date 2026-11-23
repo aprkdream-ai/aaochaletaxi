@@ -18,8 +18,8 @@ use App\Models\User;
 use App\Models\Vehicle;
 use App\Notifications\DriverTripAssigned;
 use App\Services\AuditLogger;
-use App\Services\TripScheduler;
 use App\Services\SequenceService;
+use App\Services\TripScheduler;
 use App\Support\Money;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Crypt;
@@ -230,7 +230,10 @@ class BookingService
             if ($endKm && $endKm > (int) $trip->vehicle->odometer_km) {
                 $trip->vehicle->forceFill(['odometer_km' => $endKm])->save();
             }
-            $booking->forceFill(['final_snapshot' => $final, 'final_total' => $final['total']])->save();
+            $booking->forceFill(['final_snapshot' => $final, 'final_total' => $final['total'],
+                // Marketplace commission on the taxable fare (excl. GST and pass-through tolls/parking).
+                'commission_amount' => $booking->commission_percent !== null ? Money::percent((string) ($final['taxable'] ?? '0'), (string) $booking->commission_percent) : null,
+            ])->save();
             $this->transition($booking, BookingStatus::Completed, $user, __('Final fare :amt', ['amt' => Money::format($final['total'])]));
             $this->refreshPaymentStatus($booking);
         });

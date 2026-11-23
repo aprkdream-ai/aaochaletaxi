@@ -19,6 +19,8 @@ class PlatformSettings
                 'default_gst_percent' => ['label' => __('Default GST on taxi fares (%)'), 'type' => 'number', 'step' => '0.01', 'rules' => ['required', 'numeric', 'min:0', 'max:28']],
                 'online_collection_fee_percent' => ['label' => __('Fee on online collections settled to operators (%)'), 'type' => 'number', 'step' => '0.01', 'rules' => ['required', 'numeric', 'min:0', 'max:10']],
                 'marketplace_commission_percent' => ['label' => __('Marketplace commission (%)'), 'type' => 'number', 'step' => '0.01', 'rules' => ['required', 'numeric', 'min:0', 'max:50']],
+                'marketplace_broadcast_count' => ['label' => __('Marketplace: operators per quote request'), 'type' => 'number', 'rules' => ['nullable', 'integer', 'min:1', 'max:10'], 'default' => '3'],
+                'marketplace_lead_ttl_minutes' => ['label' => __('Marketplace: minutes operators have to accept'), 'type' => 'number', 'rules' => ['nullable', 'integer', 'min:10', 'max:1440'], 'default' => '120'],
             ]],
             'company' => ['label' => __('Company (invoice details)'), 'icon' => 'building', 'fields' => [
                 'platform_legal_name' => ['label' => __('Legal name'), 'type' => 'text', 'rules' => ['nullable', 'string', 'max:200']],

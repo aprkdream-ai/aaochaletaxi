@@ -6,6 +6,7 @@ use App\Models\PlatformSetting;
 use App\Models\Tenant;
 use App\Models\VehicleCategory;
 use App\Services\Booking\FareRuleService;
+use App\Services\Maps\GoogleMapsService;
 use App\Support\India;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -106,13 +107,13 @@ class SuggestTest extends TestCase
         $this->assertArrayNotHasKey('lat', $items[0]);
         $this->assertNotContains('PK', array_column($items, 'sub'));
 
-        $d = app(\App\Services\Maps\GoogleMapsService::class)->distance('Rajwada Indore', 'Pune');
+        $d = app(GoogleMapsService::class)->distance('Rajwada Indore', 'Pune');
         $this->assertSame(590.4, $d['km']);
         $this->assertSame(588, $d['minutes']); // 420 min × 1.4 Indian-road factor
         Http::assertSent(fn ($r) => str_contains($r->url(), 'router.project-osrm.org/route/v1/driving/75.854700,22.718000;73.856700,18.520400'));
 
         PlatformSetting::setValue('maps_free', 'off');
-        $this->assertFalse(app(\App\Services\Maps\GoogleMapsService::class)->isEnabled());
+        $this->assertFalse(app(GoogleMapsService::class)->isEnabled());
     }
 
     public function test_free_service_errors_fall_back_to_city_list(): void

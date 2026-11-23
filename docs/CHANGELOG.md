@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-24 — Phase 8E: Marketplace
+- Public "Compare cabs" (`/cabs`): enter from/to city, trip type, vehicle and time; see listed operators with fares calculated
+  from each operator's own rates, verified badge, rating and trips. City pages (`/cabs/{city}`) and sitemap entries.
+- Book directly with an operator (their booking page opens prefilled) or send one OTP-verified request to the top operators —
+  the first to accept gets the booking; customer details are shared only after accepting. Requests expire automatically.
+- Operators: opt in and list the cities they serve in Business profile; "Marketplace requests" inbox with a badge.
+- Commission on marketplace bookings (Admin → Settings → Fees), fixed when the trip completes and adjusted in operator
+  settlements (shows when the operator owes the platform).
+- Code style: pint applied across the repo. 9 new tests (236 total, SQLite + MariaDB).
+
 ## 2026-11-24 — Phase 8D: fleet extras
 - Tyres & parts: add to stock (with quantity), fit on a vehicle at a position, remove or scrap; km run follows the part across
   vehicles; warranty-expiry reminders.

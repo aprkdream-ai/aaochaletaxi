@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BusinessType;
 use App\Enums\SubscriptionStatus;
 use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +19,7 @@ class Subscription extends Model
     {
         return [
             'status' => SubscriptionStatus::class,
-            'business_type' => \App\Enums\BusinessType::class,
+            'business_type' => BusinessType::class,
             'addon_price' => 'decimal:2',
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',

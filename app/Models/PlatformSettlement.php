@@ -9,11 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 /** Platform → operator payout of advances collected online (admin-level, not tenant-scoped). */
 class PlatformSettlement extends Model
 {
-    protected $fillable = ['tenant_id', 'gross', 'fee', 'net', 'payments_count', 'method', 'reference', 'paid_on', 'notes'];
+    protected $fillable = ['tenant_id', 'gross', 'fee', 'commission', 'net', 'payments_count', 'commissions_count', 'method', 'reference', 'paid_on', 'notes'];
 
     protected function casts(): array
     {
-        return ['gross' => 'decimal:2', 'fee' => 'decimal:2', 'net' => 'decimal:2', 'paid_on' => 'date'];
+        return ['gross' => 'decimal:2', 'fee' => 'decimal:2', 'commission' => 'decimal:2', 'net' => 'decimal:2', 'paid_on' => 'date'];
     }
 
     public function tenant(): BelongsTo

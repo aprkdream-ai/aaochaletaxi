@@ -28,6 +28,7 @@ return [
         ['section' => 'Bookings'],
         ['label' => 'Bookings', 'icon' => 'journal-bookmark', 'route' => 'operator.bookings.index', 'active' => 'operator.bookings.*', 'permission' => 'bookings.view'],
         ['label' => 'New booking', 'icon' => 'plus-circle', 'route' => 'operator.bookings.create', 'active' => '__none__', 'permission' => 'bookings.create'],
+        ['label' => 'Marketplace requests', 'icon' => 'megaphone', 'route' => 'operator.leads.index', 'active' => 'operator.leads.*', 'permission' => 'bookings.manage', 'badge' => 'leads'],
         ['label' => 'Fare rules', 'icon' => 'calculator', 'route' => 'operator.fares.index', 'active' => 'operator.fares.*', 'permission' => 'fares.manage'],
         ['section' => 'Fleet operations'],
         ['label' => 'Trips', 'icon' => 'signpost-split', 'route' => 'operator.fleet-trips.index', 'active' => 'operator.fleet-trips.*', 'permission' => 'fleet_trips.view'],

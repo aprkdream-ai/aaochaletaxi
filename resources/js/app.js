@@ -80,7 +80,7 @@ Alpine.data('bookingForm', (previewUrl, distanceUrl, initialType, initialStops) 
 
 // Public booking page: server-side fare estimate + mobile OTP verification before submit.
 Alpine.data('micrositeForm', (urls, verified) => ({
-    type: 'outstation_oneway',
+    type: urls.type || 'outstation_oneway',
     fare: null, fareMsg: '', busy: false,
     verifiedPhone: verified || '', otpSent: false, otp: '', otpMsg: '', otpErr: '',
     seq: 0,
@@ -114,6 +114,36 @@ Alpine.data('micrositeForm', (urls, verified) => ({
         const json = await res.json();
         if (!res.ok) { this.otpErr = Object.values(json.errors || {})[0]?.[0] || json.message; return; }
         // Session was regenerated on login: refresh the CSRF token before submitting.
+        const fresh = await fetch(location.href, { headers: { Accept: 'text/html' } }).then((r) => r.text());
+        const m = fresh.match(/name="csrf-token" content="([^"]+)"/);
+        if (m) { this.$refs.form._token.value = m[1]; document.querySelector('meta[name="csrf-token"]').content = m[1]; }
+        this.verifiedPhone = this.phone();
+        this.$refs.form.submit();
+    },
+}));
+
+// Marketplace quote request: verify the mobile by OTP (once per session), then submit the form.
+Alpine.data('quoteForm', (urls, verified) => ({
+    verifiedPhone: verified || '', otpSent: false, otp: '', otpMsg: '', otpErr: '', busy: false,
+    headers() { return { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }; },
+    phone() { return (this.$refs.form.customer_phone.value || '').replace(/\D/g, '').slice(-10); },
+    async submit() {
+        if (!this.$refs.form.reportValidity()) return;
+        if (this.verifiedPhone && this.verifiedPhone === this.phone()) { this.$refs.form.submit(); return; }
+        this.otpErr = ''; this.busy = true;
+        try {
+            const res = await fetch(urls.otp, { method: 'POST', headers: this.headers(), body: JSON.stringify({ phone: this.phone() }) });
+            const json = await res.json();
+            if (!res.ok) { this.otpErr = Object.values(json.errors || {})[0]?.[0] || json.message; return; }
+            this.otpSent = true; this.otpMsg = json.message;
+            this.$nextTick(() => this.$refs.otpInput?.focus());
+        } finally { this.busy = false; }
+    },
+    async verify() {
+        this.otpErr = '';
+        const res = await fetch(urls.verify, { method: 'POST', headers: this.headers(), body: JSON.stringify({ phone: this.phone(), otp: this.otp, name: this.$refs.form.customer_name.value }) });
+        const json = await res.json();
+        if (!res.ok) { this.otpErr = Object.values(json.errors || {})[0]?.[0] || json.message; return; }
         const fresh = await fetch(location.href, { headers: { Accept: 'text/html' } }).then((r) => r.text());
         const m = fresh.match(/name="csrf-token" content="([^"]+)"/);
         if (m) { this.$refs.form._token.value = m[1]; document.querySelector('meta[name="csrf-token"]').content = m[1]; }

@@ -8,6 +8,7 @@ use App\Notifications\Channels\FcmChannel;
 use App\Services\Push\FcmService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Carbon;
 
 /**
  * Sent synchronously (database row is what the driver app polls for); push when Firebase is configured.
@@ -38,7 +39,7 @@ class DriverTripAssigned extends Notification
     {
         return [
             'title' => __('New trip :no', ['no' => $this->number]),
-            'body' => __(':at · :from', ['at' => \Illuminate\Support\Carbon::parse($this->at)->timezone(config('app.timezone'))->format('d M h:i A'), 'from' => $this->from]),
+            'body' => __(':at · :from', ['at' => Carbon::parse($this->at)->timezone(config('app.timezone'))->format('d M h:i A'), 'from' => $this->from]),
             'data' => ['link' => route('driver.trips.show', $this->tripId), 'booking' => $this->number],
         ];
     }

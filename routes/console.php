@@ -20,3 +20,4 @@ Schedule::command('queue:prune-batches --hours=72')->daily();
 Schedule::command('subscriptions:process')->hourly()->withoutOverlapping(30);
 
 Schedule::command('fleet:expiry-reminders')->dailyAt('08:00')->withoutOverlapping(30);
+Schedule::command('marketplace:expire-leads')->everyFiveMinutes()->withoutOverlapping(10);

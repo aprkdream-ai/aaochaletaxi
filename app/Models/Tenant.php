@@ -6,6 +6,7 @@ use App\Enums\BusinessType;
 use App\Enums\KycStatus;
 use App\Enums\SubscriptionStatus;
 use App\Enums\TenantStatus;
+use App\Support\Modules;
 use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,7 @@ class Tenant extends Model
         return [
             'status' => TenantStatus::class,
             'business_type' => BusinessType::class,
+            'marketplace_enabled' => 'boolean',
             'kyc_status' => KycStatus::class,
             'approved_at' => 'datetime',
             'suspended_at' => 'datetime',
@@ -120,6 +122,18 @@ class Tenant extends Model
     public function isActive(): bool
     {
         return $this->status === TenantStatus::Active;
+    }
+
+    public function serviceCities(): HasMany
+    {
+        return $this->hasMany(TenantServiceCity::class)->orderBy('city');
+    }
+
+    /** Listed on the marketplace: active, opted in, taxi module, booking page on, usable subscription. */
+    public function isMarketplaceListable(): bool
+    {
+        return $this->isActive() && $this->marketplace_enabled && $this->hasModule(Modules::TAXI)
+            && ($this->settings['booking_page_enabled'] ?? true) !== false && $this->usableSubscription() !== null;
     }
 
     public function businessType(): BusinessType

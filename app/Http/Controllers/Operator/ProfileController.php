@@ -3,13 +3,19 @@
 namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tenant;
+use App\Models\TenantServiceCity;
+use App\Rules\IndianState;
 use App\Services\AuditLogger;
+use App\Support\India;
+use App\Support\Modules;
 use App\Support\Phone;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -37,7 +43,7 @@ class ProfileController extends Controller
             'pan' => ['nullable', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/'],
             'address_line' => ['nullable', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:100'],
-            'state' => ['nullable', 'string', 'max:100', new \App\Rules\IndianState],
+            'state' => ['nullable', 'string', 'max:100', new IndianState],
             'pincode' => ['nullable', 'digits:6'],
             'primary_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:1024', 'dimensions:max_width=2000,max_height=2000'],
@@ -46,16 +52,26 @@ class ProfileController extends Controller
             'notify_customers' => ['nullable', 'boolean'],
             'online_advance_percent' => ['nullable', 'integer', 'in:0,10,20,25,30,50,100'],
             'about' => ['nullable', 'string', 'max:600'],
+            'marketplace_enabled' => ['nullable', 'boolean'],
+            'service_cities' => ['nullable', 'string', 'max:2000'],
         ], [
             'phone.regex' => __('Enter a valid 10-digit Indian mobile number.'),
             'gstin.regex' => __('Enter a valid 15-character GSTIN.'),
             'pan.regex' => __('Enter a valid PAN (e.g. ABCDE1234F).'),
         ]);
 
-        $data['state'] = \App\Support\India::normalizeState($data['state'] ?? null);
+        $data['state'] = India::normalizeState($data['state'] ?? null);
         $old = $tenant->only(['name', 'legal_name', 'email', 'phone', 'gstin', 'pan', 'city', 'state']);
-        $settingKeys = ['booking_page_enabled', 'notify_customers', 'online_advance_percent', 'about'];
+        $settingKeys = ['booking_page_enabled', 'notify_customers', 'online_advance_percent', 'about', 'marketplace_enabled', 'service_cities'];
         $tenant->fill(collect($data)->except(array_merge(['logo', 'remove_logo'], $settingKeys))->all());
+        if ($tenant->hasModule(Modules::TAXI)) {
+            $cities = $this->cities($data['service_cities'] ?? '');
+            if ($request->boolean('marketplace_enabled') && $cities === []) {
+                throw ValidationException::withMessages(['service_cities' => __('Add at least one city to list on the marketplace.')]);
+            }
+            $tenant->marketplace_enabled = $request->boolean('marketplace_enabled');
+            $this->syncCities($tenant, $cities);
+        }
         $tenant->settings = array_merge($tenant->settings ?? [], [
             'booking_page_enabled' => $request->boolean('booking_page_enabled'),
             'notify_customers' => $request->boolean('notify_customers'),
@@ -78,5 +94,25 @@ class ProfileController extends Controller
         $audit->log('tenant.profile_updated', $tenant, $old, $tenant->only(array_keys($old)));
 
         return back()->with('success', __('Business profile saved.'));
+    }
+
+    /** @return list<string> unique cities (max 30), normalised from comma/newline separated text */
+    private function cities(string $text): array
+    {
+        return collect(preg_split('/[,\n]+/', $text))->map(fn ($c) => mb_substr(trim(preg_replace('/\s+/', ' ', $c)), 0, 100))
+            ->filter(fn ($c) => TenantServiceCity::key($c) !== '')->unique(fn ($c) => TenantServiceCity::key($c))->take(30)->values()->all();
+    }
+
+    /** @param list<string> $cities */
+    private function syncCities(Tenant $tenant, array $cities): void
+    {
+        $keys = array_map(fn ($c) => TenantServiceCity::key($c), $cities);
+        $tenant->serviceCities()->whereNotIn('city_key', $keys)->delete();
+        $existing = $tenant->serviceCities()->pluck('city_key')->all();
+        foreach ($cities as $city) {
+            if (! in_array(TenantServiceCity::key($city), $existing, true)) {
+                $tenant->serviceCities()->create(['city' => $city]);
+            }
+        }
     }
 }

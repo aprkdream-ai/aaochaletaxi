@@ -24,6 +24,7 @@ class Booking extends Model
     protected function casts(): array
     {
         return [
+            'commission_percent' => 'decimal:2', 'commission_amount' => 'decimal:2',
             'type' => BookingType::class, 'status' => BookingStatus::class, 'payment_status' => PaymentStatus::class,
             'pickup_at' => 'datetime', 'return_at' => 'datetime', 'cancelled_at' => 'datetime', 'phone_verified' => 'boolean',
             'distance_km' => 'decimal:1', 'quoted_total' => 'decimal:2', 'final_total' => 'decimal:2', 'amount_paid' => 'decimal:2',

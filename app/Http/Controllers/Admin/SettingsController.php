@@ -8,6 +8,7 @@ use App\Models\PlatformSetting;
 use App\Models\SubscriptionPlan;
 use App\Services\AuditLogger;
 use App\Services\Maps\GoogleMapsService;
+use App\Services\Maps\PlaceSuggestService;
 use App\Services\Messaging\SmsService;
 use App\Services\Messaging\WhatsAppService;
 use App\Services\Payments\RazorpayGateway;
@@ -120,7 +121,7 @@ class SettingsController extends Controller
         if (! $dm['ok'] || ! app(GoogleMapsService::class)->googleEnabled()) {
             return $dm;
         }
-        $ac = app(\App\Services\Maps\PlaceSuggestService::class)->test();
+        $ac = app(PlaceSuggestService::class)->test();
 
         return ['ok' => true, 'message' => $dm['message'].' '.$ac['message']]; // Places is optional (city list fallback)
     }

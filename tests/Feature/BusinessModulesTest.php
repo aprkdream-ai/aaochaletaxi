@@ -12,6 +12,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Services\SubscriptionService;
 use App\Support\Modules;
+use Database\Seeders\ModuleAddonPriceSeeder;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -212,8 +213,8 @@ class BusinessModulesTest extends TestCase
         SubscriptionPlan::query()->update(['addon_price_monthly' => 0, 'addon_price_yearly' => 0]);
         SubscriptionPlan::where('code', 'growth')->update(['addon_price_monthly' => 555]);
 
-        $this->seed(\Database\Seeders\ModuleAddonPriceSeeder::class);
-        $this->seed(\Database\Seeders\ModuleAddonPriceSeeder::class); // idempotent
+        $this->seed(ModuleAddonPriceSeeder::class);
+        $this->seed(ModuleAddonPriceSeeder::class); // idempotent
 
         $this->assertSame('399.00', SubscriptionPlan::where('code', 'starter')->value('addon_price_monthly'));
         $this->assertSame('3990.00', SubscriptionPlan::where('code', 'starter')->value('addon_price_yearly'));

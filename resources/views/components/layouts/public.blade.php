@@ -3,6 +3,7 @@
     $nav = [
         'home' => __('Home'),
         'services' => __('Services'),
+        'marketplace.search' => __('Compare cabs'),
         'about' => __('About'),
         'partner' => __('For operators'),
         'contact' => __('Contact'),
@@ -72,7 +73,7 @@
             @foreach ($nav as $route => $label)
                 <a class="nav-link @if (request()->routeIs($route)) active @endif" href="{{ route($route) }}">{{ $label }}<x-icon name="chevron-right" class="opacity-50" /></a>
             @endforeach
-            <a class="nav-link" href="{{ route('register.operator') }}">{{ __('Register your taxi business') }}<x-icon name="chevron-right" class="opacity-50" /></a>
+            <a class="nav-link" href="{{ route('register.operator') }}">{{ __('Register your business') }}<x-icon name="chevron-right" class="opacity-50" /></a>
         </nav>
         <div class="d-flex gap-2 my-4">
             @foreach (\App\Http\Middleware\SetLocale::SUPPORTED as $code => $name)

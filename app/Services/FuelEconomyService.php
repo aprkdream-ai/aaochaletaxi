@@ -18,7 +18,7 @@ class FuelEconomyService
 
     /**
      * @return array{fills: array<int, array{kmpl: string, low: bool}>, average: ?string, last: ?string, litres: string, rate: ?string}
-     *         fills keyed by expense id; rate = average ₹ per litre
+     *                                                                                                                                  fills keyed by expense id; rate = average ₹ per litre
      */
     public function forVehicle(Vehicle $vehicle): array
     {

@@ -12,6 +12,7 @@ use App\Http\Controllers\Operator;
 use App\Http\Controllers\Public\BookingTrackController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\LocaleController;
+use App\Http\Controllers\Public\MarketplaceController;
 use App\Http\Controllers\Public\MicrositeController;
 use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\SitemapController;
@@ -51,6 +52,16 @@ Route::prefix('b/{token}')->name('booking.track')->where(['token' => '[A-Za-z0-9
     Route::post('/pay', 'checkout')->middleware('throttle:track-actions')->name('.pay');
     Route::post('/pay/verify', 'verify')->middleware('throttle:track-actions')->name('.verify');
     Route::get('/invoice', 'invoice')->middleware('throttle:track-actions')->name('.invoice');
+});
+// ---------- Marketplace (Taxi module operators) ----------
+Route::prefix('cabs')->name('marketplace.')->controller(MarketplaceController::class)->group(function () {
+    Route::get('/', 'search')->middleware('throttle:marketplace-search')->name('search');
+    Route::get('/go/{slug}', 'go')->where('slug', '[a-z0-9-]+')->name('go');
+    Route::post('/otp', 'sendOtp')->middleware('throttle:otp-send')->name('otp.send');
+    Route::post('/otp/verify', 'verifyOtp')->middleware('throttle:otp-verify')->name('otp.verify');
+    Route::post('/quotes', 'quote')->middleware('throttle:public-booking')->name('quote');
+    Route::get('/requests/{lead}', 'lead')->where('lead', '[A-Za-z0-9]{40}')->name('lead');
+    Route::get('/{city}', 'city')->where('city', '[a-z0-9-]+')->name('city');
 });
 // ---------- Autosuggest (pickup/drop, cities) ----------
 Route::middleware('throttle:suggest')->controller(SuggestController::class)->group(function () {
@@ -252,6 +263,9 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
             Route::get('/bookings/{booking}', [Operator\BookingController::class, 'show'])->name('bookings.show');
         });
         Route::middleware('permission:bookings.manage')->group(function () {
+            Route::get('/marketplace-requests', [Operator\LeadController::class, 'index'])->name('leads.index');
+            Route::post('/marketplace-requests/{offer}/accept', [Operator\LeadController::class, 'accept'])->name('leads.accept');
+            Route::post('/marketplace-requests/{offer}/decline', [Operator\LeadController::class, 'decline'])->name('leads.decline');
             Route::post('/bookings/{booking}/quote', [Operator\BookingController::class, 'requote'])->name('bookings.quote');
             Route::post('/bookings/{booking}/confirm', [Operator\BookingController::class, 'confirm'])->name('bookings.confirm');
             Route::post('/bookings/{booking}/cancel', [Operator\BookingController::class, 'cancel'])->name('bookings.cancel');

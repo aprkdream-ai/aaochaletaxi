@@ -10,6 +10,10 @@
         'tickets' => \App\Models\SupportTicket::query()->where('status', 'open')->count(),
         'enquiries' => \App\Models\ContactMessage::query()->whereNull('handled_at')->count(),
     ] : [];
+    if ($panel === 'operator' && $user->hasPermission('bookings.manage')) {
+        $navBadges['leads'] = \App\Models\MarketplaceLeadOffer::query()->where('status', 'pending')
+            ->whereHas('lead', fn ($q) => $q->where('status', 'open')->where('expires_at', '>', now()))->count();
+    }
     $initials = collect(explode(' ', $user->name))->map(fn ($p) => mb_substr($p, 0, 1))->take(2)->join('');
 @endphp
 <!DOCTYPE html>

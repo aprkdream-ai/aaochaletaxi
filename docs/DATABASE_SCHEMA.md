@@ -215,3 +215,13 @@ through scoped models only.
 - vehicle_loans ✅ (T): vehicle_id, lender, account_number, principal, interest_rate, tenure_months, emi_amount, first_emi_date, status, closed_on, notes.
 - vehicle_expenses: loan_id FK NULL, installment_no NULL; unique (loan_id, installment_no).
 - vehicle_owner_payouts ✅ (T, append-only): vehicle_id, period_from/to, earned, deductions, amount, method, reference, paid_on, notes, breakdown JSON, recorded_by.
+
+## Phase 8E additions (2026-11-24) — Marketplace
+- tenants: marketplace_enabled BOOL idx.
+- tenant_service_cities ✅: tenant_id, city, city_key (slug) idx; unique (tenant_id, city_key).
+- marketplace_leads ✅ (platform-level, no tenant_id): token (40, unique), customer_user_id, customer_name/phone/email, type, vehicle_category_id,
+  from_city, city_key, to_city, pickup_address, drop_address, pickup_at, return_at, rental_hours, passengers, distance_km, notes,
+  status (open|accepted|expired|cancelled), accepted_tenant_id, booking_id, expires_at, ip.
+- marketplace_lead_offers ✅ (T): marketplace_lead_id, status (pending|accepted|declined|lost|expired), estimate, responded_at; unique (lead, tenant).
+- bookings: marketplace_lead_id FK NULL, commission_percent, commission_amount, commission_settlement_id FK platform_settlements NULL.
+- platform_settlements: commission DECIMAL, commissions_count.

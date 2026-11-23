@@ -7,6 +7,7 @@ use App\Models\Concerns\BelongsToTenant;
 use App\Support\Depreciation;
 use App\Support\Expiry;
 use App\Support\FleetOptions;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -99,7 +100,7 @@ class Vehicle extends Model
     }
 
     /** Book value today (null when purchase cost/date are not set). */
-    public function bookValue(?\Carbon\CarbonInterface $asOf = null): ?string
+    public function bookValue(?CarbonInterface $asOf = null): ?string
     {
         if ($this->purchase_cost === null || ! $this->purchase_date) {
             return null;

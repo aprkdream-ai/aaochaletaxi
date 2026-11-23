@@ -5,13 +5,17 @@ namespace App\Http\Controllers\Operator;
 use App\Enums\VehicleStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Models\Driver;
+use App\Models\FleetPart;
 use App\Models\Vehicle;
 use App\Models\VehicleCategory;
 use App\Services\AuditLogger;
 use App\Services\FuelEconomyService;
 use App\Services\PlanLimitService;
+use App\Services\VehicleLoanService;
 use App\Support\FleetOptions;
 use App\Support\Money;
+use App\Support\Phone;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -87,9 +91,9 @@ class VehicleController extends Controller
         return view('operator.vehicles.show', [
             'vehicle' => $vehicle,
             'fuel' => $fuel->compute($fills),
-            'loanSchedules' => $vehicle->loans->mapWithKeys(fn ($l) => [$l->id => app(\App\Services\VehicleLoanService::class)->schedule($l)]),
-            'drivers' => \App\Models\Driver::query()->orderBy('name')->get(['id', 'name']),
-            'stockParts' => \App\Models\FleetPart::query()->where('status', 'in_stock')->orderBy('type')->get(),
+            'loanSchedules' => $vehicle->loans->mapWithKeys(fn ($l) => [$l->id => app(VehicleLoanService::class)->schedule($l)]),
+            'drivers' => Driver::query()->orderBy('name')->get(['id', 'name']),
+            'stockParts' => FleetPart::query()->where('status', 'in_stock')->orderBy('type')->get(),
             'totals' => [
                 'maintenance' => Money::add(...$vehicle->maintenance->pluck('cost')->map(fn ($c) => (string) $c)->all() ?: ['0']),
                 'expenses_month' => Money::add(...$vehicle->expenses->filter(fn ($e) => $e->expense_date->isSameMonth(now()))->pluck('amount')->map(fn ($c) => (string) $c)->all() ?: ['0']),
@@ -143,7 +147,7 @@ class VehicleController extends Controller
     {
         $request->merge([
             'registration_number' => Vehicle::normalizeRegistration($request->input('registration_number')),
-            'owner_phone' => $request->filled('owner_phone') ? \App\Support\Phone::normalize($request->input('owner_phone')) : null,
+            'owner_phone' => $request->filled('owner_phone') ? Phone::normalize($request->input('owner_phone')) : null,
             'owner_pan' => $request->filled('owner_pan') ? strtoupper(trim((string) $request->input('owner_pan'))) : null,
         ]);
         $tenantId = $context->id();

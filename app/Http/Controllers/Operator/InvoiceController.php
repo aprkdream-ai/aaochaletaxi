@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Operator;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Invoice;
+use App\Rules\IndianState;
 use App\Services\Finance\InvoiceService;
+use App\Support\India;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,10 +38,10 @@ class InvoiceController extends Controller
             'name' => ['nullable', 'string', 'max:150'],
             'gstin' => ['nullable', 'regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/'],
             'address' => ['nullable', 'string', 'max:255'],
-            'state' => ['nullable', 'string', 'max:60', new \App\Rules\IndianState],
+            'state' => ['nullable', 'string', 'max:60', new IndianState],
             'inter_state' => ['nullable', 'boolean'],
         ], ['gstin.regex' => __('Enter a valid 15-character GSTIN.')]);
-        $data['state'] = \App\Support\India::normalizeState($data['state'] ?? null);
+        $data['state'] = India::normalizeState($data['state'] ?? null);
         $invoice = $this->service->issue($booking, $request->user(), $data + ['inter_state' => $request->boolean('inter_state')]);
 
         return redirect()->route('operator.invoices.show', $invoice)->with('success', __('Invoice :no issued.', ['no' => $invoice->number]));

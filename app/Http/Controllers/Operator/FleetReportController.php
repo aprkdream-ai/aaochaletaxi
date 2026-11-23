@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Operator;
 use App\Http\Controllers\Controller;
 use App\Services\Finance\FleetReportService;
 use App\Support\Modules;
+use App\Support\Money;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -25,7 +26,7 @@ class FleetReportController extends Controller
             'departments' => $fleet ? $report->departments($from, $to, $vehicles) : collect(),
             'totals' => (object) [
                 'km' => $vehicles->sum('km'), 'trips' => $vehicles->sum('trips'),
-                'cost' => \App\Support\Money::add('0', ...$vehicles->pluck('total')->all()),
+                'cost' => Money::add('0', ...$vehicles->pluck('total')->all()),
             ],
         ]);
     }

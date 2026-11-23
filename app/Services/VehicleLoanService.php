@@ -7,6 +7,7 @@ use App\Models\VehicleExpense;
 use App\Models\VehicleLoan;
 use App\Support\Money;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -41,7 +42,7 @@ class VehicleLoanService
         return $loan;
     }
 
-    /** @return list<array{no:int, due:\Illuminate\Support\Carbon, expense:?VehicleExpense}> */
+    /** @return list<array{no:int, due:Carbon, expense:?VehicleExpense}> */
     public function schedule(VehicleLoan $loan): array
     {
         $paid = $loan->relationLoaded('payments') ? $loan->payments->keyBy('installment_no') : $loan->payments()->get()->keyBy('installment_no');

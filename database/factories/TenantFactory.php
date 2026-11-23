@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\BusinessType;
 use App\Enums\SubscriptionStatus;
 use App\Enums\TenantStatus;
 use App\Models\Subscription;
@@ -30,7 +31,7 @@ class TenantFactory extends Factory
         ];
     }
 
-    public function businessType(\App\Enums\BusinessType $type): static
+    public function businessType(BusinessType $type): static
     {
         return $this->state(fn () => ['business_type' => $type]);
     }

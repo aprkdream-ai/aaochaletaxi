@@ -1,10 +1,10 @@
 # Progress
 
-**Last updated:** 2026-11-24 (Phase 8D)
-**Current phase:** Phase 8 fleet (8A–8D) complete → next Phase 8E (Marketplace, taxi module)
+**Last updated:** 2026-11-24 (Phase 8E)
+**Current phase:** Phase 8 complete (8A–8E) → next Phase 10 (QA & security), then Phase 11 (production release)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, MySQL)
 **Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), 5 (customer portal), 6 (finance), 7 (driver PWA), integrations core
-**Tests:** 227 passing (SQLite + MariaDB locally; MySQL 8 in CI)
+**Tests:** 236 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
 ## Phase 1 — completed
 - [x] Laravel 12 + Bootstrap/Alpine/Vite setup, IST timezone, en/hi locale switch
@@ -114,10 +114,25 @@ Phase 8 search (from/to city) and service areas.
 - [x] Attached/vendor owner terms on vehicle; owner statements & append-only payouts (`VehicleOwnerService`)
 - Server: migrations only.
 
-## Next exact tasks (Phase 8E — Marketplace, taxi module only)
-1. Public search `/cabs` (from/to city, date, category) listing approved operators with booking pages enabled, fares from
-   their fare rules (server-side), rating, verified badge; city pages for SEO (`/cabs/{city}`).
-2. Operator service areas (cities served) in profile; marketplace opt-in flag; ranking (verified, rating, completion).
-3. Marketplace enquiry → lead to chosen operator (or broadcast to up to 3 operators in the city, first-accept wins with row lock).
-4. Platform commission setting on marketplace bookings (feeds settlements), operator lead inbox + accept/decline.
-5. Tests (search isolation, no tenant leakage, broadcast race), sitemap entries, docs.
+## Phase 8E — completed (2026-11-24): Marketplace (Taxi module)
+- [x] Operator opt-in + service cities (profile); listing rules (active, taxi module, booking page, subscription)
+- [x] Public `/cabs` compare (server-side fares per operator, ranking verified → rating → trips), `/cabs/{city}` SEO pages, sitemap, nav link
+- [x] Direct "Book" → session referral → operator page prefilled; booking source=marketplace with commission %
+- [x] Quote request (OTP-verified) broadcast to top N; operator inbox (badge) accept/decline; first accept wins (lead row lock); expiry every 5 min
+- [x] Commission fixed at completion; platform settlements deduct commission (negative net = operator owes)
+- [x] Repo-wide pint formatting (CI style check)
+- Server: migrations only. Optional: Admin → Settings → Fees: marketplace commission %, operators per request, minutes to accept.
+
+## Release rule
+Owner wants ONE deploy after all phases are complete (see memory). Commits stay local until Phase 11.
+
+## Next exact tasks (Phase 10 — QA & security)
+1. Security review of all phases (authz on every new route, tenant isolation of new tables, mass-assignment, uploads, CSV injection, rate limits).
+2. N+1 / query review on heavy pages (vehicle show, fleet report, owner payouts, marketplace search) with `preventLazyLoading`; add indexes if needed.
+3. Hindi strings for new operator screens (optional), empty states, mobile layout check of new pages.
+4. Full suite on MariaDB + pint; update DEPLOYMENT.md (new seeders/settings), launch checklist.
+
+## Phase 11 — production release
+1. Push `main`, run `deploy/release.sh` (migrations run automatically; PlatformSeeder refreshes Owner permissions).
+2. Server: `php artisan db:seed --class=ModuleAddonPriceSeeder --force`; review Admin → Plans add-on prices and Admin → Settings → Fees (marketplace).
+3. Smoke test: /admin, /app (taxi + fleet tenant), /driver, /cabs, /o/{slug}.

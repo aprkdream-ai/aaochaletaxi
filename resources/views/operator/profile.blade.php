@@ -41,6 +41,13 @@
                     <x-select name="online_advance_percent" :label="__('Online advance (Razorpay)')" :options="['0' => __('Off'), '10' => '10%', '20' => '20%', '25' => '25%', '30' => '30%', '50' => '50%', '100' => __('Full amount')]" :value="(string) ($st['online_advance_percent'] ?? 0)" :help="__('Collected by AaoChaleTaxi and settled to you. Works when online payments are enabled by the platform.')" />
                     <x-textarea name="about" :label="__('About your service (shown on your page)')" :value="$st['about'] ?? null" rows="3" maxlength="600" />
                 </div></div>
+                @if ($tenant->hasModule(\App\Support\Modules::TAXI))
+                    <div class="card panel-card mb-3"><div class="card-header">{{ __('Marketplace') }} <a href="{{ route('marketplace.search') }}" target="_blank" rel="noopener" class="small fw-normal">{{ __('View') }}</a></div><div class="card-body">
+                        <x-switch name="marketplace_enabled" :label="__('List my business on AaoChaleTaxi marketplace')" :checked="$tenant->marketplace_enabled" />
+                        <x-textarea name="service_cities" :label="__('Cities you serve (pickup)')" :value="old('service_cities', $tenant->serviceCities->pluck('city')->join(', '))" rows="2" maxlength="2000" :help="__('Comma separated, e.g. Ahmedabad, Gandhinagar, Vadodara. Customers searching from these cities see your fares.')" />
+                        <div class="small text-muted-2">{{ __('Commission on marketplace bookings: :p% of the fare (excl. GST & tolls), adjusted in settlements.', ['p' => rtrim(rtrim(\App\Services\Marketplace\MarketplaceService::commissionPercent(), '0'), '.')]) }}</div>
+                    </div></div>
+                @endif
                 <div class="card panel-card"><div class="card-body">
                     <div class="small text-muted-2 mb-1">{{ __('Booking page address') }}</div>
                     <a href="{{ route('microsite.show', $tenant->slug) }}" target="_blank" rel="noopener"><code>{{ url('/o/'.$tenant->slug) }}</code></a>

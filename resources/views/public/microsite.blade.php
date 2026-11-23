@@ -44,7 +44,7 @@
             <div class="row g-4">
                 <div class="col-lg-8">
                     <form method="POST" action="{{ route('microsite.store', $tenant->slug) }}" class="card panel-card shadow-soft" novalidate x-ref="form"
-                          x-data="micrositeForm(@js(['preview' => route('microsite.preview', $tenant->slug), 'otp' => route('microsite.otp.send', $tenant->slug), 'verify' => route('microsite.otp.verify', $tenant->slug)]), @js($verifiedPhone))"
+                          x-data="micrositeForm(@js(['type' => $initialType, 'preview' => route('microsite.preview', $tenant->slug), 'otp' => route('microsite.otp.send', $tenant->slug), 'verify' => route('microsite.otp.verify', $tenant->slug)]), @js($verifiedPhone))"
                           @change="estimate()" @input.debounce.800ms="estimate()" @submit.prevent="submit()">
                         @csrf
                         <input type="hidden" name="idempotency_key" value="{{ $idempotencyKey }}">
