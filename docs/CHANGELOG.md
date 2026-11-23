@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-23 — Phase 8A: Taxi + Fleet business modules
+- Operators choose what they run at registration: Taxi & travels, Fleet management, or Taxi + Fleet. Only the super admin can
+  change it later (operator page → "Business type & modules", audited); operators see it on Subscription with a support link.
+- Taxi-only features (bookings, fare rules, quotations, trip invoices, booking payments, booking page `/o/{slug}`) are switched
+  off for fleet-only businesses: hidden from the sidebar/dashboard and blocked server-side (403/404). Core fleet features stay.
+- Pricing: same plans for everyone; Taxi + Fleet adds the plan's add-on price (new fields in Admin → Plans, shown on the pricing
+  page). Admin activation, online checkout and invoices include it; the subscription stores the business type and add-on part.
+- Dashboard shows fleet KPIs (available vehicles, on trip, in maintenance, expenses) for fleet-only businesses.
+- Custom roles: permissions of switched-off modules are hidden and kept, so switching the module back restores them.
+- Admin operator list: business type shown and filterable. 12 new tests (197 total, SQLite + MariaDB).
+- Server data: `php artisan db:seed --class=ModuleAddonPriceSeeder --force` (idempotent; never overwrites prices set in Admin).
+
 ## 2026-11-21 — Autosuggest (pickup/drop, state, city)
 - Pickup/drop/stops (operator new booking, microsite, home quote) suggest as you type: operator's own recent addresses →
   Google Places Autocomplete (New, via the server key, cached 7 days, auto-off 1 h on auth errors) → built-in list of

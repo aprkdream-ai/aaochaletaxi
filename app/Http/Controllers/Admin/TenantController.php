@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\BusinessType;
 use App\Enums\KycStatus;
 use App\Enums\TenantStatus;
 use App\Http\Controllers\Controller;
@@ -26,12 +27,14 @@ class TenantController extends Controller
         $filters = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', Rule::enum(TenantStatus::class)],
+            'type' => ['nullable', Rule::enum(BusinessType::class)],
         ]);
 
         $tenants = Tenant::query()
             ->with(['latestSubscription.plan:id,name'])
             ->withCount('users')
             ->when($filters['status'] ?? null, fn ($q, $s) => $q->where('status', $s))
+            ->when($filters['type'] ?? null, fn ($q, $t) => $q->where('business_type', $t))
             ->when($filters['q'] ?? null, function ($q, $term) {
                 $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $term).'%';
                 $q->where(fn ($w) => $w->where('name', 'like', $like)
@@ -43,7 +46,7 @@ class TenantController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.tenants.index', ['tenants' => $tenants, 'filters' => $filters, 'statuses' => TenantStatus::cases()]);
+        return view('admin.tenants.index', ['tenants' => $tenants, 'filters' => $filters, 'statuses' => TenantStatus::cases(), 'types' => BusinessType::cases()]);
     }
 
     public function show(Tenant $tenant, SubscriptionService $subscriptions, PlanLimitService $limits): View
@@ -63,6 +66,7 @@ class TenantController extends Controller
             'kycRequired' => KycService::requiredStatus($tenant),
             'activity' => AuditLog::query()->with('user:id,name')->where('tenant_id', $tenant->id)->latest('id')->limit(15)->get(),
             'kycStatuses' => KycStatus::cases(),
+            'types' => BusinessType::cases(),
         ]);
     }
 
@@ -94,6 +98,17 @@ class TenantController extends Controller
         $this->service->reactivate($tenant);
 
         return back()->with('success', "{$tenant->name} reactivated.");
+    }
+
+    public function businessType(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $data = $request->validate([
+            'business_type' => ['required', Rule::enum(BusinessType::class)],
+            'reason' => ['nullable', 'string', 'max:300'],
+        ]);
+        $this->service->setBusinessType($tenant, BusinessType::from($data['business_type']), $data['reason'] ?? null);
+
+        return back()->with('success', __('Business type changed to :type.', ['type' => $tenant->businessType()->label()]));
     }
 
     public function kyc(Request $request, Tenant $tenant): RedirectResponse

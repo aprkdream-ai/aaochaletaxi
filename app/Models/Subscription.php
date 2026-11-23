@@ -12,12 +12,14 @@ class Subscription extends Model
 {
     use BelongsToTenant;
 
-    protected $fillable = ['plan_id', 'billing_cycle', 'status', 'starts_at', 'ends_at', 'grace_ends_at', 'price', 'auto_renew', 'notes'];
+    protected $fillable = ['plan_id', 'billing_cycle', 'status', 'starts_at', 'ends_at', 'grace_ends_at', 'price', 'business_type', 'addon_price', 'auto_renew', 'notes'];
 
     protected function casts(): array
     {
         return [
             'status' => SubscriptionStatus::class,
+            'business_type' => \App\Enums\BusinessType::class,
+            'addon_price' => 'decimal:2',
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'grace_ends_at' => 'datetime',

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BusinessType;
 use App\Enums\KycStatus;
 use App\Enums\SubscriptionStatus;
 use App\Enums\TenantStatus;
@@ -29,6 +30,7 @@ class Tenant extends Model
     {
         return [
             'status' => TenantStatus::class,
+            'business_type' => BusinessType::class,
             'kyc_status' => KycStatus::class,
             'approved_at' => 'datetime',
             'suspended_at' => 'datetime',
@@ -42,6 +44,7 @@ class Tenant extends Model
             $tenant->uuid ??= (string) Str::uuid();
             $tenant->status ??= TenantStatus::Pending;
             $tenant->kyc_status ??= KycStatus::NotSubmitted;
+            $tenant->business_type ??= BusinessType::Taxi;
         });
     }
 
@@ -117,6 +120,22 @@ class Tenant extends Model
     public function isActive(): bool
     {
         return $this->status === TenantStatus::Active;
+    }
+
+    public function businessType(): BusinessType
+    {
+        return $this->business_type ?? BusinessType::Taxi;
+    }
+
+    /** @return list<string> */
+    public function modules(): array
+    {
+        return $this->businessType()->modules();
+    }
+
+    public function hasModule(string $module): bool
+    {
+        return $this->businessType()->hasModule($module);
     }
 
     public static function uniqueSlug(string $name): string

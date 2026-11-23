@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\BusinessType;
 use App\Enums\SubscriptionStatus;
 use App\Enums\UserStatus;
 use App\Enums\UserType;
@@ -27,7 +28,7 @@ class TenantOnboardingService
     /**
      * Register a new operator business: tenant (pending) + owner user + default roles + trial.
      *
-     * @param  array{business_name:string, city:string, state?:?string, name:string, email:string, phone:string, password:string}  $data
+     * @param  array{business_type?:string, business_name:string, city:string, state?:?string, name:string, email:string, phone:string, password:string}  $data
      */
     public function register(array $data): User
     {
@@ -40,6 +41,7 @@ class TenantOnboardingService
                 'state' => $data['state'] ?? null,
             ]);
             $tenant->slug = Tenant::uniqueSlug($data['business_name']);
+            $tenant->business_type = BusinessType::tryFrom((string) ($data['business_type'] ?? '')) ?? BusinessType::Taxi;
             $tenant->save();
 
             $this->roles->seedTenantRoles($tenant);
@@ -61,7 +63,7 @@ class TenantOnboardingService
             $this->startTrial($tenant);
             app(FareRuleService::class)->seedDefaults($tenant);
 
-            $this->audit->log('tenant.registered', $tenant, [], ['name' => $tenant->name, 'slug' => $tenant->slug], $tenant->id);
+            $this->audit->log('tenant.registered', $tenant, [], ['name' => $tenant->name, 'slug' => $tenant->slug, 'business_type' => $tenant->business_type->value], $tenant->id);
 
             return $owner;
         });
@@ -83,6 +85,7 @@ class TenantOnboardingService
             'starts_at' => now(),
             'ends_at' => now()->addDays($days)->endOfDay(),
             'price' => 0,
+            'business_type' => $tenant->businessType(),
         ]));
     }
 }

@@ -1,10 +1,10 @@
 # Progress
 
-**Last updated:** 2026-11-18 (Phase 7)
-**Current phase:** Phase 7 complete → next Phase 8 (Marketplace)
+**Last updated:** 2026-11-23 (Phase 8A)
+**Current phase:** Phase 8A (business modules) complete → next Phase 8B (core fleet upgrades)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, MySQL)
 **Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), 5 (customer portal), 6 (finance), 7 (driver PWA), integrations core
-**Tests:** 175 passing (SQLite + MariaDB locally; MySQL 8 in CI)
+**Tests:** 197 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
 ## Phase 1 — completed
 - [x] Laravel 12 + Bootstrap/Alpine/Vite setup, IST timezone, en/hi locale switch
@@ -80,7 +80,25 @@
 Autosuggest done 2026-11-21: `x-place-input`, `x-state-select`, `x-city-input` (resources/js/suggest.js); reuse them for
 Phase 8 search (from/to city) and service areas.
 
-## Next exact tasks (Phase 8 — Marketplace)
+## Phase 8A — completed (2026-11-23): Taxi + Fleet business modules
+- [x] `tenants.business_type` taxi/fleet/both; permissions mapped to modules (`App\Support\Modules`), filtered in `User::permissionKeys()`
+- [x] Registration step-1 picker; super admin changes type (audited) on operator page; admin list filter
+- [x] Same plans + add-on price for both (plan form, partner page, operator subscription, admin activation, Razorpay checkout); snapshot on subscription
+- [x] Fleet-only: no bookings/fares/invoices/microsite; dashboard shows fleet KPIs; role editor hides & preserves taxi permissions
+- Owner decisions: same plans + add-on; only super admin changes type; fleet v1 = passenger/corporate (no goods/logistics)
+- Production action (after deploy): `php artisan db:seed --class=ModuleAddonPriceSeeder --force` — sets add-on ₹399/699/1299 per month
+  (₹3990/6990/12990 per year) on starter/growth/business only where still ₹0; then adjust in Admin → Plans if needed
+
+## Next exact tasks (Phase 8B — core fleet upgrades, all business types)
+1. Service reminders: `vehicle_maintenance.next_service_date/km` → include in `FleetExpiryService` digest + dashboard (km due vs odometer).
+2. Fuel log: litres, rate/litre, odometer, full-tank flag on fuel expenses (or `fuel_logs` table linked to `vehicle_expenses`);
+   mileage km/l per vehicle (bcmath), abnormal-mileage flag; report column.
+3. Vehicle: `vehicle_type` on categories (car, suv, tempo, bus, bike, other), `road_tax_expiry`, FASTag id/balance note; add road tax
+   to `FleetOptions::vehicleExpiryFields()`.
+4. Driver daily checklist in PWA (tyres, oil, lights, documents, damage photo) → `vehicle_inspections`; operator view + failed-item alert.
+5. Tests per item, docs. Then Phase 8C (fleet trips without booking — see PROJECT_PLAN).
+
+## Later: Phase 8E — Marketplace (taxi module only)
 1. Public search `/cabs` (from/to city, date, category) listing approved operators with booking pages enabled, fares from
    their fare rules (server-side), rating, verified badge; city pages for SEO (`/cabs/{city}`).
 2. Operator service areas (cities served) in profile; marketplace opt-in flag; ranking (verified, rating, completion).

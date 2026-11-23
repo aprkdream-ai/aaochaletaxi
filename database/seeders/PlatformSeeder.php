@@ -24,13 +24,13 @@ class PlatformSeeder extends Seeder
         $roles->seedPlatformRoles();
 
         $plans = [
-            ['code' => 'starter', 'name' => 'Starter', 'description' => 'For small operators getting started.', 'price_monthly' => 799, 'price_yearly' => 7990,
+            ['code' => 'starter', 'name' => 'Starter', 'description' => 'For small operators getting started.', 'price_monthly' => 799, 'price_yearly' => 7990, 'addon_price_monthly' => 399, 'addon_price_yearly' => 3990,
                 'max_vehicles' => 5, 'max_drivers' => 5, 'max_branches' => 1, 'max_users' => 3, 'sort_order' => 1,
                 'features' => ['Booking management', 'Vehicle & driver management', 'Invoices & payments', 'Driver mobile app']],
-            ['code' => 'growth', 'name' => 'Growth', 'description' => 'For growing fleets that want their own brand.', 'price_monthly' => 1499, 'price_yearly' => 14990,
+            ['code' => 'growth', 'name' => 'Growth', 'description' => 'For growing fleets that want their own brand.', 'price_monthly' => 1499, 'price_yearly' => 14990, 'addon_price_monthly' => 699, 'addon_price_yearly' => 6990,
                 'max_vehicles' => 25, 'max_drivers' => 30, 'max_branches' => 1, 'max_users' => 10, 'sort_order' => 2, 'advanced_reports' => true,
                 'features' => ['Everything in Starter', 'Advanced reports', 'Branded booking page', 'Expense & settlement tracking']],
-            ['code' => 'business', 'name' => 'Business', 'description' => 'For large operators with multiple branches.', 'price_monthly' => 2999, 'price_yearly' => 29990,
+            ['code' => 'business', 'name' => 'Business', 'description' => 'For large operators with multiple branches.', 'price_monthly' => 2999, 'price_yearly' => 29990, 'addon_price_monthly' => 1299, 'addon_price_yearly' => 12990,
                 'max_vehicles' => 100, 'max_drivers' => 150, 'max_branches' => 10, 'max_users' => 50, 'sort_order' => 3, 'advanced_reports' => true,
                 'features' => ['Everything in Growth', 'Multi-branch', 'Additional integrations', 'Priority support']],
         ];

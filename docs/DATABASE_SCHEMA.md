@@ -52,11 +52,12 @@ address_line, city, state, pincode, logo_path, primary_color, status enum(pendin
 suspended, rejected) idx, kyc_status enum(not_submitted, submitted, verified, rejected),
 kyc_notes, approved_at, approved_by FK users, suspended_at, suspension_reason,
 custom_domain (unique nullable, future), settings JSON, timestamps, SD.
+business_type varchar(10) idx (taxi | fleet | both, default taxi) — decides modules (2026-11-23, D45).
 
 ### subscription_plans ✅
 id, code (unique: starter/growth/business), name, description, price_monthly, price_yearly,
 max_vehicles, max_drivers, max_branches, max_users, features JSON, trial_days, is_active,
-sort_order, timestamps.
+sort_order, timestamps. addon_price_monthly / addon_price_yearly DECIMAL(12,2) default 0 — second-module add-on (D46).
 
 ### subscriptions ✅ (T)
 id, tenant_id, plan_id FK, billing_cycle enum(monthly,yearly,trial), status enum(trialing,
@@ -66,6 +67,7 @@ idx (tenant_id, status), idx ends_at.
 
 Phase 2 additions to subscriptions ✅: reminder_stage (7/3/1 last reminder sent), superseded_by FK subscriptions
 (renewal/upgrade chain; superseded rows expire quietly).
+Module additions ✅: business_type (snapshot at activation), addon_price DECIMAL (part of `price` that is the add-on).
 
 ### subscription_payments ✅ (T, append-only)
 id, tenant_id, subscription_id, invoice_number (unique, `ACT/<FY>/<00001>` from `sequences`), amount (excl. GST),

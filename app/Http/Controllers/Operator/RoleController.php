@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Services\AuditLogger;
+use App\Support\Modules;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,7 +56,9 @@ class RoleController extends Controller
         $this->ensureEditable($role, $context);
         $data = $this->validated($request);
         $role->fill(['name' => $data['name'], 'description' => $data['description'] ?? null])->save();
-        $role->permissions()->sync($data['permissions']);
+        // Keep permissions of modules that are switched off, so turning the module back on restores them.
+        $hidden = $role->permissions()->whereNotIn('permissions.id', $this->availableIds())->pluck('permissions.id')->all();
+        $role->permissions()->sync(array_merge($data['permissions'], $hidden));
         $audit->log('role.updated', $role, [], ['permissions' => count($data['permissions'])]);
 
         return redirect()->route('operator.roles.index')->with('success', __('Role updated.'));
@@ -75,19 +78,33 @@ class RoleController extends Controller
 
     private function validated(Request $request): array
     {
-        $tenantPermissionIds = Permission::query()->where('scope', 'tenant')->pluck('id')->all();
-
         return $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:255'],
             'permissions' => ['required', 'array', 'min:1'],
-            'permissions.*' => ['integer', 'in:'.implode(',', $tenantPermissionIds)],
+            'permissions.*' => ['integer', 'in:'.implode(',', $this->availableIds())],
         ]);
+    }
+
+    /** Tenant permissions of the modules this business has switched on. */
+    private function available()
+    {
+        $modules = app(TenantContext::class)->get()?->modules() ?? [];
+
+        return Permission::query()->where('scope', 'tenant')->orderBy('id')->get()
+            ->filter(fn (Permission $p) => ($m = Modules::forPermission($p->key)) === null || in_array($m, $modules, true))
+            ->values();
+    }
+
+    /** @return list<int> */
+    private function availableIds(): array
+    {
+        return $this->available()->pluck('id')->all();
     }
 
     private function catalog()
     {
-        return Permission::query()->where('scope', 'tenant')->orderBy('id')->get()->groupBy('group');
+        return $this->available()->groupBy('group');
     }
 
     /** Roles of other tenants → 404; the Owner role is locked so nobody can lock themselves out. */

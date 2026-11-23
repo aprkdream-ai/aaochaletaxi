@@ -60,6 +60,14 @@ asset URLs resolve to `public_html`.
 - `Gate::before` → super_admin allowed. `permission:<key>` middleware; `@can('<key>')` in Blade
   (gates are auto-resolved via `hasPermission`).
 
+### Business modules (2026-11-23)
+`tenants.business_type` = taxi | fleet | both (`App\Enums\BusinessType`) → modules `taxi`, `fleet`. Core is always on.
+`App\Support\Modules` maps permission keys to modules (`bookings.*`, `fares.manage`, `customers.view`, `invoices.*`,
+`payments.manage` → taxi); `User::permissionKeys()` removes keys of modules the tenant lacks, so `permission:` routes,
+gates, policies and `config/navigation.php` follow. New module features MUST add their permissions to the map. Public
+microsite `/o/{slug}` additionally requires the taxi module. Prices: `SubscriptionPlan::priceFor($cycle, $type)` is the
+only place that computes plan price (+ add-on for both).
+
 ## 5. Application structure
 ```
 app/

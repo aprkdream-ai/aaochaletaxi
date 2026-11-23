@@ -4,11 +4,20 @@
     <div class="card panel-card">
         <div class="card-body border-bottom">
             <form method="GET" class="row g-2 align-items-end" role="search">
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <label class="visually-hidden" for="q">{{ __('Search') }}</label>
                     <div class="input-icon"><x-icon name="search" /><input type="search" name="q" id="q" value="{{ $filters['q'] ?? '' }}" class="form-control" placeholder="{{ __('Search name, email, phone or city') }}"></div>
                 </div>
-                <div class="col-7 col-md-3">
+                <div class="col-6 col-md-2">
+                    <label class="visually-hidden" for="type">{{ __('Business type') }}</label>
+                    <select name="type" id="type" class="form-select" onchange="this.form.submit()">
+                        <option value="">{{ __('All types') }}</option>
+                        @foreach ($types as $bt)
+                            <option value="{{ $bt->value }}" @selected(($filters['type'] ?? '') === $bt->value)>{{ $bt->label() }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
                     <label class="visually-hidden" for="status">{{ __('Status') }}</label>
                     <select name="status" id="status" class="form-select" onchange="this.form.submit()">
                         <option value="">{{ __('All statuses') }}</option>
@@ -17,7 +26,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-5 col-md-3 d-flex gap-2">
+                <div class="col-12 col-md-3 d-flex gap-2">
                     <button class="btn btn-ink flex-fill"><x-icon name="funnel" />{{ __('Filter') }}</button>
                     @if (array_filter($filters))<a href="{{ route('admin.tenants.index') }}" class="btn btn-light" aria-label="{{ __('Reset') }}"><x-icon name="x-lg" /></a>@endif
                 </div>
@@ -32,7 +41,7 @@
                             <td>
                                 <div class="d-flex align-items-center gap-3">
                                     <span class="avatar">{{ mb_strtoupper(mb_substr($t->name, 0, 2)) }}</span>
-                                    <div class="min-w-0"><a href="{{ route('admin.tenants.show', $t) }}" class="fw-semibold text-reset">{{ $t->name }}</a><div class="small text-muted-2 text-truncate">{{ $t->email }} · {{ $t->phone }}</div></div>
+                                    <div class="min-w-0"><a href="{{ route('admin.tenants.show', $t) }}" class="fw-semibold text-reset">{{ $t->name }}</a><div class="small text-muted-2 text-truncate">{{ $t->businessType()->label() }} · {{ $t->email }} · {{ $t->phone }}</div></div>
                                 </div>
                             </td>
                             <td>{{ $t->city ?: '—' }}</td>

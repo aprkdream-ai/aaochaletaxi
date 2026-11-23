@@ -37,6 +37,12 @@
                 <div class="card panel-card"><div class="card-header">{{ __('Pricing') }}</div><div class="card-body">
                     <x-input name="price_monthly" type="number" step="1" min="0" icon="currency-rupee" :label="__('Monthly price (excl. GST)')" :value="$plan->price_monthly ? (int) $plan->price_monthly : null" required />
                     <x-input name="price_yearly" type="number" step="1" min="0" icon="currency-rupee" :label="__('Yearly price (excl. GST)')" :value="$plan->price_yearly ? (int) $plan->price_yearly : null" required />
+                    <div class="border rounded-3 p-2 pb-0 mb-3">
+                        <div class="small fw-semibold mb-1">{{ __('Add-on: second module') }}</div>
+                        <div class="form-text mt-0 mb-2">{{ __('Charged on top of the plan for operators running Taxi + Fleet. 0 = free.') }}</div>
+                        <x-input name="addon_price_monthly" type="number" step="1" min="0" icon="currency-rupee" :label="__('Add-on per month (excl. GST)')" :value="(int) $plan->addon_price_monthly" />
+                        <x-input name="addon_price_yearly" type="number" step="1" min="0" icon="currency-rupee" :label="__('Add-on per year (excl. GST)')" :value="(int) $plan->addon_price_yearly" />
+                    </div>
                     <x-input name="trial_days" type="number" min="0" max="90" :label="__('Trial days')" :value="$plan->trial_days" required />
                     <x-input name="sort_order" type="number" min="0" :label="__('Display order')" :value="$plan->sort_order" />
                     <input type="hidden" name="is_active" value="0">

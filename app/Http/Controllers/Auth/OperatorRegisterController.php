@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\BusinessType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\OperatorRegisterRequest;
 use App\Services\TenantOnboardingService;
@@ -13,13 +14,13 @@ class OperatorRegisterController extends Controller
 {
     public function create(): View
     {
-        return view('auth.register-operator');
+        return view('auth.register-operator', ['types' => BusinessType::cases()]);
     }
 
     public function store(OperatorRegisterRequest $request, TenantOnboardingService $onboarding): RedirectResponse
     {
         $owner = $onboarding->register($request->safe()->only([
-            'business_name', 'city', 'state', 'name', 'email', 'phone', 'password',
+            'business_type', 'business_name', 'city', 'state', 'name', 'email', 'phone', 'password',
         ]));
 
         Auth::login($owner);

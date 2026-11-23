@@ -1,5 +1,5 @@
-<x-layouts.auth :title="__('Register your taxi business')" wide
-    :aside-title="__('Run your taxi business smarter — free for :days days.', ['days' => 14])"
+<x-layouts.auth :title="__('Register your business')" wide
+    :aside-title="__('Run your taxi or fleet business smarter — free for :days days.', ['days' => 14])"
     :aside-points="[
         ['journal-text', __('Bookings & dispatch'), __('Quotes, driver assignment and OTP trips')],
         ['car-front', __('Fleet & drivers'), __('Documents with expiry reminders, driver app')],
@@ -7,12 +7,13 @@
         ['credit-card', __('No credit card required'), __('Start free, upgrade when you grow')],
     ]">
     @php
-        $step1Fields = ['business_name', 'city', 'state'];
+        $step1Fields = ['business_type', 'business_name', 'city', 'state'];
+        $selectedType = old('business_type', 'taxi');
         $startStep = $errors->any() && ! $errors->hasAny($step1Fields) ? 2 : 1;
     @endphp
     <div class="auth-head">
         <span class="badge-soft ok mb-2 d-inline-block">{{ __('Free trial · No credit card') }}</span>
-        <h1 class="h3 mb-1">{{ __('Register your taxi business') }}</h1>
+        <h1 class="h3 mb-1">{{ __('Register your business') }}</h1>
         <p class="text-muted-2 mb-0">{{ __('Our team verifies every operator before activation — usually within one working day.') }}</p>
     </div>
 
@@ -25,6 +26,18 @@
         </ol>
 
         <div x-ref="s1" x-show="step === 1">
+            <fieldset>
+                <legend class="form-label fs-6 mb-2">{{ __('What do you run?') }}</legend>
+                <div class="type-cards">
+                    @foreach ($types as $bt)
+                        <div class="position-relative">
+                            <input type="radio" name="business_type" value="{{ $bt->value }}" id="bt_{{ $bt->value }}" @checked($selectedType === $bt->value)>
+                            <label for="bt_{{ $bt->value }}"><x-icon :name="$bt->icon()" />{{ $bt->label() }}<small>{{ $bt->description() }}</small></label>
+                        </div>
+                    @endforeach
+                </div>
+                @error('business_type')<div class="text-danger small mt-n2 mb-2">{{ $message }}</div>@enderror
+            </fieldset>
             <x-input name="business_name" icon="building" :label="__('Business name')" required maxlength="150" autocomplete="organization" x-on:input="$el.classList.remove('is-invalid')" />
             <div class="row g-2">
                 <div class="col-sm-6"><x-state-select name="state" :label="__('State')" /></div>

@@ -57,6 +57,8 @@ class PlanController extends Controller
             'description' => ['nullable', 'string', 'max:500'],
             'price_monthly' => ['required', 'numeric', 'min:0', 'max:9999999'],
             'price_yearly' => ['required', 'numeric', 'min:0', 'max:99999999'],
+            'addon_price_monthly' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'addon_price_yearly' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'max_vehicles' => ['required', 'integer', 'min:1', 'max:100000'],
             'max_drivers' => ['required', 'integer', 'min:1', 'max:100000'],
             'max_branches' => ['required', 'integer', 'min:1', 'max:1000'],
@@ -72,6 +74,8 @@ class PlanController extends Controller
         $data['is_active'] = (bool) ($data['is_active'] ?? false);
         $data['advanced_reports'] = (bool) ($data['advanced_reports'] ?? false);
         $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
+        $data['addon_price_monthly'] ??= 0;
+        $data['addon_price_yearly'] ??= 0;
         if (isset($data['code'])) {
             $data['code'] = strtolower($data['code']);
         }

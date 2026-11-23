@@ -1,4 +1,4 @@
-@php use App\Support\Money; @endphp
+@php use App\Support\Money; $type = $tenant->businessType(); @endphp
 <x-layouts.panel :title="__('Subscription')" panel="operator">
     <x-page-header :title="__('Subscription & billing')" />
 
@@ -52,9 +52,10 @@
                                 <div @class(['p-3 rounded-4 border h-100 d-flex flex-column', 'border-warning' => $current?->plan_id === $p->id])>
                                     <div class="fw-bold">{{ $p->name }} @if ($current?->plan_id === $p->id)<span class="badge-soft warn">{{ __('Current') }}</span>@endif</div>
                                     <div class="fs-5 fw-800">
-                                        <span x-show="cycle === 'monthly'">{{ Money::format($p->price_monthly, 0) }}<span class="small fw-normal text-muted-2">/{{ __('mo') }}</span></span>
-                                        <span x-show="cycle === 'yearly'" x-cloak>{{ Money::format($p->price_yearly, 0) }}<span class="small fw-normal text-muted-2">/{{ __('yr') }}</span></span>
+                                        <span x-show="cycle === 'monthly'">{{ Money::format($p->priceFor('monthly', $type), 0) }}<span class="small fw-normal text-muted-2">/{{ __('mo') }}</span></span>
+                                        <span x-show="cycle === 'yearly'" x-cloak>{{ Money::format($p->priceFor('yearly', $type), 0) }}<span class="small fw-normal text-muted-2">/{{ __('yr') }}</span></span>
                                     </div>
+                                    @if ((float) $p->addonPrice('monthly', $type) > 0)<div class="small text-muted-2">{{ __('incl. Fleet add-on') }}</div>@endif
                                     <div class="small text-muted-2 mb-2">{{ __(':v vehicles · :d drivers', ['v' => $p->max_vehicles, 'd' => $p->max_drivers]) }}</div>
                                     @if ($onlinePayment)
                                         <button type="button" class="btn btn-sm {{ $current?->plan_id === $p->id ? 'btn-primary' : 'btn-ink' }} w-100 mt-auto" :disabled="busy" @click="pay({{ $p->id }})">
@@ -89,6 +90,14 @@
             </div>
         </div>
         <div class="col-lg-5">
+            <div class="card panel-card mb-3">
+                <div class="card-header">{{ __('Business type') }}</div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-1"><x-icon :name="$type->icon()" class="text-primary" /><span class="fw-bold">{{ $type->label() }}</span></div>
+                    <div class="small text-muted-2 mb-2">{{ $type->description() }}</div>
+                    <a href="{{ route('operator.support.create', ['category' => 'billing', 'subject' => __('Change business type')]) }}" class="small fw-semibold">{{ __('Need Taxi, Fleet or both? Contact support to change') }}</a>
+                </div>
+            </div>
             <div class="card panel-card">
                 <div class="card-header">{{ __('History') }}</div>
                 <div class="list-group list-group-flush list-modern small">

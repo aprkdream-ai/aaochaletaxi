@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\UserStatus;
 use App\Enums\UserType;
+use App\Support\Modules;
+use App\Support\Tenancy\TenantContext;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -87,7 +89,11 @@ class User extends Authenticatable
     /** @return list<string> */
     public function permissionKeys(): array
     {
-        return $this->permissionCache ??= $this->roles()
+        if ($this->permissionCache !== null) {
+            return $this->permissionCache;
+        }
+
+        $keys = $this->roles()
             ->where(fn ($q) => $this->tenant_id ? $q->where('roles.tenant_id', $this->tenant_id) : $q->whereNull('roles.tenant_id'))
             ->with('permissions:id,key')
             ->get()
@@ -95,6 +101,29 @@ class User extends Authenticatable
             ->unique()
             ->values()
             ->all();
+
+        // Permissions of modules the business has not switched on are dropped (routes, gates, sidebar follow).
+        if ($this->tenant_id) {
+            $keys = Modules::filterPermissions($keys, $this->tenantModules());
+        }
+
+        return $this->permissionCache = $keys;
+    }
+
+    /** @return list<string> */
+    public function tenantModules(): array
+    {
+        if (! $this->tenant_id) {
+            return [];
+        }
+        $current = app(TenantContext::class)->get();
+        $tenant = match (true) {
+            $current?->id === $this->tenant_id => $current,
+            $this->relationLoaded('tenant') => $this->tenant,
+            default => Tenant::query()->select(['id', 'business_type'])->find($this->tenant_id),
+        };
+
+        return $tenant?->modules() ?? [];
     }
 
     public function hasPermission(string $key): bool

@@ -30,6 +30,11 @@ class TenantFactory extends Factory
         ];
     }
 
+    public function businessType(\App\Enums\BusinessType $type): static
+    {
+        return $this->state(fn () => ['business_type' => $type]);
+    }
+
     public function pending(): static
     {
         return $this->state(fn () => ['status' => TenantStatus::Pending]);

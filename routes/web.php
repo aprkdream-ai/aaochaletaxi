@@ -95,6 +95,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'type:super_admin,pl
             Route::post('/operators/{tenant}/suspend', 'suspend')->name('tenants.suspend');
             Route::post('/operators/{tenant}/reactivate', 'reactivate')->name('tenants.reactivate');
             Route::post('/operators/{tenant}/kyc', 'kyc')->name('tenants.kyc');
+            Route::post('/operators/{tenant}/business-type', 'businessType')->name('tenants.business-type');
         });
         Route::post('/kyc/{document}/review', [Admin\KycController::class, 'review'])->name('kyc.review');
     });

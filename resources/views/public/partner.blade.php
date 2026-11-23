@@ -76,6 +76,10 @@
                                 <li><x-icon name="check-circle-fill" />{{ __('Up to :n vehicles', ['n' => $plan->max_vehicles]) }}</li>
                                 <li><x-icon name="check-circle-fill" />{{ __('Up to :n drivers', ['n' => $plan->max_drivers]) }}</li>
                                 <li><x-icon name="check-circle-fill" />{{ trans_choice('{1} :n branch|[2,*] Up to :n branches', $plan->max_branches, ['n' => $plan->max_branches]) }}</li>
+                                <li><x-icon name="check-circle-fill" />{{ __('Taxi or Fleet module included') }}</li>
+                                @if ((float) $plan->addon_price_monthly > 0)
+                                    <li><x-icon name="plus-circle" /><span>{{ __('Both modules: +:m/month', ['m' => Money::format($plan->addon_price_monthly, 0)]) }}</span></li>
+                                @endif
                                 @foreach ($plan->features ?? [] as $feature)
                                     <li><x-icon name="check-circle-fill" />{{ __($feature) }}</li>
                                 @endforeach

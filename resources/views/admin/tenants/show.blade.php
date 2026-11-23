@@ -154,6 +154,22 @@
         </div>
 
         <div class="col-xl-4">
+            <div class="card panel-card mb-3" id="business-type">
+                <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="layers" />{{ __('Business type & modules') }}</span></div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-1"><x-icon :name="$tenant->businessType()->icon()" class="text-primary" /><span class="fw-bold">{{ $tenant->businessType()->label() }}</span></div>
+                    <div class="small text-muted-2">{{ $tenant->businessType()->description() }}</div>
+                    @error('business_type')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
+                    @if ($canManage)
+                        <form method="POST" action="{{ route('admin.tenants.business-type', $tenant) }}" class="mt-3" data-confirm="{{ __('Change the business type of this operator? Modules switch immediately; any add-on price applies from the next activation or renewal.') }}">@csrf
+                            <label class="form-label small" for="bt_type">{{ __('Change to') }}</label>
+                            <select name="business_type" id="bt_type" class="form-select form-select-sm mb-2">@foreach ($types as $bt)<option value="{{ $bt->value }}" @selected($tenant->businessType() === $bt)>{{ $bt->label() }}</option>@endforeach</select>
+                            <input type="text" name="reason" class="form-control form-control-sm mb-2" maxlength="300" placeholder="{{ __('Reason (internal)') }}" aria-label="{{ __('Reason') }}">
+                            <button class="btn btn-sm btn-ink w-100">{{ __('Save business type') }}</button>
+                        </form>
+                    @endif
+                </div>
+            </div>
             <div class="card panel-card mb-3"><div class="card-header">{{ __('Business details') }}</div><div class="card-body">
                 <dl class="row mb-0 small">
                     <dt class="col-5 text-muted-2 fw-semibold">{{ __('Legal name') }}</dt><dd class="col-7">{{ $tenant->legal_name ?: '—' }}</dd>
@@ -203,10 +219,11 @@
     @endif
     @if ($canBill)
         <x-modal id="activateModal" :title="__('Activate / renew plan')" :action="route('admin.subscriptions.activate', $tenant)" :submit="__('Activate')" size="lg">
-            <div x-data="{ pay: true, plan: '{{ $plans->first()?->id }}', cycle: 'monthly', prices: @js($plans->mapWithKeys(fn ($p) => [$p->id => ['monthly' => (int) $p->price_monthly, 'yearly' => (int) $p->price_yearly]])) }">
+            <div x-data="{ pay: true, plan: '{{ $plans->first()?->id }}', cycle: 'monthly', prices: @js($plans->mapWithKeys(fn ($p) => [$p->id => ['monthly' => (float) $p->priceFor('monthly', $tenant->businessType()), 'yearly' => (float) $p->priceFor('yearly', $tenant->businessType())]])) }">
                 <div class="row g-2">
-                    <div class="col-md-6"><label class="form-label" for="a_plan">{{ __('Plan') }}</label><select name="plan_id" id="a_plan" class="form-select" x-model="plan">@foreach ($plans as $p)<option value="{{ $p->id }}">{{ $p->name }} — {{ Money::format($p->price_monthly, 0) }}/{{ __('mo') }}</option>@endforeach</select></div>
+                    <div class="col-md-6"><label class="form-label" for="a_plan">{{ __('Plan') }}</label><select name="plan_id" id="a_plan" class="form-select" x-model="plan">@foreach ($plans as $p)<option value="{{ $p->id }}">{{ $p->name }} — {{ Money::format($p->priceFor('monthly', $tenant->businessType()), 0) }}/{{ __('mo') }}</option>@endforeach</select></div>
                     <div class="col-md-6"><label class="form-label" for="a_cycle">{{ __('Billing cycle') }}</label><select name="billing_cycle" id="a_cycle" class="form-select" x-model="cycle"><option value="monthly">{{ __('Monthly') }}</option><option value="yearly">{{ __('Yearly') }}</option></select></div>
+                    @if ($tenant->businessType()->hasAddon())<div class="col-12"><div class="form-text">{{ __('Prices include the Fleet add-on because this operator runs Taxi + Fleet.') }}</div></div>@endif
                     <div class="col-12 mt-3"><label class="form-label">{{ __('Start') }}</label>
                         <div class="d-flex flex-wrap gap-3">
                             <div class="form-check"><input class="form-check-input" type="radio" name="start" value="after_current" id="s_after" @checked($current && $current->billing_cycle !== 'trial')><label class="form-check-label" for="s_after">{{ __('After current period ends (renewal)') }}</label></div>

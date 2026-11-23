@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Enums\BusinessType;
 use App\Support\Phone;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class OperatorRegisterRequest extends FormRequest
@@ -20,6 +22,7 @@ class OperatorRegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'business_type' => ['nullable', Rule::enum(BusinessType::class)], // defaults to taxi
             'business_name' => ['required', 'string', 'min:3', 'max:150'],
             'city' => ['required', 'string', 'max:100'],
             'state' => ['nullable', 'string', 'max:100', new \App\Rules\IndianState],

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\BusinessType;
 use App\Enums\KycStatus;
 use App\Enums\TenantStatus;
 use App\Models\Tenant;
@@ -59,6 +60,25 @@ class TenantAdminService
             $locked->kyc_notes = $notes;
             $locked->save();
             $this->audit->log('tenant.kyc_updated', $locked, $old, ['kyc_status' => $status->value, 'notes' => $notes]);
+            $tenant->setRawAttributes($locked->getAttributes(), true);
+        });
+    }
+
+    /**
+     * Super admin only. Module access changes immediately; the price difference (add-on) is charged
+     * from the next activation/renewal or via a manually recorded payment.
+     */
+    public function setBusinessType(Tenant $tenant, BusinessType $type, ?string $reason): void
+    {
+        DB::transaction(function () use ($tenant, $type, $reason) {
+            $locked = Tenant::query()->lockForUpdate()->findOrFail($tenant->id);
+            $old = $locked->businessType();
+            if ($old === $type) {
+                throw ValidationException::withMessages(['business_type' => __('The operator already has this business type.')]);
+            }
+            $locked->business_type = $type;
+            $locked->save();
+            $this->audit->log('tenant.business_type_changed', $locked, ['business_type' => $old->value], ['business_type' => $type->value, 'reason' => $reason]);
             $tenant->setRawAttributes($locked->getAttributes(), true);
         });
     }

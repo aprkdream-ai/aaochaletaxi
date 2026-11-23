@@ -8,17 +8,23 @@
         ['people', __('Invite your team'), $usage['users'] > 1, route('operator.staff.create'), 'staff.manage'],
     ];
     $done = collect($steps)->where(2, true)->count();
+    $kpis = $taxi ? [
+        ['label' => __('Pickups today'), 'value' => $today['pickups'], 'icon' => 'calendar-event', 'href' => auth()->user()->hasPermission('bookings.view') ? route('operator.bookings.index', ['view' => 'today']) : null],
+        ['label' => __('On trip now'), 'value' => $on_trip, 'icon' => 'sign-turn-right'],
+        ['label' => __('Enquiries & quotes'), 'value' => $today['to_quote'], 'icon' => 'chat-square-text', 'href' => auth()->user()->hasPermission('bookings.view') ? route('operator.bookings.index') : null],
+        ['label' => __('Revenue this month'), 'value' => Money::format($today['revenue_month'], 0), 'icon' => 'graph-up-arrow'],
+    ] : [
+        ['label' => __('Vehicles available'), 'value' => $fleet['vehicles_available'].' / '.$usage['vehicles'], 'icon' => 'car-front'],
+        ['label' => __('On trip now'), 'value' => $on_trip, 'icon' => 'sign-turn-right'],
+        ['label' => __('In maintenance'), 'value' => $fleet['vehicles_maintenance'], 'icon' => 'tools'],
+        ['label' => __('Fleet expenses this month'), 'value' => Money::format($fleet['expenses_month'], 0), 'icon' => 'fuel-pump'],
+    ];
 @endphp
 <x-layouts.panel :title="__('Dashboard')" panel="operator">
     <x-hero-banner
         :title="__('Welcome, :name', ['name' => \Illuminate\Support\Str::before(auth()->user()->name, ' ')])"
         :subtitle="$tenant->name.' · '.now()->format('l, d M Y')"
-        :kpis="[
-            ['label' => __('Pickups today'), 'value' => $today['pickups'], 'icon' => 'calendar-event', 'href' => auth()->user()->hasPermission('bookings.view') ? route('operator.bookings.index', ['view' => 'today']) : null],
-            ['label' => __('On trip now'), 'value' => $today['on_trip'], 'icon' => 'sign-turn-right'],
-            ['label' => __('Enquiries & quotes'), 'value' => $today['to_quote'], 'icon' => 'chat-square-text', 'href' => auth()->user()->hasPermission('bookings.view') ? route('operator.bookings.index') : null],
-            ['label' => __('Revenue this month'), 'value' => Money::format($today['revenue_month'], 0), 'icon' => 'graph-up-arrow'],
-        ]">
+        :kpis="$kpis">
         @can('bookings.create')<a href="{{ route('operator.bookings.create') }}" class="btn btn-primary"><x-icon name="plus-lg" />{{ __('New booking') }}</a>@endcan
         @can('vehicles.manage')<a href="{{ route('operator.vehicles.create') }}" class="btn btn-glass"><x-icon name="car-front" />{{ __('Vehicle') }}</a>@endcan
         @can('drivers.manage')<a href="{{ route('operator.drivers.create') }}" class="btn btn-glass"><x-icon name="person-plus" />{{ __('Driver') }}</a>@endcan
@@ -112,6 +118,7 @@
                     @can('subscription.manage')<a href="{{ route('operator.subscription') }}" class="btn btn-sm btn-light border">{{ __('Manage subscription') }}</a>@endcan
                 </div>
             </div>
+            @if ($taxi)
             <div class="card panel-card">
                 <div class="card-header">{{ __('Your booking page') }}</div>
                 <div class="card-body" x-data="{ copied: false }">
@@ -128,6 +135,7 @@
                     <div class="small text-muted-2 mt-2">{{ __('Customers can get a fare, verify their mobile and book online from this page.') }}</div>
                 </div>
             </div>
+            @endif
         </div>
     </div>
 </x-layouts.panel>

@@ -46,19 +46,22 @@ class SubscriptionService
         $this->assertFits($tenant, $plan);
 
         $subscription = DB::transaction(function () use ($tenant, $plan, $cycle, $start, $admin, $payment, $notes) {
-            Tenant::query()->lockForUpdate()->findOrFail($tenant->id);
+            $locked = Tenant::query()->lockForUpdate()->findOrFail($tenant->id);
             $current = $this->currentFor($tenant, lock: true);
 
             $startsAt = ($start === 'after_current' && $current && $current->ends_at->isFuture() && $current->billing_cycle !== 'trial')
                 ? $current->ends_at->copy()
                 : now();
             $endsAt = $cycle === 'yearly' ? $startsAt->copy()->addYear() : $startsAt->copy()->addMonth();
-            $price = $cycle === 'yearly' ? $plan->price_yearly : $plan->price_monthly;
+            $type = $locked->businessType();
+            $price = $plan->priceFor($cycle, $type);
+            $addon = $plan->addonPrice($cycle, $type);
 
-            $new = $this->context->runAs($tenant, function () use ($plan, $cycle, $startsAt, $endsAt, $price, $notes, $admin) {
+            $new = $this->context->runAs($tenant, function () use ($plan, $cycle, $startsAt, $endsAt, $price, $addon, $type, $notes, $admin) {
                 $s = new Subscription([
                     'plan_id' => $plan->id, 'billing_cycle' => $cycle, 'status' => SubscriptionStatus::Active,
                     'starts_at' => $startsAt, 'ends_at' => $endsAt, 'price' => $price, 'notes' => $notes,
+                    'business_type' => $type, 'addon_price' => $addon,
                 ]);
                 $s->activated_by = $admin?->id;
                 $s->save();
@@ -75,7 +78,7 @@ class SubscriptionService
             }
 
             $this->audit->log('subscription.activated', $new, [], [
-                'plan' => $plan->code, 'cycle' => $cycle, 'starts_at' => $startsAt->toDateTimeString(), 'ends_at' => $endsAt->toDateTimeString(),
+                'plan' => $plan->code, 'cycle' => $cycle, 'starts_at' => $startsAt->toDateTimeString(), 'ends_at' => $endsAt->toDateTimeString(), 'business_type' => $type->value, 'price' => $price,
             ], $tenant->id);
 
             return $new;
@@ -106,7 +109,7 @@ class SubscriptionService
                 $s = new Subscription([
                     'plan_id' => $plan->id, 'billing_cycle' => $locked->billing_cycle, 'status' => $locked->status,
                     'starts_at' => now(), 'ends_at' => $locked->ends_at, 'grace_ends_at' => $locked->grace_ends_at,
-                    'price' => 0, 'notes' => __('Plan change from :from', ['from' => $locked->plan->name]),
+                    'price' => 0, 'business_type' => $locked->business_type, 'notes' => __('Plan change from :from', ['from' => $locked->plan->name]),
                 ]);
                 $s->activated_by = $admin->id;
                 $s->save();
@@ -250,7 +253,8 @@ class SubscriptionService
                 'state' => $tenant->state,
             ],
             'item' => [
-                'plan' => $subscription->plan->name, 'cycle' => $subscription->billing_cycle,
+                'plan' => $subscription->plan->name.($subscription->business_type?->hasAddon() ? ' + '.__('Fleet add-on') : ''),
+                'cycle' => $subscription->billing_cycle,
                 'period' => $subscription->starts_at->format('d M Y').' – '.$subscription->ends_at->format('d M Y'),
                 'sac' => '998314',
             ],

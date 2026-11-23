@@ -38,7 +38,7 @@ class SubscriptionCheckoutService
             throw ValidationException::withMessages(['plan_id' => __('Invalid plan selection.')]);
         }
 
-        $amount = number_format((float) ($cycle === 'yearly' ? $plan->price_yearly : $plan->price_monthly), 2, '.', '');
+        $amount = $plan->priceFor($cycle, $tenant->businessType());
         if ((float) $amount <= 0) {
             throw ValidationException::withMessages(['plan_id' => __('This plan cannot be purchased online.')]);
         }
