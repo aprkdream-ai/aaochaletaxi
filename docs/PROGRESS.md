@@ -1,10 +1,10 @@
 # Progress
 
 **Last updated:** 2026-11-24 (Phase 8E)
-**Current phase:** Phase 8 complete (8A–8E) → next Phase 10 (QA & security), then Phase 11 (production release)
+**Current phase:** Phase 10 (QA & security) complete → Phase 11 = production release (waiting for owner go-ahead)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, MySQL)
 **Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), 5 (customer portal), 6 (finance), 7 (driver PWA), integrations core
-**Tests:** 236 passing (SQLite + MariaDB locally; MySQL 8 in CI)
+**Tests:** 237 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
 ## Phase 1 — completed
 - [x] Laravel 12 + Bootstrap/Alpine/Vite setup, IST timezone, en/hi locale switch
@@ -126,11 +126,13 @@ Phase 8 search (from/to city) and service areas.
 ## Release rule
 Owner wants ONE deploy after all phases are complete (see memory). Commits stay local until Phase 11.
 
-## Next exact tasks (Phase 10 — QA & security)
-1. Security review of all phases (authz on every new route, tenant isolation of new tables, mass-assignment, uploads, CSV injection, rate limits).
-2. N+1 / query review on heavy pages (vehicle show, fleet report, owner payouts, marketplace search) with `preventLazyLoading`; add indexes if needed.
-3. Hindi strings for new operator screens (optional), empty states, mobile layout check of new pages.
-4. Full suite on MariaDB + pint; update DEPLOYMENT.md (new seeders/settings), launch checklist.
+## Phase 10 — completed (2026-11-24): QA & security
+- [x] Route audit: every new operator route behind `permission:` (pre-existing support/status/documents check in controller)
+- [x] Tenant isolation tests for all new tables (trips, departments, inspections, parts, incidents, loans, payouts, offers)
+- [x] Marketplace: no Maps call for cities nobody serves (quota abuse); phone hidden until accept; throttles on all public endpoints
+- [x] Query-count check (3 vs 12 rows) on 12 heavy pages — all flat after batching owner statements (`computeMany`)
+- [x] `composer audit` / `npm audit`: no advisories; pint clean; suite green on SQLite + MariaDB
+- [x] DEPLOYMENT.md §8: consolidated release steps + launch checklist
 
 ## Phase 11 — production release
 1. Push `main`, run `deploy/release.sh` (migrations run automatically; PlatformSeeder refreshes Owner permissions).

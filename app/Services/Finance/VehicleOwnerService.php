@@ -10,6 +10,7 @@ use App\Models\VehicleOwnerPayout;
 use App\Services\AuditLogger;
 use App\Support\Money;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -23,38 +24,57 @@ class VehicleOwnerService
     /** @return array{trips:int, km:int, revenue:string, rate_type:?string, rate:string, earned:string, expenses:string, paid:string, due:string, days:int, lines:array} */
     public function compute(Vehicle $vehicle, CarbonInterface $from, CarbonInterface $to): array
     {
-        $trips = Trip::query()->with('booking:id,booking_number,final_snapshot')->where('vehicle_id', $vehicle->id)->where('status', 'completed')
-            ->whereBetween('completed_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])->orderBy('completed_at')->get();
+        return $this->computeMany(collect([$vehicle]), $from, $to)[$vehicle->id];
+    }
 
-        $revenue = '0.00';
-        $km = 0;
-        $lines = [];
-        foreach ($trips as $t) {
-            $fare = (string) ($t->booking?->final_snapshot['taxable'] ?? '0');
-            $revenue = Money::add($revenue, $fare);
-            $km += $t->km() ?? 0;
-            $lines[] = ['trip' => $t->number(), 'date' => $t->completed_at->toDateString(), 'km' => $t->km(), 'fare' => $fare];
+    /**
+     * Statements for many vehicles with a fixed number of queries.
+     *
+     * @param  Collection<int, Vehicle>  $vehicles
+     * @return array<int, array>
+     */
+    public function computeMany(Collection $vehicles, CarbonInterface $from, CarbonInterface $to): array
+    {
+        $ids = $vehicles->pluck('id')->all();
+        $trips = Trip::query()->with('booking:id,booking_number,final_snapshot')->whereIn('vehicle_id', $ids)->where('status', 'completed')
+            ->whereBetween('completed_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])->orderBy('completed_at')->get()->groupBy('vehicle_id');
+        $expenses = VehicleExpense::query()->whereIn('vehicle_id', $ids)
+            ->whereDate('expense_date', '>=', $from->toDateString())->whereDate('expense_date', '<=', $to->toDateString())
+            ->selectRaw('vehicle_id, sum(amount) as s')->groupBy('vehicle_id')->pluck('s', 'vehicle_id');
+        $paid = VehicleOwnerPayout::query()->whereIn('vehicle_id', $ids)
+            ->whereDate('period_from', '>=', $from->toDateString())->whereDate('period_to', '<=', $to->toDateString())
+            ->selectRaw('vehicle_id, sum(amount) as s')->groupBy('vehicle_id')->pluck('s', 'vehicle_id');
+        $days = (int) $from->copy()->startOfDay()->diffInDays($to->copy()->startOfDay()) + 1;
+
+        $out = [];
+        foreach ($vehicles as $vehicle) {
+            $vt = $trips->get($vehicle->id, collect());
+            $revenue = '0.00';
+            $km = 0;
+            $lines = [];
+            foreach ($vt as $t) {
+                $fare = (string) ($t->booking?->final_snapshot['taxable'] ?? '0');
+                $revenue = Money::add($revenue, $fare);
+                $km += $t->km() ?? 0;
+                $lines[] = ['trip' => $t->number(), 'date' => $t->completed_at->toDateString(), 'km' => $t->km(), 'fare' => $fare];
+            }
+            $rate = (string) ($vehicle->owner_rate ?? '0');
+            $earned = match ($vehicle->owner_rate_type) {
+                'per_km' => Money::mul((string) $km, $rate),
+                'per_trip' => Money::mul((string) $vt->count(), $rate),
+                'monthly' => Money::round(bcdiv(bcmul($rate, (string) $days, 4), '30', 4)),
+                'revenue_share' => Money::percent($revenue, $rate),
+                default => '0.00',
+            };
+            $exp = number_format((float) ($expenses[$vehicle->id] ?? 0), 2, '.', '');
+            $pd = number_format((float) ($paid[$vehicle->id] ?? 0), 2, '.', '');
+            $out[$vehicle->id] = [
+                'trips' => $vt->count(), 'km' => $km, 'revenue' => $revenue, 'rate_type' => $vehicle->owner_rate_type, 'rate' => $rate,
+                'earned' => $earned, 'expenses' => $exp, 'paid' => $pd, 'due' => Money::sub(Money::sub($earned, $exp), $pd), 'days' => $days, 'lines' => $lines,
+            ];
         }
 
-        $rate = (string) ($vehicle->owner_rate ?? '0');
-        $days = (int) $from->copy()->startOfDay()->diffInDays($to->copy()->startOfDay()) + 1;
-        $earned = match ($vehicle->owner_rate_type) {
-            'per_km' => Money::mul((string) $km, $rate),
-            'per_trip' => Money::mul((string) $trips->count(), $rate),
-            'monthly' => Money::round(bcdiv(bcmul($rate, (string) $days, 4), '30', 4)),
-            'revenue_share' => Money::percent($revenue, $rate),
-            default => '0.00',
-        };
-        $expenses = number_format((float) VehicleExpense::query()->where('vehicle_id', $vehicle->id)
-            ->whereDate('expense_date', '>=', $from->toDateString())->whereDate('expense_date', '<=', $to->toDateString())->sum('amount'), 2, '.', '');
-        $paid = number_format((float) VehicleOwnerPayout::query()->where('vehicle_id', $vehicle->id)
-            ->whereDate('period_from', '>=', $from->toDateString())->whereDate('period_to', '<=', $to->toDateString())->sum('amount'), 2, '.', '');
-
-        return [
-            'trips' => $trips->count(), 'km' => $km, 'revenue' => $revenue, 'rate_type' => $vehicle->owner_rate_type, 'rate' => $rate,
-            'earned' => $earned, 'expenses' => $expenses, 'paid' => $paid, 'due' => Money::sub(Money::sub($earned, $expenses), $paid),
-            'days' => $days, 'lines' => $lines,
-        ];
+        return $out;
     }
 
     public function settle(Vehicle $vehicle, CarbonInterface $from, CarbonInterface $to, string $amount, string $deductions, string $method, ?string $reference, ?string $notes, User $user): VehicleOwnerPayout

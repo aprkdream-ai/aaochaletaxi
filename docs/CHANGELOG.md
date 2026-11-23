@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-24 — Phase 10: QA & security
+- Marketplace search no longer calls Maps for cities without listed operators.
+- Owner payouts page computes all statements with a fixed number of queries.
+- Route/permission and tenant-isolation audit of all new modules; dependency audits clean; release checklist in DEPLOYMENT.md.
+
 ## 2026-11-24 — Phase 8E: Marketplace
 - Public "Compare cabs" (`/cabs`): enter from/to city, trip type, vehicle and time; see listed operators with fares calculated
   from each operator's own rates, verified badge, rating and trips. City pages (`/cabs/{city}`) and sitemap entries.

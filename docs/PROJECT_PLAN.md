@@ -18,7 +18,7 @@ Status legend: ✅ done · 🟡 in progress · ⬜ not started
 | 8D Fleet extras | Tyre/battery/parts inventory, accident/challan/claim, loan & EMI schedule with reminders, purchase cost & depreciation, attached-vehicle owner settlement | Append-only money records | ✅ |
 | 8E Marketplace (taxi module) | Listings, fare comparison, booking requests, operator acceptance, commission tracking, reviews | Commission separate from direct bookings | ✅ |
 | 9 Integrations | Razorpay (orders, verify, webhook), WhatsApp Cloud, SMS, mail, Maps, FCM — all optional with mock mode | Works with integrations disabled | ✅ (pulled forward) |
-| 10 QA & security | Feature/isolation/conflict/payment tests, security review, perf (indexes, caching) | Full suite green on MySQL | ⬜ |
+| 10 QA & security | Feature/isolation/conflict/payment tests, security review, perf (indexes, caching) | Full suite green on MySQL | ✅ |
 | 11 Production | Production config, cron, SSL, backups, smoke tests, launch checklist | Launch checklist signed off | ⬜ |
 
 ## Key assumptions (reversible)

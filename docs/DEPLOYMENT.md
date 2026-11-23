@@ -111,3 +111,31 @@ All deliveries are visible in Admin → Message log.
 | Deploy fails at smoke test | live site untouched; read the printed URL/status, fix, push again |
 | Queue jobs not processed | hPanel cron missing or wrong PHP path |
 | Sub-folder app broken | our `.htaccess` only rewrites non-existent paths; restore original from `deploy_backups/` if needed |
+
+## 8. Release: Phase 8 (business modules, fleet, marketplace) — one consolidated deploy
+Local commits cb44635 … (8A–8E + Phase 10). Deploy only when the owner approves the whole set.
+
+**Before**
+1. `php artisan test` on SQLite **and** local MariaDB (`DB_CONNECTION=mysql DB_DATABASE=aaochaletaxi_test …`), `vendor/bin/pint --test`.
+2. Take a DB backup (hPanel → Databases → phpMyAdmin export, or `mysqldump`).
+
+**Deploy**
+3. `git push origin main` then `SSH_KEY=~/.ssh/aaochaletaxi_deploy bash deploy/release.sh`.
+   Migrations (all additive / nullable; `trips.booking_id` becomes nullable) and `PlatformSeeder` run automatically —
+   the seeder also gives every existing Owner role the new permissions (fleet trips, departments).
+
+**After**
+4. `php artisan db:seed --class=ModuleAddonPriceSeeder --force` (sets Taxi + Fleet add-on ₹399/699/1299 per month only where still ₹0).
+5. Admin → Plans: review add-on prices. Admin → Settings → Fees: marketplace commission %, operators per request (3), minutes to accept (120).
+6. Cron unchanged (`schedule:run` every minute) — new jobs: `marketplace:expire-leads` every 5 min; reminders now include service,
+   EMI and warranty items in the 08:00 digest.
+7. Smoke test: /admin (operator → "Business type & modules"), /app as a taxi tenant (bookings) and a fleet tenant (Trips, Departments,
+   Fleet cost report), /driver (Check tab, a fleet trip), /cabs search + a city page, /o/{slug}, /sitemap.xml.
+
+**Launch checklist (sign-off)**
+- [ ] Suite green on MariaDB, pint clean, assets built in the release
+- [ ] Backup taken before migrate
+- [ ] Add-on seeder run and prices reviewed
+- [ ] Marketplace fees reviewed; at least one operator opted in with service cities before announcing `/cabs`
+- [ ] Smoke test passed; `storage/logs` clean of new errors after 24 h
+

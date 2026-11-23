@@ -225,6 +225,13 @@ class MarketplaceTest extends TestCase
         $this->get(route('marketplace.lead', $lead2))->assertOk()->assertSee('No operator accepted in time');
     }
 
+    public function test_search_for_unserved_city_makes_no_maps_call(): void
+    {
+        $this->operator('Alpha Cabs');
+        $this->get(route('marketplace.search', $this->query(['from_city' => 'Atlantis'])))->assertOk()->assertSee('No operator serves this trip yet');
+        Http::assertNothingSent();
+    }
+
     public function test_quote_with_no_operator_fails_cleanly(): void
     {
         $this->verifyPhone();

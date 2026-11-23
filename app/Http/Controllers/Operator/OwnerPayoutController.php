@@ -21,11 +21,12 @@ class OwnerPayoutController extends Controller
     public function index(Request $request): View
     {
         [$from, $to] = $this->range($request);
+        $vehicles = Vehicle::query()->whereIn('ownership', ['attached', 'vendor'])->orderBy('registration_number')->get();
+        $calc = $this->owners->computeMany($vehicles, $from, $to);
 
         return view('operator.owner-payouts.index', [
             'from' => $from, 'to' => $to,
-            'rows' => Vehicle::query()->whereIn('ownership', ['attached', 'vendor'])->orderBy('registration_number')->get()
-                ->map(fn (Vehicle $v) => (object) (['vehicle' => $v] + $this->owners->compute($v, $from, $to))),
+            'rows' => $vehicles->map(fn (Vehicle $v) => (object) (['vehicle' => $v] + $calc[$v->id])),
             'recent' => VehicleOwnerPayout::query()->with(['vehicle:id,registration_number,owner_name', 'recorder:id,name'])->latest('id')->limit(15)->get(),
         ]);
     }

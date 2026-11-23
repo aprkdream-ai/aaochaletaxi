@@ -64,12 +64,16 @@ class MarketplaceService
     public function search(array $q): array
     {
         $type = BookingType::from($q['type']);
+        $operators = $this->operatorsIn($q['from_city']);
+        if ($operators->isEmpty()) {
+            return ['km' => null, 'results' => collect()]; // never spend a Maps call on a city nobody serves
+        }
         $km = $this->distance($q['from_city'], $q['to_city'] ?? null, $type);
         $input = ['distance_km' => $km ?? 0, 'pickup_at' => Carbon::parse($q['pickup_at']), 'return_at' => isset($q['return_at']) ? Carbon::parse($q['return_at']) : null,
             'rental_hours' => $type->isRental() ? (int) ($q['rental_hours'] ?? ($type === BookingType::FullDay ? 8 : 4)) : null];
         $canPrice = $km !== null || $type->isRental();
 
-        $results = $this->operatorsIn($q['from_city'])->map(function (Tenant $t) use ($q, $type, $input, $canPrice) {
+        $results = $operators->map(function (Tenant $t) use ($q, $type, $input, $canPrice) {
             return $this->context->runAs($t, function () use ($t, $q, $type, $input, $canPrice) {
                 $rule = $this->rules->find((int) $q['vehicle_category_id'], $type);
                 if (! $rule) {
