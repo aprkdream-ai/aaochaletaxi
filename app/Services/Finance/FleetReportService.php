@@ -45,9 +45,9 @@ class FleetReportService
                 'vehicle' => $v, 'trips' => $vt->count(), 'fleet_trips' => $vt->filter->isFleet()->count(), 'km' => $km,
                 'hours' => round((float) $vt->sum(fn (Trip $t) => $t->hours() ?? 0), 1),
                 'litres' => $economy['litres'], 'kmpl' => $economy['average'], 'fuel' => $fuelCost, 'other' => $otherCost, 'maintenance' => $mnt,
-                'total' => $total, 'per_km' => $km > 0 ? bcdiv($total, (string) $km, 2) : null,
+                'total' => $total, 'per_km' => $km > 0 ? bcdiv($total, (string) $km, 2) : null, 'book_value' => $v->bookValue(),
             ];
-        })->filter(fn ($r) => $r->trips > 0 || (float) $r->total > 0)->values();
+        })->filter(fn ($r) => $r->trips > 0 || (float) $r->total > 0 || $r->book_value !== null)->values();
     }
 
     /** @param Collection<int, object> $vehicleRows from vehicles() for the same period */

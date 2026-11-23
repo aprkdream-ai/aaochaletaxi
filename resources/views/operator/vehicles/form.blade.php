@@ -8,7 +8,7 @@
         <a href="{{ $editing ? route('operator.vehicles.show', $vehicle) : route('operator.vehicles.index') }}" class="btn btn-light"><x-icon name="arrow-left" />{{ __('Back') }}</a>
     </x-page-header>
     <form method="POST" action="{{ $editing ? route('operator.vehicles.update', $vehicle) : route('operator.vehicles.store') }}" enctype="multipart/form-data" data-loading novalidate
-          x-data="{ seats: @js(old('seats', $vehicle->seats)), cats: @js($categories->pluck('seats', 'id')) }">
+          x-data="{ seats: @js(old('seats', $vehicle->seats)), cats: @js($categories->pluck('seats', 'id')), ownership: @js(old('ownership', $vehicle->ownership)) }">
         @csrf @if ($editing) @method('PUT') @endif
         <div class="row g-3">
             <div class="col-lg-8">
@@ -23,10 +23,24 @@
                     <div class="col-md-3"><x-select name="fuel_type" :label="__('Fuel')" :options="FleetOptions::fuelTypes()" :value="$vehicle->fuel_type" required /></div>
                     <div class="col-md-3"><x-input name="color" :label="__('Colour')" :value="$vehicle->color" maxlength="30" /></div>
                     <div class="col-md-3"><x-input name="odometer_km" type="number" :label="__('Odometer (km)')" :value="$vehicle->odometer_km" min="0" /></div>
-                    <div class="col-md-6"><x-select name="ownership" :label="__('Ownership')" :options="FleetOptions::ownership()" :value="$vehicle->ownership" required /></div>
+                    <div class="col-md-6"><x-select name="ownership" :label="__('Ownership')" :options="FleetOptions::ownership()" :value="$vehicle->ownership" required x-model="ownership" /></div>
                     <div class="col-md-3"><x-select name="branch_id" :label="__('Branch')" :options="$branches->pluck('name', 'id')->all()" :value="$vehicle->branch_id" :placeholder="__('— None —')" /></div>
                     <div class="col-md-3"><x-input name="fastag_id" :label="__('FASTag ID')" :value="$vehicle->fastag_id" maxlength="30" autocomplete="off" /></div>
                     <div class="col-12"><x-textarea name="notes" :label="__('Notes')" :value="$vehicle->notes" rows="2" maxlength="1000" /></div>
+                </div></div></div>
+                <div class="card panel-card mb-3" x-show="ownership !== 'owned'" x-cloak><div class="card-header">{{ __('Vehicle owner (attached / vendor)') }} <span class="small fw-normal text-muted-2">{{ __('Used for owner statements and payouts') }}</span></div><div class="card-body"><div class="row g-2">
+                    <div class="col-md-4"><x-input name="owner_name" :label="__('Owner name')" :value="$vehicle->owner_name" maxlength="150" /></div>
+                    <div class="col-md-4"><x-input name="owner_phone" type="tel" :label="__('Owner mobile')" :value="$vehicle->owner_phone" inputmode="numeric" maxlength="14" /></div>
+                    <div class="col-md-4"><x-input name="owner_pan" :label="__('Owner PAN')" :value="$vehicle->owner_pan" maxlength="10" style="text-transform:uppercase" /></div>
+                    <div class="col-md-4"><x-select name="owner_rate_type" :label="__('Payment basis')" :options="FleetOptions::ownerRateTypes()" :value="$vehicle->owner_rate_type" :placeholder="__('— Select —')" /></div>
+                    <div class="col-md-3"><x-input name="owner_rate" type="number" step="0.01" min="0" :label="__('Rate (₹ or %)')" :value="$vehicle->owner_rate" /></div>
+                    <div class="col-md-5"><x-input name="owner_bank" :label="__('Bank / UPI for payouts')" :value="$vehicle->owner_bank" maxlength="300" /></div>
+                </div></div></div>
+                <div class="card panel-card mb-3"><div class="card-header">{{ __('Purchase & depreciation') }} <span class="small fw-normal text-muted-2">{{ __('Optional — shows book value') }}</span></div><div class="card-body"><div class="row g-2">
+                    <div class="col-6 col-md-3"><x-input name="purchase_date" type="date" :label="__('Purchase date')" :value="$vehicle->purchase_date?->toDateString()" /></div>
+                    <div class="col-6 col-md-3"><x-input name="purchase_cost" type="number" step="1" min="0" :label="__('Purchase cost ₹')" :value="$vehicle->purchase_cost ? (int) $vehicle->purchase_cost : null" /></div>
+                    <div class="col-6 col-md-3"><x-select name="depreciation_method" :label="__('Method')" :options="FleetOptions::depreciationMethods()" :value="$vehicle->depreciation_method ?? 'wdv'" /></div>
+                    <div class="col-6 col-md-3"><x-input name="depreciation_rate" type="number" step="0.01" min="0" max="100" :label="__('Rate % per year')" :value="$vehicle->depreciation_rate" :help="__('e.g. 15 (WDV)')" /></div>
                 </div></div></div>
                 <div class="card panel-card"><div class="card-header">{{ __('Document validity') }} <span class="small fw-normal text-muted-2">{{ __('We remind you 30, 15, 7 and 1 day before expiry') }}</span></div><div class="card-body"><div class="row g-2">
                     @foreach (FleetOptions::vehicleExpiryFields() as $field => $label)

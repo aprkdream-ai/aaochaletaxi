@@ -69,6 +69,42 @@ class FleetOptions
         return self::vehicleExpiryFields() + self::optionalVehicleExpiryFields();
     }
 
+    public static function partTypes(): array
+    {
+        return ['tyre' => __('Tyre'), 'battery' => __('Battery'), 'other' => __('Other part')];
+    }
+
+    public static function partPositions(): array
+    {
+        return ['FL' => __('Front left'), 'FR' => __('Front right'), 'RL' => __('Rear left'), 'RR' => __('Rear right'),
+            'RL2' => __('Rear left (inner)'), 'RR2' => __('Rear right (inner)'), 'spare' => __('Spare'), 'main' => __('Main / only')];
+    }
+
+    public static function incidentTypes(): array
+    {
+        return ['accident' => __('Accident'), 'challan' => __('Traffic challan'), 'damage' => __('Damage'), 'theft' => __('Theft'), 'other' => __('Other')];
+    }
+
+    public static function claimStatuses(): array
+    {
+        return ['none' => __('No claim'), 'filed' => __('Claim filed'), 'approved' => __('Approved'), 'rejected' => __('Rejected'), 'settled' => __('Settled')];
+    }
+
+    public static function ownerRateTypes(): array
+    {
+        return ['per_km' => __('Per km'), 'per_trip' => __('Per trip'), 'monthly' => __('Fixed per month'), 'revenue_share' => __('% of trip revenue')];
+    }
+
+    public static function depreciationMethods(): array
+    {
+        return ['wdv' => __('Written-down value (WDV)'), 'slm' => __('Straight line (SLM)')];
+    }
+
+    public static function payoutMethods(): array
+    {
+        return ['bank_transfer' => __('Bank transfer'), 'upi' => 'UPI', 'cash' => __('Cash'), 'cheque' => __('Cheque'), 'other' => __('Other')];
+    }
+
     /** Daily driver checklist items (key => label). */
     public static function inspectionItems(): array
     {

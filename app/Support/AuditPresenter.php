@@ -58,6 +58,10 @@ class AuditPresenter
         'vehicle.maintenance_added' => ['tools', 'warning'],
         'vehicle.inspection_submitted' => ['clipboard-check', 'info'],
         'vehicle.inspection_resolved' => ['check2-circle', 'success'],
+        'incident.created' => ['exclamation-octagon', 'warning'],
+        'loan.emi_paid' => ['cash-coin', 'success'],
+        'vehicle.owner_paid' => ['person-vcard', 'success'],
+        'part.fit' => ['gear', 'info'],
     ];
 
     private const LABELS = [

@@ -41,6 +41,10 @@ class FleetExpiryDigest extends Notification implements ShouldQueue
             return $i['date'].' ('.implode(', ', $parts).')';
         }
 
+        if (($i['kind'] ?? null) === 'emi') {
+            return $i['days'] < 0 ? __('overdue since :d', ['d' => $i['date']]) : __('due :d (:n days)', ['d' => $i['date'], 'n' => $i['days']]);
+        }
+
         return $i['days'] < 0 ? __('expired on :d', ['d' => $i['date']]) : __('expires :d (:n days)', ['d' => $i['date'], 'n' => $i['days']]);
     }
 

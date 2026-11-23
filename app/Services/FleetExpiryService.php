@@ -4,7 +4,10 @@ namespace App\Services;
 
 use App\Models\Driver;
 use App\Models\Tenant;
+use App\Models\FleetPart;
 use App\Models\Vehicle;
+use App\Models\VehicleLoan;
+use App\Support\Money;
 use App\Models\VehicleMaintenance;
 use App\Notifications\FleetExpiryDigest;
 use App\Support\FleetOptions;
@@ -48,6 +51,27 @@ class FleetExpiryService
             foreach (Driver::query()->where('status', '!=', 'inactive')->get() as $d) {
                 if (($days = $want($d->licence_expiry)) !== null) {
                     $items[] = ['kind' => 'driver', 'name' => $d->name, 'what' => __('Driving licence'), 'date' => $d->licence_expiry->format('d M Y'), 'days' => $days, 'url' => route('operator.drivers.show', $d)];
+                }
+            }
+            // Next unpaid EMI of each active loan: 7 days ahead, or overdue.
+            foreach (VehicleLoan::query()->with(['vehicle:id,registration_number', 'payments:id,loan_id,installment_no'])->where('status', 'active')->get() as $loan) {
+                $paid = $loan->payments->pluck('installment_no')->all();
+                $next = collect(range(1, $loan->tenure_months))->first(fn ($n) => ! in_array($n, $paid, true));
+                if ($next === null) {
+                    continue;
+                }
+                $due = $loan->dueDate($next);
+                $days = (int) now()->startOfDay()->diffInDays($due->copy()->startOfDay(), false);
+                if ($days <= 7 && ($stages === null || in_array($days, $stages, true))) {
+                    $items[] = ['kind' => 'emi', 'name' => $loan->vehicle?->displayRegistration() ?? '—', 'what' => __('EMI :n · :amt · :lender', ['n' => $next, 'amt' => Money::format($loan->emi_amount, 0), 'lender' => $loan->lender]),
+                        'date' => $due->format('d M Y'), 'days' => $days, 'url' => route('operator.vehicles.show', [$loan->vehicle_id, 'tab' => 'loan'])];
+                }
+            }
+            foreach (FleetPart::query()->where('status', '!=', 'scrapped')->whereNotNull('warranty_until')->where('warranty_until', '<=', now()->addDays(30)->toDateString())
+                ->where('warranty_until', '>=', now()->subDay()->toDateString())->get() as $part) {
+                if (($days = $want($part->warranty_until)) !== null) {
+                    $items[] = ['kind' => 'part', 'name' => $part->label(), 'what' => __(':type warranty', ['type' => FleetOptions::partTypes()[$part->type] ?? $part->type]),
+                        'date' => $part->warranty_until->format('d M Y'), 'days' => $days, 'url' => route('operator.parts.index', ['q' => $part->serial_number ?: $part->brand])];
                 }
             }
             usort($items, fn ($a, $b) => $a['days'] <=> $b['days']);

@@ -1,10 +1,10 @@
 # Progress
 
-**Last updated:** 2026-11-24 (Phase 8C)
-**Current phase:** Phase 8C (fleet operations) complete → next Phase 8D (fleet extras)
+**Last updated:** 2026-11-24 (Phase 8D)
+**Current phase:** Phase 8 fleet (8A–8D) complete → next Phase 8E (Marketplace, taxi module)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, MySQL)
 **Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), 5 (customer portal), 6 (finance), 7 (driver PWA), integrations core
-**Tests:** 220 passing (SQLite + MariaDB locally; MySQL 8 in CI)
+**Tests:** 227 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
 ## Phase 1 — completed
 - [x] Laravel 12 + Bootstrap/Alpine/Vite setup, IST timezone, en/hi locale switch
@@ -106,18 +106,15 @@ Phase 8 search (from/to city) and service areas.
 - [x] Fleet cost report (all plans): per vehicle km/hours/fuel/km-l/costs/₹ per km; per department allocated cost; CSV
 - Server: migrations only; PlatformSeeder (runs on deploy) now gives existing Owner roles the new permissions.
 
-## Next exact tasks (Phase 8D — fleet extras)
-1. Tyre / battery / parts inventory: `fleet_parts` (type, brand, serial, purchase date/cost, vendor, warranty till, status in-stock/fitted/scrapped),
-   fit/remove on a vehicle with odometer → per-part km run; warranty-expiry reminders in digest.
-2. Accident / challan / insurance claim register (`vehicle_incidents`: type, date, place, driver, fine/estimate, claim no., status, settled amount,
-   photos on private disk); money rows append-only (link to expense when paid).
-3. Loan / EMI schedule per vehicle (`vehicle_loans`: lender, principal, rate, tenure, EMI day) → upcoming EMI reminders; mark paid → creates EMI expense.
-4. Purchase cost + depreciation (WDV % or straight line) on vehicle; book value in fleet report.
-5. Attached-vehicle owner settlement (ownership attached/vendor): owner details on vehicle, monthly statement (trips/km × agreed rate − expenses),
-   append-only payouts like driver payouts.
-6. Tests per module, docs.
+## Phase 8D — completed (2026-11-24): fleet extras (all business types)
+- [x] Tyres & parts: stock, fit/remove/scrap with odometer, km run across vehicles, warranty reminders (`FleetPartService`)
+- [x] Incidents & challans with photo, insurance claim status, one-time payment → vehicle expense (`VehicleIncidentService`)
+- [x] Loans: reducing-balance EMI, schedule, mark EMI paid → `emi` expense (unique per installment), auto-close, EMI-due reminders
+- [x] Purchase cost + WDV/SLM depreciation → book value on vehicle page and fleet report (`App\Support\Depreciation`)
+- [x] Attached/vendor owner terms on vehicle; owner statements & append-only payouts (`VehicleOwnerService`)
+- Server: migrations only.
 
-## Later: Phase 8E — Marketplace (taxi module only)
+## Next exact tasks (Phase 8E — Marketplace, taxi module only)
 1. Public search `/cabs` (from/to city, date, category) listing approved operators with booking pages enabled, fares from
    their fare rules (server-side), rating, verified badge; city pages for SEO (`/cabs/{city}`).
 2. Operator service areas (cities served) in profile; marketplace opt-in flag; ranking (verified, rating, completion).

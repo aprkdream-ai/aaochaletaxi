@@ -38,8 +38,8 @@ class FleetReportController extends Controller
 
         [$head, $rows] = $tab === 'departments'
             ? [['Department', 'Trips', 'Km', 'Hours', 'Allocated cost'], $report->departments($from, $to, $vehicles)->map(fn ($d) => [$d->department, $d->trips, $d->km, $d->hours, $d->cost])]
-            : [['Vehicle', 'Type', 'Trips', 'Fleet trips', 'Km', 'Hours', 'Fuel (L/kWh)', 'Avg km/l', 'Fuel cost', 'Other expenses', 'Maintenance', 'Total cost', 'Cost per km'],
-                $vehicles->map(fn ($r) => [$r->vehicle->registration_number, $r->vehicle->vehicle_type, $r->trips, $r->fleet_trips, $r->km, $r->hours, $r->litres, $r->kmpl, $r->fuel, $r->other, $r->maintenance, $r->total, $r->per_km])];
+            : [['Vehicle', 'Type', 'Trips', 'Fleet trips', 'Km', 'Hours', 'Fuel (L/kWh)', 'Avg km/l', 'Fuel cost', 'Other expenses', 'Maintenance', 'Total cost', 'Cost per km', 'Book value'],
+                $vehicles->map(fn ($r) => [$r->vehicle->registration_number, $r->vehicle->vehicle_type, $r->trips, $r->fleet_trips, $r->km, $r->hours, $r->litres, $r->kmpl, $r->fuel, $r->other, $r->maintenance, $r->total, $r->per_km, $r->book_value])];
 
         return response()->streamDownload(function () use ($head, $rows) {
             $out = fopen('php://output', 'w');

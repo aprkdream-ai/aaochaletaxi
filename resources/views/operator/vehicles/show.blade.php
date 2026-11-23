@@ -3,7 +3,10 @@
     use App\Support\Money;
     $canManage = auth()->user()->hasPermission('vehicles.manage');
     $canExpense = $canManage || auth()->user()->hasPermission('expenses.manage');
-    $tab = in_array(request('tab'), ['documents', 'maintenance', 'expenses', 'inspections'], true) ? request('tab') : 'documents';
+    $tabs = ['documents', 'maintenance', 'expenses', 'inspections', 'parts', 'incidents', 'loan'];
+    if ($vehicle->isAttached()) { $tabs[] = 'owner'; }
+    $tab = in_array(request('tab'), $tabs, true) ? request('tab') : 'documents';
+    $bookValue = $vehicle->bookValue();
     $kmpl = fn ($v) => $v === null ? '—' : rtrim(rtrim($v, '0'), '.').' '.($vehicle->fuel_type === 'electric' ? 'km/kWh' : 'km/l');
     $openIssues = $vehicle->inspections->filter->hasOpenIssues()->count();
 @endphp
@@ -28,6 +31,8 @@
                         <dt class="col-6 text-muted-2 fw-semibold">{{ __('Fuel') }}</dt><dd class="col-6">{{ FleetOptions::fuelTypes()[$vehicle->fuel_type] ?? $vehicle->fuel_type }}</dd>
                         <dt class="col-6 text-muted-2 fw-semibold">{{ __('Ownership') }}</dt><dd class="col-6">{{ FleetOptions::ownership()[$vehicle->ownership] ?? $vehicle->ownership }}</dd>
                         <dt class="col-6 text-muted-2 fw-semibold">{{ __('Odometer') }}</dt><dd class="col-6">{{ $vehicle->odometer_km ? number_format($vehicle->odometer_km).' km' : '—' }}</dd>
+                        @if ($bookValue !== null)<dt class="col-6 text-muted-2 fw-semibold">{{ __('Book value') }}</dt><dd class="col-6">{{ Money::format($bookValue, 0) }} <span class="text-muted-2">/ {{ Money::format($vehicle->purchase_cost, 0) }}</span></dd>@endif
+                        @if ($vehicle->isAttached() && $vehicle->owner_name)<dt class="col-6 text-muted-2 fw-semibold">{{ __('Owner') }}</dt><dd class="col-6">{{ $vehicle->owner_name }}</dd>@endif
                         <dt class="col-6 text-muted-2 fw-semibold">{{ __('Branch') }}</dt><dd class="col-6">{{ $vehicle->branch?->name ?? '—' }}</dd>
                         @if ($vehicle->fastag_id)<dt class="col-6 text-muted-2 fw-semibold">FASTag</dt><dd class="col-6 text-break">{{ $vehicle->fastag_id }}</dd>@endif
                         @if ($vehicle->color)<dt class="col-6 text-muted-2 fw-semibold">{{ __('Colour') }}</dt><dd class="col-6">{{ $vehicle->color }}</dd>@endif
@@ -56,7 +61,9 @@
     </div>
 
     <ul class="nav nav-pills gap-2 mb-3" role="tablist">
-        @foreach (['documents' => [__('Documents'), 'folder2-open', $vehicle->documents->count()], 'maintenance' => [__('Maintenance'), 'tools', $vehicle->maintenance->count()], 'expenses' => [__('Expenses & fuel'), 'receipt', $vehicle->expenses->count()], 'inspections' => [__('Daily checks'), 'clipboard-check', $openIssues ?: $vehicle->inspections->count()]] as $key => [$label, $icon, $n])
+        @foreach (['documents' => [__('Documents'), 'folder2-open', $vehicle->documents->count()], 'maintenance' => [__('Maintenance'), 'tools', $vehicle->maintenance->count()], 'expenses' => [__('Expenses & fuel'), 'receipt', $vehicle->expenses->count()], 'inspections' => [__('Daily checks'), 'clipboard-check', $openIssues ?: $vehicle->inspections->count()],
+            'parts' => [__('Tyres & parts'), 'gear', $vehicle->parts->count()], 'incidents' => [__('Incidents'), 'exclamation-octagon', $vehicle->incidents->where('status', 'open')->count()],
+            'loan' => [__('Loan / EMI'), 'bank', $vehicle->loans->where('status', 'active')->count()]] + ($vehicle->isAttached() ? ['owner' => [__('Owner'), 'person-vcard', $vehicle->ownerPayouts()->count()]] : []) as $key => [$label, $icon, $n])
             <li class="nav-item"><a href="{{ route('operator.vehicles.show', [$vehicle, 'tab' => $key]) }}" @class(['nav-link d-flex align-items-center gap-2', 'active bg-ink text-white' => $tab === $key, 'bg-white border text-body' => $tab !== $key])><x-icon :name="$icon" />{{ $label }} <span class="badge rounded-pill {{ $tab === $key ? 'text-bg-warning' : 'text-bg-light' }}">{{ $n }}</span></a></li>
         @endforeach
     </ul>
@@ -146,7 +153,7 @@
                 </tbody>
             </table></div>
         </div>
-    @else
+    @elseif ($tab === 'inspections')
         <div class="card panel-card">
             <div class="card-body border-bottom small text-muted-2">{{ __('Drivers fill the daily checklist from the driver app before driving. Items marked as an issue alert you here and on the dashboard.') }}</div>
             <div class="list-group list-group-flush list-modern">
@@ -178,6 +185,18 @@
                 @endforelse
             </div>
         </div>
+    @elseif ($tab === 'parts')
+        @include('operator.vehicles._tab-parts')
+    @elseif ($tab === 'incidents')
+        @include('operator.vehicles._tab-incidents')
+    @elseif ($tab === 'loan')
+        @include('operator.vehicles._tab-loan')
+    @else
+        <div class="card panel-card"><div class="card-body d-flex flex-wrap align-items-center gap-3">
+            <div class="me-auto"><div class="fw-bold">{{ $vehicle->owner_name ?: __('Owner not set') }}</div>
+                <div class="small text-muted-2">{{ $vehicle->owner_phone }} @if ($vehicle->owner_rate_type)· {{ FleetOptions::ownerRateTypes()[$vehicle->owner_rate_type] }}: {{ $vehicle->owner_rate_type === 'revenue_share' ? rtrim(rtrim((string) $vehicle->owner_rate, '0'), '.').'%' : Money::format($vehicle->owner_rate) }}@endif</div></div>
+            @can('settlements.manage')<a href="{{ route('operator.owner-payouts.show', $vehicle) }}" class="btn btn-ink"><x-icon name="person-vcard" />{{ __('Statement & payout') }}</a>@endcan
+        </div></div>
     @endif
 
     @if ($canManage)

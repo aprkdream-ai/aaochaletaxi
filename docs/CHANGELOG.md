@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-24 — Phase 8D: fleet extras
+- Tyres & parts: add to stock (with quantity), fit on a vehicle at a position, remove or scrap; km run follows the part across
+  vehicles; warranty-expiry reminders.
+- Incidents & challans: accidents, challans, damage and theft with photo/document, insurance claim tracking and a one-time
+  payment that becomes a vehicle expense.
+- Vehicle loans: EMI calculated or entered, EMI schedule, mark EMI paid (creates the EMI expense), EMI-due reminders, auto-close.
+- Purchase cost and depreciation (WDV or straight line) → book value on the vehicle page and in the fleet cost report.
+- Attached / vendor vehicles: owner details and payment basis (per km, per trip, monthly, % of revenue), owner statements and
+  payouts.
+- 7 new tests (227 total, SQLite + MariaDB).
+
 ## 2026-11-24 — Phase 8C: fleet operations
 - Fleet trips (Fleet module): assign a vehicle and driver for official use with purpose, department, requester, from/to and
   passengers; numbered FTyymm-NNNN; the driver gets an alert. Edit/reassign until started, cancel with reason.

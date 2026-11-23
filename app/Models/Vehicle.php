@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\VehicleStatus;
 use App\Models\Concerns\BelongsToTenant;
+use App\Support\Depreciation;
 use App\Support\Expiry;
 use App\Support\FleetOptions;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,6 +21,8 @@ class Vehicle extends Model
     protected $fillable = [
         'branch_id', 'vehicle_category_id', 'vehicle_type', 'registration_number', 'make', 'model', 'year', 'color', 'fuel_type', 'seats', 'is_ac',
         'ownership', 'status', 'is_available', 'insurance_expiry', 'permit_expiry', 'fitness_expiry', 'puc_expiry', 'road_tax_expiry', 'fastag_id', 'odometer_km', 'notes',
+        'purchase_date', 'purchase_cost', 'depreciation_method', 'depreciation_rate',
+        'owner_name', 'owner_phone', 'owner_pan', 'owner_bank', 'owner_rate_type', 'owner_rate',
     ];
 
     protected function casts(): array
@@ -27,6 +30,7 @@ class Vehicle extends Model
         return [
             'status' => VehicleStatus::class, 'is_ac' => 'boolean', 'is_available' => 'boolean',
             'insurance_expiry' => 'date', 'permit_expiry' => 'date', 'fitness_expiry' => 'date', 'puc_expiry' => 'date', 'road_tax_expiry' => 'date',
+            'purchase_date' => 'date', 'purchase_cost' => 'decimal:2', 'depreciation_rate' => 'decimal:2', 'owner_rate' => 'decimal:2',
         ];
     }
 
@@ -67,6 +71,41 @@ class Vehicle extends Model
     public function expenses(): HasMany
     {
         return $this->hasMany(VehicleExpense::class)->orderByDesc('expense_date')->orderByDesc('id');
+    }
+
+    public function parts(): HasMany
+    {
+        return $this->hasMany(FleetPart::class)->where('status', 'fitted')->orderBy('type')->orderBy('position');
+    }
+
+    public function incidents(): HasMany
+    {
+        return $this->hasMany(VehicleIncident::class)->orderByDesc('occurred_on')->orderByDesc('id');
+    }
+
+    public function loans(): HasMany
+    {
+        return $this->hasMany(VehicleLoan::class)->orderByRaw("case when status = 'active' then 0 else 1 end")->orderByDesc('id');
+    }
+
+    public function ownerPayouts(): HasMany
+    {
+        return $this->hasMany(VehicleOwnerPayout::class)->latest('id');
+    }
+
+    public function isAttached(): bool
+    {
+        return in_array($this->ownership, ['attached', 'vendor'], true);
+    }
+
+    /** Book value today (null when purchase cost/date are not set). */
+    public function bookValue(?\Carbon\CarbonInterface $asOf = null): ?string
+    {
+        if ($this->purchase_cost === null || ! $this->purchase_date) {
+            return null;
+        }
+
+        return Depreciation::bookValue((string) $this->purchase_cost, (string) $this->depreciation_method, (string) ($this->depreciation_rate ?? '0'), $this->purchase_date, $asOf ?? now());
     }
 
     public function inspections(): HasMany

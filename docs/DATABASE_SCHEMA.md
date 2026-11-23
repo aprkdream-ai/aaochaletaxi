@@ -204,3 +204,14 @@ through scoped models only.
 - departments ✅ (T): id, tenant_id, name (unique per tenant), code (cost centre), head_name, is_active, timestamps.
 - trips: booking_id now NULLable (NULL = fleet trip); trip_number (unique per tenant, `FTyymm-NNNN`), purpose, department_id FK NULL,
   requested_by, requested_phone, pickup_point, drop_point, passengers, notes, cancel_reason; idx (tenant_id, department_id, completed_at).
+
+## Phase 8D additions (2026-11-24)
+- vehicles: purchase_date, purchase_cost, depreciation_method (wdv|slm), depreciation_rate; owner_name/phone/pan/bank, owner_rate_type, owner_rate.
+- fleet_parts ✅ (T): type (tyre|battery|other), brand, model, serial_number, purchase_date, cost, vendor, warranty_until, status
+  (in_stock|fitted|scrapped), vehicle_id, position, fitted_on, fitted_at_km, km_run, notes.
+- fleet_part_movements ✅ (T, append-only): fleet_part_id, action (fit|remove|scrap), vehicle_id, position, odometer_km, km_run, moved_on, notes, recorded_by.
+- vehicle_incidents ✅ (T): vehicle_id, driver_id, type, occurred_on, place, reference, description, amount, claim_status, insurer,
+  claim_number, settled_amount, status (open|closed), expense_id FK vehicle_expenses, photo_path (private), recorded_by.
+- vehicle_loans ✅ (T): vehicle_id, lender, account_number, principal, interest_rate, tenure_months, emi_amount, first_emi_date, status, closed_on, notes.
+- vehicle_expenses: loan_id FK NULL, installment_no NULL; unique (loan_id, installment_no).
+- vehicle_owner_payouts ✅ (T, append-only): vehicle_id, period_from/to, earned, deductions, amount, method, reference, paid_on, notes, breakdown JSON, recorded_by.

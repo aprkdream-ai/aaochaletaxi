@@ -199,6 +199,16 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
             Route::post('/vehicles/{vehicle}/maintenance', [Operator\FleetRecordController::class, 'storeMaintenance'])->name('vehicles.maintenance.store');
             Route::delete('/maintenance/{maintenance}', [Operator\FleetRecordController::class, 'destroyMaintenance'])->name('maintenance.destroy');
             Route::post('/inspections/{inspection}/resolve', [Operator\InspectionController::class, 'resolve'])->name('inspections.resolve');
+            Route::post('/parts', [Operator\PartController::class, 'store'])->name('parts.store');
+            Route::post('/parts/{part}/fit', [Operator\PartController::class, 'fit'])->name('parts.fit');
+            Route::post('/parts/{part}/remove', [Operator\PartController::class, 'remove'])->name('parts.remove');
+            Route::post('/incidents', [Operator\IncidentController::class, 'store'])->name('incidents.store');
+            Route::post('/incidents/{incident}/claim', [Operator\IncidentController::class, 'claim'])->name('incidents.claim');
+            Route::post('/incidents/{incident}/pay', [Operator\IncidentController::class, 'pay'])->name('incidents.pay');
+            Route::post('/incidents/{incident}/close', [Operator\IncidentController::class, 'close'])->name('incidents.close');
+            Route::post('/vehicles/{vehicle}/loans', [Operator\VehicleLoanController::class, 'store'])->name('loans.store');
+            Route::post('/loans/{loan}/pay', [Operator\VehicleLoanController::class, 'pay'])->name('loans.pay');
+            Route::post('/loans/{loan}/close', [Operator\VehicleLoanController::class, 'close'])->name('loans.close');
             Route::post('/vehicle-categories', [Operator\VehicleCategoryController::class, 'store'])->name('vehicle-categories.store');
         });
         Route::middleware('permission:expenses.manage,vehicles.manage')->group(function () {
@@ -209,6 +219,9 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
             Route::get('/vehicles', [Operator\VehicleController::class, 'index'])->name('vehicles.index');
             Route::get('/vehicles/{vehicle}', [Operator\VehicleController::class, 'show'])->name('vehicles.show');
             Route::get('/inspections/{inspection}/photo', [Operator\InspectionController::class, 'photo'])->name('inspections.photo');
+            Route::get('/parts', [Operator\PartController::class, 'index'])->name('parts.index');
+            Route::get('/incidents', [Operator\IncidentController::class, 'index'])->name('incidents.index');
+            Route::get('/incidents/{incident}/photo', [Operator\IncidentController::class, 'photo'])->name('incidents.photo');
         });
 
         // Drivers
@@ -299,6 +312,9 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
             Route::get('/driver-payouts', [Operator\DriverPayoutController::class, 'index'])->name('payouts.index');
             Route::get('/driver-payouts/{driver}', [Operator\DriverPayoutController::class, 'show'])->name('payouts.show');
             Route::post('/driver-payouts/{driver}', [Operator\DriverPayoutController::class, 'store'])->name('payouts.store');
+            Route::get('/owner-payouts', [Operator\OwnerPayoutController::class, 'index'])->name('owner-payouts.index');
+            Route::get('/owner-payouts/{vehicle}', [Operator\OwnerPayoutController::class, 'show'])->name('owner-payouts.show');
+            Route::post('/owner-payouts/{vehicle}', [Operator\OwnerPayoutController::class, 'store'])->name('owner-payouts.store');
         });
         Route::middleware('permission:reports.view')->group(function () {
             Route::get('/reports', [Operator\ReportController::class, 'index'])->name('reports.index');

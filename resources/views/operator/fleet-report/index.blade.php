@@ -26,7 +26,7 @@
     <div class="card panel-card mb-3">
         <div class="card-header">{{ __('By vehicle') }}</div>
         <div class="table-responsive"><table class="table table-modern align-middle small">
-            <thead><tr><th>{{ __('Vehicle') }}</th><th class="text-end">{{ __('Trips') }}</th><th class="text-end">{{ __('Km') }}</th><th class="text-end">{{ __('Hours') }}</th><th class="text-end">{{ __('Fuel') }}</th><th class="text-end">{{ __('Avg km/l') }}</th><th class="text-end">{{ __('Fuel ₹') }}</th><th class="text-end">{{ __('Other ₹') }}</th><th class="text-end">{{ __('Maintenance ₹') }}</th><th class="text-end">{{ __('Total ₹') }}</th><th class="text-end">{{ __('₹ / km') }}</th></tr></thead>
+            <thead><tr><th>{{ __('Vehicle') }}</th><th class="text-end">{{ __('Trips') }}</th><th class="text-end">{{ __('Km') }}</th><th class="text-end">{{ __('Hours') }}</th><th class="text-end">{{ __('Fuel') }}</th><th class="text-end">{{ __('Avg km/l') }}</th><th class="text-end">{{ __('Fuel ₹') }}</th><th class="text-end">{{ __('Other ₹') }}</th><th class="text-end">{{ __('Maintenance ₹') }}</th><th class="text-end">{{ __('Total ₹') }}</th><th class="text-end">{{ __('₹ / km') }}</th><th class="text-end">{{ __('Book value') }}</th></tr></thead>
             <tbody>
                 @forelse ($vehicles as $r)
                     <tr>
@@ -41,9 +41,10 @@
                         <td class="text-end">{{ Money::format($r->maintenance, 0) }}</td>
                         <td class="text-end fw-semibold">{{ Money::format($r->total, 0) }}</td>
                         <td class="text-end fw-bold">{{ $r->per_km !== null ? Money::format($r->per_km) : '—' }}</td>
+                        <td class="text-end">{{ $r->book_value !== null ? Money::format($r->book_value, 0) : '—' }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="11"><x-empty-state icon="speedometer" :title="__('No activity in this period')" :text="__('Completed trips and recorded expenses will appear here.')" /></td></tr>
+                    <tr><td colspan="12"><x-empty-state icon="speedometer" :title="__('No activity in this period')" :text="__('Completed trips and recorded expenses will appear here.')" /></td></tr>
                 @endforelse
             </tbody>
         </table></div>

@@ -79,13 +79,17 @@ class VehicleController extends Controller
     public function show(Vehicle $vehicle, FuelEconomyService $fuel): View
     {
         $vehicle->load(['category', 'branch', 'documents', 'maintenance.recorder:id,name', 'expenses.recorder:id,name',
-            'inspections' => fn ($q) => $q->with(['driver:id,name', 'resolver:id,name'])->limit(60)]);
+            'inspections' => fn ($q) => $q->with(['driver:id,name', 'resolver:id,name'])->limit(60),
+            'parts', 'incidents' => fn ($q) => $q->with(['driver:id,name', 'expense:id,amount'])->limit(50), 'loans.payments']);
         $fills = $vehicle->expenses->where('category', 'fuel')->filter(fn ($e) => (float) $e->litres > 0)
             ->sortBy([['expense_date', 'asc'], ['id', 'asc']])->values();
 
         return view('operator.vehicles.show', [
             'vehicle' => $vehicle,
             'fuel' => $fuel->compute($fills),
+            'loanSchedules' => $vehicle->loans->mapWithKeys(fn ($l) => [$l->id => app(\App\Services\VehicleLoanService::class)->schedule($l)]),
+            'drivers' => \App\Models\Driver::query()->orderBy('name')->get(['id', 'name']),
+            'stockParts' => \App\Models\FleetPart::query()->where('status', 'in_stock')->orderBy('type')->get(),
             'totals' => [
                 'maintenance' => Money::add(...$vehicle->maintenance->pluck('cost')->map(fn ($c) => (string) $c)->all() ?: ['0']),
                 'expenses_month' => Money::add(...$vehicle->expenses->filter(fn ($e) => $e->expense_date->isSameMonth(now()))->pluck('amount')->map(fn ($c) => (string) $c)->all() ?: ['0']),
@@ -137,7 +141,11 @@ class VehicleController extends Controller
 
     private function validated(Request $request, TenantContext $context, ?Vehicle $vehicle = null): array
     {
-        $request->merge(['registration_number' => Vehicle::normalizeRegistration($request->input('registration_number'))]);
+        $request->merge([
+            'registration_number' => Vehicle::normalizeRegistration($request->input('registration_number')),
+            'owner_phone' => $request->filled('owner_phone') ? \App\Support\Phone::normalize($request->input('owner_phone')) : null,
+            'owner_pan' => $request->filled('owner_pan') ? strtoupper(trim((string) $request->input('owner_pan'))) : null,
+        ]);
         $tenantId = $context->id();
 
         $data = $request->validate([
@@ -162,12 +170,28 @@ class VehicleController extends Controller
             'road_tax_expiry' => ['nullable', 'date'],
             'fastag_id' => ['nullable', 'string', 'max:30', 'regex:/^[A-Za-z0-9\-]+$/'],
             'vehicle_type' => ['nullable', Rule::in(array_keys(FleetOptions::vehicleTypes()))],
+            'purchase_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'purchase_cost' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
+            'depreciation_method' => ['nullable', Rule::in(array_keys(FleetOptions::depreciationMethods()))],
+            'depreciation_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'owner_name' => ['nullable', 'required_if:ownership,attached,vendor', 'string', 'max:150'],
+            'owner_phone' => ['nullable', 'regex:/^[6-9]\d{9}$/'],
+            'owner_pan' => ['nullable', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/'],
+            'owner_bank' => ['nullable', 'string', 'max:300'],
+            'owner_rate_type' => ['nullable', Rule::in(array_keys(FleetOptions::ownerRateTypes()))],
+            'owner_rate' => ['nullable', 'required_with:owner_rate_type', 'numeric', 'min:0', 'max:9999999'],
             'odometer_km' => ['nullable', 'integer', 'min:0', 'max:5000000'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ], ['registration_number.regex' => __('Enter a valid Indian registration number, e.g. MH12AB1234 or 22BH1234AA.'), 'registration_number.unique' => __('This vehicle is already in your fleet.')]);
 
         $data['vehicle_type'] ??= 'car';
+        $data['depreciation_method'] ??= 'wdv';
+        if (! in_array($data['ownership'], ['attached', 'vendor'], true)) {
+            foreach (['owner_name', 'owner_phone', 'owner_pan', 'owner_bank', 'owner_rate_type', 'owner_rate'] as $k) {
+                $data[$k] = null;
+            }
+        }
         $data['fastag_id'] = isset($data['fastag_id']) ? strtoupper($data['fastag_id']) : null;
         $data['is_ac'] = (bool) ($data['is_ac'] ?? false);
         $data['is_available'] = (bool) ($data['is_available'] ?? false);

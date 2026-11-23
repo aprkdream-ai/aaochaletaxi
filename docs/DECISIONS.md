@@ -60,4 +60,9 @@
 | D57 | 2026-11-24 | Fleet trips start without customer OTP (start/end km required); operator can start/complete for drivers without the app | Internal use has no customer; still records km for cost reports |
 | D58 | 2026-11-24 | Fleet cost report on every plan (not gated by `advanced_reports`); department cost = trip km × vehicle ₹/km in the period (allocation, not ledger) | Core value of the Fleet module; transparent, reproducible allocation |
 | D59 | 2026-11-24 | PlatformSeeder re-runs default tenant roles for every tenant on deploy (Owner gets new permissions) | New permissions (e.g. fleet_trips.*) reach existing businesses without manual steps |
+| D60 | 2026-11-24 | Parts keep their own km: `km_run` accumulated on each removal + live (odometer − fitted_at_km) while fitted; movements append-only | Tyre/battery life follows the part across vehicles |
+| D61 | 2026-11-24 | Incident payment and EMI payment each create exactly one `vehicle_expenses` row (EMI linked by loan_id + installment_no, unique) | One money ledger for reports; no double counting; DB-level duplicate guard |
+| D62 | 2026-11-24 | EMI defaults to reducing-balance formula (bcmath); bank-given EMI can override | Matches Indian bank EMIs; operators often know the exact EMI |
+| D63 | 2026-11-24 | Book value: WDV by full years then pro-rata, or SLM by days; management view only (not tax) | Simple, explainable numbers for the fleet report |
+| D64 | 2026-11-24 | Attached-vehicle owner earnings = per km / per trip / monthly / % of trip revenue; suggested deduction = vehicle expenses in period, editable; payouts append-only (model guard) | Covers common Indian attachment deals; operator keeps control of the final amount |
 | D18 | 2026-11-17 | No fabricated reviews/stats on marketing pages | Honest launch; add real testimonials once collected |

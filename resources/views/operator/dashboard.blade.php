@@ -45,7 +45,7 @@
         <div class="col-6 col-xl-3"><x-stat-card :label="__('Vehicles available')" :value="$fleet['vehicles_available'].' / '.$usage['vehicles']" icon="car-front" color="primary" :href="route('operator.vehicles.index')" :hint="$fleet['vehicles_maintenance'] ? __(':n in maintenance', ['n' => $fleet['vehicles_maintenance']]) : null" /></div>
         <div class="col-6 col-xl-3"><x-stat-card :label="__('Drivers available')" :value="$fleet['drivers_available'].' / '.$usage['drivers']" icon="person-badge" color="success" :href="route('operator.drivers.index')" /></div>
         <div class="col-6 col-xl-3"><x-stat-card :label="__('Fleet expenses this month')" :value="Money::format($fleet['expenses_month'], 0)" icon="fuel-pump" color="info" /></div>
-        <div class="col-6 col-xl-3"><x-stat-card :label="__('Documents expiring (30 d)')" :value="count($expiring)" icon="exclamation-triangle" :color="count($expiring) ? 'danger' : 'secondary'" :href="route('operator.vehicles.index', ['compliance' => 'attention'])" /></div>
+        <div class="col-6 col-xl-3">@php $docCount = collect($expiring)->whereIn('kind', ['vehicle', 'driver'])->count(); @endphp<x-stat-card :label="__('Documents expiring (30 d)')" :value="$docCount" icon="exclamation-triangle" :color="$docCount ? 'danger' : 'secondary'" :href="route('operator.vehicles.index', ['compliance' => 'attention'])" /></div>
     </div>
 
     <div class="row g-3">
@@ -108,11 +108,11 @@
                 </div>
             @endif
             <div class="card panel-card">
-                <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="calendar-x" class="text-danger" />{{ __('Documents needing attention') }}</span></div>
+                <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="calendar-x" class="text-danger" />{{ __('Documents, EMIs & warranties') }}</span></div>
                 <div class="list-group list-group-flush list-modern">
                     @forelse ($expiring as $item)
                         <a href="{{ $item['url'] }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
-                            <span class="stat-ico tone-{{ $item['days'] < 0 ? 'danger' : 'warning' }}" style="width:2.2rem;height:2.2rem"><x-icon :name="$item['kind'] === 'vehicle' ? 'car-front' : 'person-badge'" /></span>
+                            <span class="stat-ico tone-{{ $item['days'] < 0 ? 'danger' : 'warning' }}" style="width:2.2rem;height:2.2rem"><x-icon :name="['vehicle' => 'car-front', 'driver' => 'person-badge', 'emi' => 'cash-coin', 'part' => 'gear'][$item['kind']] ?? 'bell'" /></span>
                             <div class="me-auto min-w-0"><div class="fw-semibold text-truncate">{{ $item['name'] }}</div><div class="small text-muted-2">{{ $item['what'] }} · {{ $item['date'] }}</div></div>
                             <span class="badge-soft {{ $item['days'] < 0 ? 'danger' : ($item['days'] <= 7 ? 'danger' : 'warn') }}">{{ $item['days'] < 0 ? __('Expired') : trans_choice('{0} Today|{1} 1 day|[2,*] :n days', $item['days'], ['n' => $item['days']]) }}</span>
                         </a>
