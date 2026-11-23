@@ -1,11 +1,11 @@
 # Changelog
 
-## 2026-11-24 — Phase 10: QA & security
+## 2026-11-23 — Phase 10: QA & security
 - Marketplace search no longer calls Maps for cities without listed operators.
 - Owner payouts page computes all statements with a fixed number of queries.
 - Route/permission and tenant-isolation audit of all new modules; dependency audits clean; release checklist in DEPLOYMENT.md.
 
-## 2026-11-24 — Phase 8E: Marketplace
+## 2026-11-23 — Phase 8E: Marketplace
 - Public "Compare cabs" (`/cabs`): enter from/to city, trip type, vehicle and time; see listed operators with fares calculated
   from each operator's own rates, verified badge, rating and trips. City pages (`/cabs/{city}`) and sitemap entries.
 - Book directly with an operator (their booking page opens prefilled) or send one OTP-verified request to the top operators —
@@ -15,7 +15,7 @@
   settlements (shows when the operator owes the platform).
 - Code style: pint applied across the repo. 9 new tests (236 total, SQLite + MariaDB).
 
-## 2026-11-24 — Phase 8D: fleet extras
+## 2026-11-23 — Phase 8D: fleet extras
 - Tyres & parts: add to stock (with quantity), fit on a vehicle at a position, remove or scrap; km run follows the part across
   vehicles; warranty-expiry reminders.
 - Incidents & challans: accidents, challans, damage and theft with photo/document, insurance claim tracking and a one-time
@@ -26,7 +26,7 @@
   payouts.
 - 7 new tests (227 total, SQLite + MariaDB).
 
-## 2026-11-24 — Phase 8C: fleet operations
+## 2026-11-23 — Phase 8C: fleet operations
 - Fleet trips (Fleet module): assign a vehicle and driver for official use with purpose, department, requester, from/to and
   passengers; numbered FTyymm-NNNN; the driver gets an alert. Edit/reassign until started, cancel with reason.
 - Driver app shows fleet trips; drivers start with the odometer (no customer OTP) and complete with closing km. Operators can

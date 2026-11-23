@@ -1,7 +1,7 @@
 # Progress
 
-**Last updated:** 2026-11-24 (Phase 8E)
-**Current phase:** Phase 10 (QA & security) complete → Phase 11 = production release (waiting for owner go-ahead)
+**Last updated:** 2026-11-23 (Phase 8E)
+**Current phase:** All roadmap phases complete; Phase 8 + 10 released to production 2026-11-23 (release 20261123045529-838022c)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, MySQL)
 **Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), 5 (customer portal), 6 (finance), 7 (driver PWA), integrations core
 **Tests:** 237 passing (SQLite + MariaDB locally; MySQL 8 in CI)
@@ -97,7 +97,7 @@ Phase 8 search (from/to city) and service areas.
       vehicle "Daily checks" tab with resolve; dashboard "Daily check problems"; Hindi labels for the driver screen
 - Server: nothing to seed — run migrations only (deploy does it).
 
-## Phase 8C — completed (2026-11-24): fleet operations (Fleet module)
+## Phase 8C — completed (2026-11-23): fleet operations (Fleet module)
 - [x] Departments / cost centres (`departments.manage`); fleet trips without booking (`fleet_trips.view|manage`, mapped to Fleet module)
 - [x] `TripScheduler` shared overlap rules (fixed: NULL-booking trips were invisible to booking assignment); `FleetTripService`
       create/edit/start/complete/cancel with row locks; `FTyymm-NNNN` numbers; driver notified (generalised `DriverTripAssigned`)
@@ -106,7 +106,7 @@ Phase 8 search (from/to city) and service areas.
 - [x] Fleet cost report (all plans): per vehicle km/hours/fuel/km-l/costs/₹ per km; per department allocated cost; CSV
 - Server: migrations only; PlatformSeeder (runs on deploy) now gives existing Owner roles the new permissions.
 
-## Phase 8D — completed (2026-11-24): fleet extras (all business types)
+## Phase 8D — completed (2026-11-23): fleet extras (all business types)
 - [x] Tyres & parts: stock, fit/remove/scrap with odometer, km run across vehicles, warranty reminders (`FleetPartService`)
 - [x] Incidents & challans with photo, insurance claim status, one-time payment → vehicle expense (`VehicleIncidentService`)
 - [x] Loans: reducing-balance EMI, schedule, mark EMI paid → `emi` expense (unique per installment), auto-close, EMI-due reminders
@@ -114,7 +114,7 @@ Phase 8 search (from/to city) and service areas.
 - [x] Attached/vendor owner terms on vehicle; owner statements & append-only payouts (`VehicleOwnerService`)
 - Server: migrations only.
 
-## Phase 8E — completed (2026-11-24): Marketplace (Taxi module)
+## Phase 8E — completed (2026-11-23): Marketplace (Taxi module)
 - [x] Operator opt-in + service cities (profile); listing rules (active, taxi module, booking page, subscription)
 - [x] Public `/cabs` compare (server-side fares per operator, ranking verified → rating → trips), `/cabs/{city}` SEO pages, sitemap, nav link
 - [x] Direct "Book" → session referral → operator page prefilled; booking source=marketplace with commission %
@@ -126,7 +126,7 @@ Phase 8 search (from/to city) and service areas.
 ## Release rule
 Owner wants ONE deploy after all phases are complete (see memory). Commits stay local until Phase 11.
 
-## Phase 10 — completed (2026-11-24): QA & security
+## Phase 10 — completed (2026-11-23): QA & security
 - [x] Route audit: every new operator route behind `permission:` (pre-existing support/status/documents check in controller)
 - [x] Tenant isolation tests for all new tables (trips, departments, inspections, parts, incidents, loans, payouts, offers)
 - [x] Marketplace: no Maps call for cities nobody serves (quota abuse); phone hidden until accept; throttles on all public endpoints
@@ -134,7 +134,12 @@ Owner wants ONE deploy after all phases are complete (see memory). Commits stay 
 - [x] `composer audit` / `npm audit`: no advisories; pint clean; suite green on SQLite + MariaDB
 - [x] DEPLOYMENT.md §8: consolidated release steps + launch checklist
 
-## Phase 11 — production release
+## Phase 11 — released 2026-11-23
+- [x] DB backup `deploy_backups/db-before-phase8-20261123-045458.sql.gz`; pushed main; `deploy/release.sh`; 5 migrations OK; smoke + health OK
+- [ ] Owner to run on server: `php artisan db:seed --class=ModuleAddonPriceSeeder --force`, then review Admin → Plans / Settings → Fees
+- [ ] Ask operators to opt in to the marketplace (Business profile → Marketplace + cities) before promoting `/cabs`
+
+Original release steps:
 1. Push `main`, run `deploy/release.sh` (migrations run automatically; PlatformSeeder refreshes Owner permissions).
 2. Server: `php artisan db:seed --class=ModuleAddonPriceSeeder --force`; review Admin → Plans add-on prices and Admin → Settings → Fees (marketplace).
 3. Smoke test: /admin, /app (taxi + fleet tenant), /driver, /cabs, /o/{slug}.

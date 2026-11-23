@@ -200,12 +200,12 @@ through scoped models only.
   issues_count TINYINT, notes, photo_path (private disk), recorded_by FK users, resolved_at DATETIME, resolved_by FK users, timestamps.
   unique (vehicle_id, driver_id, inspected_on); idx (tenant_id, inspected_on, issues_count).
 
-## Phase 8C additions (2026-11-24)
+## Phase 8C additions (2026-11-23)
 - departments ✅ (T): id, tenant_id, name (unique per tenant), code (cost centre), head_name, is_active, timestamps.
 - trips: booking_id now NULLable (NULL = fleet trip); trip_number (unique per tenant, `FTyymm-NNNN`), purpose, department_id FK NULL,
   requested_by, requested_phone, pickup_point, drop_point, passengers, notes, cancel_reason; idx (tenant_id, department_id, completed_at).
 
-## Phase 8D additions (2026-11-24)
+## Phase 8D additions (2026-11-23)
 - vehicles: purchase_date, purchase_cost, depreciation_method (wdv|slm), depreciation_rate; owner_name/phone/pan/bank, owner_rate_type, owner_rate.
 - fleet_parts ✅ (T): type (tyre|battery|other), brand, model, serial_number, purchase_date, cost, vendor, warranty_until, status
   (in_stock|fitted|scrapped), vehicle_id, position, fitted_on, fitted_at_km, km_run, notes.
@@ -216,7 +216,7 @@ through scoped models only.
 - vehicle_expenses: loan_id FK NULL, installment_no NULL; unique (loan_id, installment_no).
 - vehicle_owner_payouts ✅ (T, append-only): vehicle_id, period_from/to, earned, deductions, amount, method, reference, paid_on, notes, breakdown JSON, recorded_by.
 
-## Phase 8E additions (2026-11-24) — Marketplace
+## Phase 8E additions (2026-11-23) — Marketplace
 - tenants: marketplace_enabled BOOL idx.
 - tenant_service_cities ✅: tenant_id, city, city_key (slug) idx; unique (tenant_id, city_key).
 - marketplace_leads ✅ (platform-level, no tenant_id): token (40, unique), customer_user_id, customer_name/phone/email, type, vehicle_category_id,
