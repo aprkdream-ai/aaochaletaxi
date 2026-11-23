@@ -1,10 +1,10 @@
 # Progress
 
-**Last updated:** 2026-11-23 (Phase 8A)
-**Current phase:** Phase 8A (business modules) complete → next Phase 8B (core fleet upgrades)
+**Last updated:** 2026-11-23 (Phase 8B)
+**Current phase:** Phase 8B (core fleet upgrades) complete → next Phase 8C (fleet operations)
 **Production:** live at https://aaochaletaxi.com (release-based deploy, MySQL)
 **Completed phases:** 0, 1 (foundation + UI v2), 2 (SaaS admin), 3 (operator fleet & team), 4 (booking engine), 5 (customer portal), 6 (finance), 7 (driver PWA), integrations core
-**Tests:** 197 passing (SQLite + MariaDB locally; MySQL 8 in CI)
+**Tests:** 207 passing (SQLite + MariaDB locally; MySQL 8 in CI)
 
 ## Phase 1 — completed
 - [x] Laravel 12 + Bootstrap/Alpine/Vite setup, IST timezone, en/hi locale switch
@@ -89,14 +89,24 @@ Phase 8 search (from/to city) and service areas.
 - Production action (after deploy): `php artisan db:seed --class=ModuleAddonPriceSeeder --force` — sets add-on ₹399/699/1299 per month
   (₹3990/6990/12990 per year) on starter/growth/business only where still ₹0; then adjust in Admin → Plans if needed
 
-## Next exact tasks (Phase 8B — core fleet upgrades, all business types)
-1. Service reminders: `vehicle_maintenance.next_service_date/km` → include in `FleetExpiryService` digest + dashboard (km due vs odometer).
-2. Fuel log: litres, rate/litre, odometer, full-tank flag on fuel expenses (or `fuel_logs` table linked to `vehicle_expenses`);
-   mileage km/l per vehicle (bcmath), abnormal-mileage flag; report column.
-3. Vehicle: `vehicle_type` on categories (car, suv, tempo, bus, bike, other), `road_tax_expiry`, FASTag id/balance note; add road tax
-   to `FleetOptions::vehicleExpiryFields()`.
-4. Driver daily checklist in PWA (tyres, oil, lights, documents, damage photo) → `vehicle_inspections`; operator view + failed-item alert.
-5. Tests per item, docs. Then Phase 8C (fleet trips without booking — see PROJECT_PLAN).
+## Phase 8B — completed (2026-11-23): core fleet upgrades (all business types)
+- [x] Vehicle type, FASTag ID, optional road tax expiry (+ `road_tax` document mirrors it); `Vehicle::scopeNeedsAttention`
+- [x] Fuel log on fuel expenses (litres/kWh, odometer, full tank) → `FuelEconomyService` mileage per fill + average, low-mileage flag, ₹/litre
+- [x] Service reminders (next date and/or km per maintenance type) on dashboard + daily digest (`FleetExpiryService::serviceItemsFor`)
+- [x] Driver PWA "Check" tab: daily checklist (10 items, photo, notes) → `vehicle_inspections`; owner alert (`VehicleInspectionIssue`);
+      vehicle "Daily checks" tab with resolve; dashboard "Daily check problems"; Hindi labels for the driver screen
+- Server: nothing to seed — run migrations only (deploy does it).
+
+## Next exact tasks (Phase 8C — fleet operations, fleet module)
+1. Departments / cost centres (tenant-scoped CRUD, `departments` table) — fleet module permission `departments.manage`.
+2. Fleet trips without booking: make `trips.booking_id` nullable + add `purpose`, `department_id`, `requested_by_name`, `requested_by_phone`,
+   `pickup`/`drop` text; new `FleetTripService` reusing the assignment overlap check under row locks (same as BookingService) and the
+   driver app start/complete (start without customer OTP; start/end km required). Permissions `fleet_trips.view|manage` → map to fleet
+   in `App\Support\Modules`. Driver app must handle trips with no booking (null-safe views).
+3. Operator screens: trip list/calendar, create & assign, complete; vehicle "Trips" tab.
+4. Fleet dashboard + reports: utilisation (km, hours, trips per vehicle), cost per km (fuel + maintenance + expenses ÷ km), per department;
+   CSV export. Add fuel litres/mileage columns to the vehicle report.
+5. Tests: fleet trip overlap race, driver flow without OTP, module gating (taxi-only cannot see fleet trips), department isolation.
 
 ## Later: Phase 8E — Marketplace (taxi module only)
 1. Public search `/cabs` (from/to city, date, category) listing approved operators with booking pages enabled, fares from

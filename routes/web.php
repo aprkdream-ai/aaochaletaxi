@@ -198,6 +198,7 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
             Route::post('/vehicles/{vehicle}/documents', [Operator\FleetRecordController::class, 'storeVehicleDocument'])->name('vehicles.documents.store');
             Route::post('/vehicles/{vehicle}/maintenance', [Operator\FleetRecordController::class, 'storeMaintenance'])->name('vehicles.maintenance.store');
             Route::delete('/maintenance/{maintenance}', [Operator\FleetRecordController::class, 'destroyMaintenance'])->name('maintenance.destroy');
+            Route::post('/inspections/{inspection}/resolve', [Operator\InspectionController::class, 'resolve'])->name('inspections.resolve');
             Route::post('/vehicle-categories', [Operator\VehicleCategoryController::class, 'store'])->name('vehicle-categories.store');
         });
         Route::middleware('permission:expenses.manage,vehicles.manage')->group(function () {
@@ -207,6 +208,7 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
         Route::middleware('permission:vehicles.view,vehicles.manage')->group(function () {
             Route::get('/vehicles', [Operator\VehicleController::class, 'index'])->name('vehicles.index');
             Route::get('/vehicles/{vehicle}', [Operator\VehicleController::class, 'show'])->name('vehicles.show');
+            Route::get('/inspections/{inspection}/photo', [Operator\InspectionController::class, 'photo'])->name('inspections.photo');
         });
 
         // Drivers
@@ -288,6 +290,10 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
 Route::get('/driver/manifest.webmanifest', [Driver\PwaController::class, 'manifest'])->name('driver.manifest');
 Route::get('/driver/sw.js', [Driver\PwaController::class, 'serviceWorker'])->name('driver.sw');
 Route::get('/driver/offline', [Driver\PwaController::class, 'offline'])->name('driver.offline');
+Route::prefix('driver')->name('driver.')->middleware(['auth', 'type:driver', 'tenant', 'tenant.active', 'subscription'])->group(function () {
+    Route::get('/check', [Driver\InspectionController::class, 'create'])->name('check');
+    Route::post('/check', [Driver\InspectionController::class, 'store'])->middleware('throttle:driver-check')->name('check.store');
+});
 Route::prefix('driver')->name('driver.')->middleware(['auth', 'type:driver', 'tenant', 'tenant.active', 'subscription'])->controller(Driver\AppController::class)->group(function () {
     Route::get('/', 'home')->name('home');
     Route::get('/history', 'history')->name('history');

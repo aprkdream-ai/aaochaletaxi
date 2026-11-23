@@ -90,6 +90,7 @@ class AppServiceProvider extends ServiceProvider
         $byIp('suggest', 90);
         $byIp('track-actions', 10);
         $byIp('webhooks', 300);
+        $byUser('driver-check', 10);
         $byUser('operator-preview', 120);
         $byUser('operator-distance', 40);
         $byUser('driver-poll', 10);

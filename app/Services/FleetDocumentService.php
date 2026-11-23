@@ -18,7 +18,7 @@ class FleetDocumentService
 
     /** Document type → column on the parent that mirrors its expiry. */
     private const MIRROR = [
-        'vehicle' => ['insurance' => 'insurance_expiry', 'permit' => 'permit_expiry', 'fitness' => 'fitness_expiry', 'puc' => 'puc_expiry'],
+        'vehicle' => ['insurance' => 'insurance_expiry', 'permit' => 'permit_expiry', 'fitness' => 'fitness_expiry', 'puc' => 'puc_expiry', 'road_tax' => 'road_tax_expiry'],
         'driver' => ['licence' => 'licence_expiry'],
     ];
 

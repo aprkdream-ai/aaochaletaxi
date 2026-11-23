@@ -56,6 +56,8 @@ class AuditPresenter
         'driver.app_access_disabled' => ['phone', 'secondary'],
         'invoice.credited' => ['receipt-cutoff', 'warning'],
         'vehicle.maintenance_added' => ['tools', 'warning'],
+        'vehicle.inspection_submitted' => ['clipboard-check', 'info'],
+        'vehicle.inspection_resolved' => ['check2-circle', 'success'],
     ];
 
     private const LABELS = [

@@ -181,7 +181,7 @@ class FleetTest extends TestCase
         $this->assertSame(45000, $v->fresh()->odometer_km);
 
         $accountant = User::factory()->operatorOf($this->tenant, 'accountant')->create();
-        $this->actingAs($accountant)->post(route('operator.vehicles.expenses.store', $v), ['expense_date' => now()->toDateString(), 'category' => 'fuel', 'amount' => 1500, 'payment_method' => 'upi'])->assertSessionHasNoErrors();
+        $this->actingAs($accountant)->post(route('operator.vehicles.expenses.store', $v), ['expense_date' => now()->toDateString(), 'category' => 'fuel', 'amount' => 1500, 'litres' => 16, 'payment_method' => 'upi'])->assertSessionHasNoErrors();
         $this->actingAs($accountant)->post(route('operator.vehicles.maintenance.store', $v), ['service_date' => now()->toDateString(), 'type' => 'service', 'description' => 'x', 'cost' => 1])->assertForbidden();
 
         $this->actingAs($this->owner)->get(route('operator.vehicles.show', [$v, 'tab' => 'expenses']))->assertOk()->assertSee('₹1,500.00');

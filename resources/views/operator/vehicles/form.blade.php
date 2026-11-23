@@ -14,7 +14,8 @@
             <div class="col-lg-8">
                 <div class="card panel-card mb-3"><div class="card-header">{{ __('Vehicle') }}</div><div class="card-body"><div class="row g-2">
                     <div class="col-md-6"><x-input name="registration_number" :label="__('Registration number')" :value="$editing ? $vehicle->displayRegistration() : null" required maxlength="15" placeholder="MH 12 AB 1234" style="text-transform:uppercase" autocomplete="off" /></div>
-                    <div class="col-md-6"><x-select name="vehicle_category_id" :label="__('Category')" :options="$catOptions" :value="$vehicle->vehicle_category_id" required :placeholder="__('Select…')" x-on:change="if (cats[$event.target.value] && !seats) seats = cats[$event.target.value]" /></div>
+                    <div class="col-md-3"><x-select name="vehicle_type" :label="__('Vehicle type')" :options="FleetOptions::vehicleTypes()" :value="$vehicle->vehicle_type" required /></div>
+                    <div class="col-md-3"><x-select name="vehicle_category_id" :label="__('Category')" :options="$catOptions" :value="$vehicle->vehicle_category_id" required :placeholder="__('Select…')" x-on:change="if (cats[$event.target.value] && !seats) seats = cats[$event.target.value]" /></div>
                     <div class="col-md-4"><x-input name="make" :label="__('Make')" :value="$vehicle->make" required placeholder="Maruti Suzuki" maxlength="60" /></div>
                     <div class="col-md-4"><x-input name="model" :label="__('Model')" :value="$vehicle->model" required placeholder="Dzire" maxlength="60" /></div>
                     <div class="col-md-4"><x-input name="year" type="number" :label="__('Year')" :value="$vehicle->year" min="1990" :max="now()->year + 1" /></div>
@@ -23,12 +24,16 @@
                     <div class="col-md-3"><x-input name="color" :label="__('Colour')" :value="$vehicle->color" maxlength="30" /></div>
                     <div class="col-md-3"><x-input name="odometer_km" type="number" :label="__('Odometer (km)')" :value="$vehicle->odometer_km" min="0" /></div>
                     <div class="col-md-6"><x-select name="ownership" :label="__('Ownership')" :options="FleetOptions::ownership()" :value="$vehicle->ownership" required /></div>
-                    <div class="col-md-6"><x-select name="branch_id" :label="__('Branch')" :options="$branches->pluck('name', 'id')->all()" :value="$vehicle->branch_id" :placeholder="__('— None —')" /></div>
+                    <div class="col-md-3"><x-select name="branch_id" :label="__('Branch')" :options="$branches->pluck('name', 'id')->all()" :value="$vehicle->branch_id" :placeholder="__('— None —')" /></div>
+                    <div class="col-md-3"><x-input name="fastag_id" :label="__('FASTag ID')" :value="$vehicle->fastag_id" maxlength="30" autocomplete="off" /></div>
                     <div class="col-12"><x-textarea name="notes" :label="__('Notes')" :value="$vehicle->notes" rows="2" maxlength="1000" /></div>
                 </div></div></div>
                 <div class="card panel-card"><div class="card-header">{{ __('Document validity') }} <span class="small fw-normal text-muted-2">{{ __('We remind you 30, 15, 7 and 1 day before expiry') }}</span></div><div class="card-body"><div class="row g-2">
                     @foreach (FleetOptions::vehicleExpiryFields() as $field => $label)
                         <div class="col-6 col-md-3"><x-input :name="$field" type="date" :label="$label" :value="$vehicle->{$field}?->toDateString()" /></div>
+                    @endforeach
+                    @foreach (FleetOptions::optionalVehicleExpiryFields() as $field => $label)
+                        <div class="col-6 col-md-3"><x-input :name="$field" type="date" :label="$label" :value="$vehicle->{$field}?->toDateString()" :help="__('Leave blank if lifetime / not applicable')" /></div>
                     @endforeach
                 </div></div></div>
             </div>

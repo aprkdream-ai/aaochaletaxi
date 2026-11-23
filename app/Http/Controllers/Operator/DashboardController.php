@@ -9,6 +9,7 @@ use App\Models\Driver;
 use App\Models\Trip;
 use App\Models\Vehicle;
 use App\Models\VehicleExpense;
+use App\Models\VehicleInspection;
 use App\Services\FleetExpiryService;
 use App\Services\PlanLimitService;
 use App\Support\Modules;
@@ -34,6 +35,10 @@ class DashboardController extends Controller
                 'expenses_month' => VehicleExpense::query()->where('expense_date', '>=', now()->startOfMonth())->sum('amount'),
             ],
             'expiring' => array_slice($expiry->itemsFor($tenant), 0, 8),
+            'services' => array_slice($expiry->serviceItemsFor($tenant), 0, 8),
+            'checkIssues' => VehicleInspection::query()->with(['vehicle:id,registration_number', 'driver:id,name'])
+                ->where('issues_count', '>', 0)->whereNull('resolved_at')->where('inspected_on', '>=', now()->subDays(14)->toDateString())
+                ->latest('inspected_on')->limit(6)->get(),
             'on_trip' => Trip::query()->where('status', 'started')->count(),
         ] + ($taxi ? $this->bookingStats() : ['today' => null, 'upcoming' => collect(), 'chart' => []]));
     }

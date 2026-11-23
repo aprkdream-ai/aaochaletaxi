@@ -1,6 +1,6 @@
 @props(['title', 'back' => null])
 @php
-    $tabs = [['driver.home', 'house', __('Trips')], ['driver.history', 'clock-history', __('History')], ['driver.earnings', 'wallet2', __('Earnings')], ['driver.profile', 'person-circle', __('Profile')]];
+    $tabs = [['driver.home', 'house', __('Trips')], ['driver.check', 'clipboard-check', __('Check')], ['driver.history', 'clock-history', __('History')], ['driver.earnings', 'wallet2', __('Earnings')], ['driver.profile', 'person-circle', __('Profile')]];
     $push = \App\Http\Controllers\Driver\PwaController::webPushConfig();
 @endphp
 <!DOCTYPE html>

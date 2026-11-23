@@ -192,3 +192,10 @@ through scoped models only.
 - trips (T): booking_id unique, vehicle_id, driver_id, start_at/end_at window, status, start_otp (encrypted), start/end km, last_lat/last_lng/last_location_at (latest point only).
 - drivers: + fcm_token (hidden), app_seen_at.
 - payments (T, append-only): booking_id, kind (advance/balance/refund/adjustment), amount (negative = refund), method, reference, reversal_of.
+
+## Phase 8B additions (2026-11-23)
+- vehicles: vehicle_type varchar(15) default 'car' (FleetOptions::vehicleTypes), road_tax_expiry DATE NULL (optional, D53), fastag_id varchar(30) NULL.
+- vehicle_expenses (fuel rows): litres DECIMAL(8,2) NULL, odometer_km UINT NULL, full_tank BOOL default 1; idx (vehicle_id, category, odometer_km).
+- vehicle_inspections ✅ (T): id, tenant_id, vehicle_id FK, driver_id FK NULL, inspected_on DATE, odometer_km, items JSON {key: ok|issue},
+  issues_count TINYINT, notes, photo_path (private disk), recorded_by FK users, resolved_at DATETIME, resolved_by FK users, timestamps.
+  unique (vehicle_id, driver_id, inspected_on); idx (tenant_id, inspected_on, issues_count).

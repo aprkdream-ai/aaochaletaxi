@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\Vehicle;
 use App\Models\VehicleCategory;
 use App\Services\AuditLogger;
+use App\Services\FuelEconomyService;
 use App\Services\PlanLimitService;
 use App\Support\FleetOptions;
 use App\Support\Money;
@@ -41,8 +42,7 @@ class VehicleController extends Controller
             ->when($filters['status'] ?? null, fn ($q, $s) => $q->where('status', $s))
             ->when($filters['category'] ?? null, fn ($q, $c) => $q->where('vehicle_category_id', $c))
             ->when($filters['branch'] ?? null, fn ($q, $b) => $q->where('branch_id', $b))
-            ->when($filters['compliance'] ?? null, fn ($q) => $q->where(fn ($w) => $w->where('insurance_expiry', '<=', $soon)->orWhere('permit_expiry', '<=', $soon)
-                ->orWhere('fitness_expiry', '<=', $soon)->orWhere('puc_expiry', '<=', $soon)))
+            ->when($filters['compliance'] ?? null, fn ($q) => $q->needsAttention($soon))
             ->orderBy('registration_number')->paginate(24)->withQueryString();
 
         return view('operator.vehicles.index', [
@@ -53,7 +53,7 @@ class VehicleController extends Controller
                 'total' => Vehicle::query()->count(),
                 'available' => Vehicle::query()->where('status', 'active')->where('is_available', true)->count(),
                 'maintenance' => Vehicle::query()->where('status', 'maintenance')->count(),
-                'attention' => Vehicle::query()->where(fn ($w) => $w->where('insurance_expiry', '<=', $soon)->orWhere('permit_expiry', '<=', $soon)->orWhere('fitness_expiry', '<=', $soon)->orWhere('puc_expiry', '<=', $soon))->count(),
+                'attention' => Vehicle::query()->needsAttention($soon)->count(),
             ],
             'usage' => app(PlanLimitService::class)->usage($context->get())['vehicles'],
             'limit' => $context->get()->usableSubscription()?->plan->max_vehicles,
@@ -62,7 +62,7 @@ class VehicleController extends Controller
 
     public function create(TenantContext $context): View
     {
-        return view('operator.vehicles.form', $this->formData($context, new Vehicle(['status' => VehicleStatus::Active, 'is_available' => true, 'is_ac' => true, 'fuel_type' => 'diesel', 'ownership' => 'owned'])));
+        return view('operator.vehicles.form', $this->formData($context, new Vehicle(['status' => VehicleStatus::Active, 'is_available' => true, 'is_ac' => true, 'fuel_type' => 'diesel', 'ownership' => 'owned', 'vehicle_type' => 'car'])));
     }
 
     public function store(Request $request, TenantContext $context, PlanLimitService $limits, AuditLogger $audit): RedirectResponse
@@ -76,12 +76,16 @@ class VehicleController extends Controller
         return redirect()->route('operator.vehicles.show', $vehicle)->with('success', __('Vehicle :reg added. Upload its documents below.', ['reg' => $vehicle->displayRegistration()]));
     }
 
-    public function show(Vehicle $vehicle): View
+    public function show(Vehicle $vehicle, FuelEconomyService $fuel): View
     {
-        $vehicle->load(['category', 'branch', 'documents', 'maintenance.recorder:id,name', 'expenses.recorder:id,name']);
+        $vehicle->load(['category', 'branch', 'documents', 'maintenance.recorder:id,name', 'expenses.recorder:id,name',
+            'inspections' => fn ($q) => $q->with(['driver:id,name', 'resolver:id,name'])->limit(60)]);
+        $fills = $vehicle->expenses->where('category', 'fuel')->filter(fn ($e) => (float) $e->litres > 0)
+            ->sortBy([['expense_date', 'asc'], ['id', 'asc']])->values();
 
         return view('operator.vehicles.show', [
             'vehicle' => $vehicle,
+            'fuel' => $fuel->compute($fills),
             'totals' => [
                 'maintenance' => Money::add(...$vehicle->maintenance->pluck('cost')->map(fn ($c) => (string) $c)->all() ?: ['0']),
                 'expenses_month' => Money::add(...$vehicle->expenses->filter(fn ($e) => $e->expense_date->isSameMonth(now()))->pluck('amount')->map(fn ($c) => (string) $c)->all() ?: ['0']),
@@ -155,11 +159,16 @@ class VehicleController extends Controller
             'permit_expiry' => ['nullable', 'date'],
             'fitness_expiry' => ['nullable', 'date'],
             'puc_expiry' => ['nullable', 'date'],
+            'road_tax_expiry' => ['nullable', 'date'],
+            'fastag_id' => ['nullable', 'string', 'max:30', 'regex:/^[A-Za-z0-9\-]+$/'],
+            'vehicle_type' => ['nullable', Rule::in(array_keys(FleetOptions::vehicleTypes()))],
             'odometer_km' => ['nullable', 'integer', 'min:0', 'max:5000000'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ], ['registration_number.regex' => __('Enter a valid Indian registration number, e.g. MH12AB1234 or 22BH1234AA.'), 'registration_number.unique' => __('This vehicle is already in your fleet.')]);
 
+        $data['vehicle_type'] ??= 'car';
+        $data['fastag_id'] = isset($data['fastag_id']) ? strtoupper($data['fastag_id']) : null;
         $data['is_ac'] = (bool) ($data['is_ac'] ?? false);
         $data['is_available'] = (bool) ($data['is_available'] ?? false);
         unset($data['image']);

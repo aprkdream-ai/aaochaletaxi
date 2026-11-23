@@ -10,6 +10,13 @@ class FleetOptions
         return ['diesel' => __('Diesel'), 'petrol' => __('Petrol'), 'cng' => 'CNG', 'electric' => __('Electric'), 'hybrid' => __('Hybrid')];
     }
 
+    /** Body type, independent of the (fare) category. */
+    public static function vehicleTypes(): array
+    {
+        return ['car' => __('Car'), 'suv' => 'SUV / MUV', 'van' => __('Van'), 'tempo' => __('Tempo traveller'), 'bus' => __('Bus'),
+            'pickup' => __('Pickup / light truck'), 'auto' => __('Auto rickshaw'), 'bike' => __('Two-wheeler'), 'other' => __('Other')];
+    }
+
     public static function ownership(): array
     {
         return ['owned' => __('Owned'), 'attached' => __('Attached (owner-driver)'), 'vendor' => __('Vendor / partner')];
@@ -17,7 +24,7 @@ class FleetOptions
 
     public static function vehicleDocuments(): array
     {
-        return ['rc' => __('Registration certificate (RC)'), 'insurance' => __('Insurance'), 'permit' => __('Permit'), 'fitness' => __('Fitness certificate'), 'puc' => 'PUC', 'other' => __('Other')];
+        return ['rc' => __('Registration certificate (RC)'), 'insurance' => __('Insurance'), 'permit' => __('Permit'), 'fitness' => __('Fitness certificate'), 'puc' => 'PUC', 'road_tax' => __('Road tax'), 'other' => __('Other')];
     }
 
     public static function driverDocuments(): array
@@ -45,8 +52,30 @@ class FleetOptions
         return ['LMV' => 'LMV', 'LMV-TR' => 'LMV-TR (Transport)', 'MCWG/LMV' => 'MCWG + LMV', 'HMV' => 'HMV', 'HPMV' => 'HPMV / HTV', 'TRANS' => __('Transport (badge)')];
     }
 
+    /** Required documents: an empty date counts as "missing". */
     public static function vehicleExpiryFields(): array
     {
         return ['insurance_expiry' => __('Insurance'), 'permit_expiry' => __('Permit'), 'fitness_expiry' => __('Fitness'), 'puc_expiry' => 'PUC'];
+    }
+
+    /** Optional documents: checked only when a date is set (e.g. road tax is lifetime for many vehicles). */
+    public static function optionalVehicleExpiryFields(): array
+    {
+        return ['road_tax_expiry' => __('Road tax')];
+    }
+
+    public static function allVehicleExpiryFields(): array
+    {
+        return self::vehicleExpiryFields() + self::optionalVehicleExpiryFields();
+    }
+
+    /** Daily driver checklist items (key => label). */
+    public static function inspectionItems(): array
+    {
+        return [
+            'tyres' => __('Tyres & spare'), 'brakes' => __('Brakes'), 'lights' => __('Lights & indicators'), 'horn' => __('Horn'),
+            'wipers' => __('Wipers & mirrors'), 'fluids' => __('Engine oil & coolant'), 'body' => __('Body (no new damage)'),
+            'cleanliness' => __('Clean inside & outside'), 'documents' => __('Papers in vehicle (RC, insurance, PUC)'), 'safety' => __('First-aid kit & fire extinguisher'),
+        ];
     }
 }

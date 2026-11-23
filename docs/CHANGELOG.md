@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-23 — Phase 8B: core fleet upgrades
+- Vehicles: type (car, SUV/MUV, van, tempo, bus, pickup, auto, two-wheeler), FASTag ID, road tax expiry (optional — blank =
+  lifetime) with reminders and a "Road tax" document type.
+- Fuel log: fuel expenses take litres (kWh for EVs), odometer and full-tank; the vehicle page shows mileage per fill, average
+  km/l, average ₹/litre and flags fills far below the vehicle's average. Odometer updates from fuel entries.
+- Service reminders: set the next service date and/or km on any maintenance entry; dashboard "Service due" card and the daily
+  digest (7/3/1/0 days; 500 km before and when reached). Recording a newer entry of the same type clears it.
+- Driver app "Check" tab: daily vehicle checklist (10 items, notes, camera photo). Problems alert the owner (email/SMS/WhatsApp
+  when configured), show on the dashboard and the vehicle's "Daily checks" tab, and can be marked resolved.
+- 10 new tests (207 total, SQLite + MariaDB).
+
 ## 2026-11-23 — Phase 8A: Taxi + Fleet business modules
 - Operators choose what they run at registration: Taxi & travels, Fleet management, or Taxi + Fleet. Only the super admin can
   change it later (operator page → "Business type & modules", audited); operators see it on Subscription with a support link.

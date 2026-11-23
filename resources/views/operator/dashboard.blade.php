@@ -105,6 +105,35 @@
             </div>
         </div>
         <div class="col-lg-5">
+            @if ($checkIssues->isNotEmpty())
+                <div class="card panel-card mb-3 border-danger">
+                    <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="clipboard-x" class="text-danger" />{{ __('Daily check problems') }}</span></div>
+                    <div class="list-group list-group-flush list-modern">
+                        @foreach ($checkIssues as $ci)
+                            <a href="{{ route('operator.vehicles.show', [$ci->vehicle_id, 'tab' => 'inspections']) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between gap-2"><span class="fw-semibold">{{ $ci->vehicle?->displayRegistration() }}</span><span class="small text-muted-2">{{ $ci->inspected_on->format('d M') }} · {{ $ci->driver?->name }}</span></div>
+                                <div class="small text-danger text-truncate">{{ implode(', ', $ci->issueLabels()) }}</div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+            <div class="card panel-card mb-3">
+                <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="tools" class="text-warning" />{{ __('Service due') }}</span></div>
+                <div class="list-group list-group-flush list-modern">
+                    @forelse ($services as $item)
+                        <a href="{{ $item['url'] }}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                            <div class="me-auto min-w-0"><div class="fw-semibold text-truncate">{{ $item['name'] }}</div><div class="small text-muted-2 text-truncate">{{ $item['what'] }} · {{ $item['date'] }}</div></div>
+                            @php $overdue = ($item['days'] !== null && $item['days'] < 0) || ($item['km_left'] !== null && $item['km_left'] <= 0); @endphp
+                            <span class="badge-soft {{ $overdue ? 'danger' : 'warn' }} text-nowrap">
+                                @if ($overdue){{ __('Overdue') }}@elseif ($item['km_left'] !== null && ($item['days'] === null || $item['km_left'] <= \App\Services\FleetExpiryService::SERVICE_KM_WARNING)){{ __(':n km left', ['n' => number_format($item['km_left'])]) }}@else{{ trans_choice('{0} Today|{1} 1 day|[2,*] :n days', $item['days'], ['n' => $item['days']]) }}@endif
+                            </span>
+                        </a>
+                    @empty
+                        <x-empty-state icon="tools" :title="__('No service due')" :text="__('Add the next service date or km when you record maintenance.')" />
+                    @endforelse
+                </div>
+            </div>
             <div class="card panel-card mb-3">
                 <div class="card-header">{{ __('Plan usage') }} @if ($plan)<span class="badge-soft info">{{ $plan->name }}</span>@endif</div>
                 <div class="card-body d-grid gap-3">

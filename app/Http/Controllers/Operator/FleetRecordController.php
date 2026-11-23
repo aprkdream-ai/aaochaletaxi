@@ -89,13 +89,24 @@ class FleetRecordController extends Controller
             'expense_date' => ['required', 'date', 'before_or_equal:today'],
             'category' => ['required', Rule::in(array_keys(FleetOptions::expenseCategories()))],
             'amount' => ['required', 'numeric', 'min:1', 'max:9999999'],
+            'litres' => ['nullable', 'required_if:category,fuel', 'numeric', 'min:0.1', 'max:2000'],
+            'odometer_km' => ['nullable', 'integer', 'min:0', 'max:5000000'],
+            'full_tank' => ['nullable', 'boolean'],
             'payment_method' => ['nullable', 'in:cash,upi,card,bank_transfer,fastag,other'],
             'reference' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:500'],
-        ]);
+        ], ['litres.required_if' => __('Enter litres (or kWh) for fuel so mileage can be calculated.')]);
+        if ($data['category'] === 'fuel') {
+            $data['full_tank'] = (bool) ($data['full_tank'] ?? false);
+        } else {
+            unset($data['litres'], $data['odometer_km'], $data['full_tank']);
+        }
         $expense = new VehicleExpense($data + ['vehicle_id' => $vehicle->id]);
         $expense->recorded_by = $request->user()->id;
         $expense->save();
+        if (($data['odometer_km'] ?? 0) > (int) $vehicle->odometer_km) {
+            $vehicle->forceFill(['odometer_km' => $data['odometer_km']])->save();
+        }
         $this->audit->log('vehicle.expense_added', $vehicle, [], ['category' => $data['category'], 'amount' => $data['amount']]);
 
         return back()->with('success', __('Expense recorded.'));

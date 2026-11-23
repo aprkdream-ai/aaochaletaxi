@@ -17,21 +17,38 @@ class FleetExpiryDigest extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $mail = (new MailMessage)->subject(__('Fleet documents expiring soon (:n)', ['n' => count($this->items)]))
+        $mail = (new MailMessage)->subject(__('Fleet reminders: documents & service (:n)', ['n' => count($this->items)]))
             ->greeting(__('Hello :name,', ['name' => $notifiable->name]))
-            ->line(__('These documents need your attention:'));
+            ->line(__('These need your attention:'));
         foreach (array_slice($this->items, 0, 25) as $i) {
-            $mail->line('• '.$i['name'].' — '.$i['what'].': '.($i['days'] < 0 ? __('expired on :d', ['d' => $i['date']]) : __('expires :d (:n days)', ['d' => $i['date'], 'n' => $i['days']])));
+            $mail->line('• '.$i['name'].' — '.$i['what'].': '.self::when($i));
         }
 
         return $mail->action(__('Open fleet'), route('operator.vehicles.index', ['compliance' => 'attention']));
+    }
+
+    public static function when(array $i): string
+    {
+        if (($i['kind'] ?? null) === 'service') {
+            $parts = [];
+            if (isset($i['days'])) {
+                $parts[] = $i['days'] < 0 ? __('overdue since :d', ['d' => $i['date']]) : trans_choice('{0} today|{1} tomorrow|[2,*] in :n days', $i['days'], ['n' => $i['days']]);
+            }
+            if (isset($i['km_left'])) {
+                $parts[] = $i['km_left'] <= 0 ? __(':n km overdue', ['n' => number_format(abs($i['km_left']))]) : __(':n km left', ['n' => number_format($i['km_left'])]);
+            }
+
+            return $i['date'].' ('.implode(', ', $parts).')';
+        }
+
+        return $i['days'] < 0 ? __('expired on :d', ['d' => $i['date']]) : __('expires :d (:n days)', ['d' => $i['date'], 'n' => $i['days']]);
     }
 
     public function toText(object $notifiable): string
     {
         $first = $this->items[0];
 
-        return __('AaoChaleTaxi: :n fleet document(s) expiring. First: :name :what on :date.', ['n' => count($this->items), 'name' => $first['name'], 'what' => $first['what'], 'date' => $first['date']]);
+        return __('AaoChaleTaxi: :n fleet reminder(s). First: :name :what — :when.', ['n' => count($this->items), 'name' => $first['name'], 'what' => $first['what'], 'when' => self::when($first)]);
     }
 
     public function toArray(object $notifiable): array
