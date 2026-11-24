@@ -4,6 +4,7 @@ import Modal from 'bootstrap/js/src/modal.js';
 import Offcanvas from 'bootstrap/js/src/offcanvas.js';
 import Toast from 'bootstrap/js/src/toast.js';
 import Alpine from 'alpinejs';
+import * as Turbo from '@hotwired/turbo';
 import './suggest.js';
 
 window.bootstrap = { Collapse, Dropdown, Modal, Offcanvas, Toast };
@@ -123,7 +124,8 @@ Alpine.data('micrositeForm', (urls, verified) => ({
 }));
 
 // Marketplace quote request: verify the mobile by OTP (once per session), then submit the form.
-Alpine.data('quoteForm', (urls, verified) => ({
+// (Named marketplaceQuote: `quoteForm` is the home page trip-type picker.)
+Alpine.data('marketplaceQuote', (urls, verified) => ({
     verifiedPhone: verified || '', otpSent: false, otp: '', otpMsg: '', otpErr: '', busy: false,
     headers() { return { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }; },
     phone() { return (this.$refs.form.customer_phone.value || '').replace(/\D/g, '').slice(-10); },
@@ -219,21 +221,55 @@ Alpine.data('razorpayCheckout', (orderUrl) => ({
 }));
 
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.toast').forEach((el) => new Toast(el, { delay: 5000 }).show());
+// ---------- Turbo Drive (operator & admin panels only: <body data-turbo="true">) ----------
+// Forms and links in the panels submit/navigate without a full page reload; everything else stays a normal page load.
+Turbo.session.drive = false;
+Turbo.setProgressBarDelay(120);
+const PANEL = /^\/(app|admin)(\/|$)/;
+const FULL_LOAD = /\/(pdf|file|photo|export|download)(\/|$|\?)|invoice|\/locale\//;
+document.addEventListener('turbo:click', (e) => {
+    const url = new URL(e.detail.url, location.href);
+    if (!PANEL.test(url.pathname) || FULL_LOAD.test(url.pathname)) e.preventDefault(); // browser does a normal navigation
+});
+document.addEventListener('turbo:before-prefetch', (e) => {
+    const url = new URL(e.target.href, location.href);
+    if (!PANEL.test(url.pathname) || FULL_LOAD.test(url.pathname)) e.preventDefault();
+});
+document.addEventListener('turbo:before-visit', (e) => {
+    const url = new URL(e.detail.url, location.href);
+    if (!PANEL.test(url.pathname)) { e.preventDefault(); location.href = url.href; }
+});
+// Keep the scroll position when a form redirects back to the same page (save, add row, toggle…).
+let keepScroll = null;
+document.addEventListener('turbo:submit-start', () => { keepScroll = { path: location.pathname, y: window.scrollY, at: Date.now() }; });
+document.addEventListener('turbo:load', () => {
+    if (keepScroll && keepScroll.path === location.pathname && Date.now() - keepScroll.at < 15000) {
+        const y = keepScroll.y;
+        requestAnimationFrame(() => window.scrollTo(0, y));
+    }
+    keepScroll = null;
+});
+// Never cache a page with an open modal / backdrop.
+document.addEventListener('turbo:before-cache', () => {
+    document.querySelectorAll('.modal.show').forEach((m) => Modal.getInstance(m)?.hide());
+    document.querySelectorAll('.modal-backdrop, .ui-confirm').forEach((el) => el.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+});
 
-    // Loading state + double-submit protection.
-    document.querySelectorAll('form[data-loading]').forEach((form) => {
-        form.addEventListener('submit', () => {
-            const btn = form.querySelector('[type="submit"]');
-            if (btn && !btn.disabled) {
-                btn.disabled = true;
-                btn.insertAdjacentHTML('afterbegin', '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>');
-            }
-        });
-    });
+// Loading state + double-submit protection (delegated: works for pages rendered by Turbo too).
+document.addEventListener('submit', (e) => {
+    const form = e.target;
+    if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-loading') || e.defaultPrevented) return;
+    const btn = e.submitter && e.submitter.form === form ? e.submitter : form.querySelector('[type="submit"]');
+    if (btn && !btn.disabled) {
+        btn.disabled = true;
+        btn.insertAdjacentHTML('afterbegin', '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>');
+    }
+});
 
-    // Branded confirm dialog for <form data-confirm="…"> (replaces the browser's native confirm()).
+// Branded confirm dialog for <form data-confirm="…"> (replaces the browser's native confirm()).
     document.addEventListener('submit', (e) => {
         const form = e.target;
         if (!(form instanceof HTMLFormElement) || !form.dataset.confirm) return;
@@ -253,6 +289,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (form.requestSubmit) form.requestSubmit(submitter && submitter.form === form ? submitter : undefined); else form.submit();
         });
     }, { capture: true });
+
+// Per-page setup: runs on the first load and after every Turbo visit.
+let pageInitDone = null;
+function initPage() {
+    if (pageInitDone === document.body) return;
+    pageInitDone = document.body;
+    document.querySelectorAll('.toast').forEach((el) => new Toast(el, { delay: 5000 }).show());
 
     // Reveal-on-scroll (content is visible without JS; .js class added in <head>).
     const items = document.querySelectorAll('.reveal');
@@ -291,11 +334,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         targets.forEach((t) => io2.observe(t));
     }
-});
+}
+document.addEventListener('DOMContentLoaded', initPage);
+document.addEventListener('turbo:load', initPage);
 
 // ---------- Instant navigation fallback (browsers without Speculation Rules, e.g. Firefox) ----------
 (() => {
-    if (window.HTMLScriptElement?.supports?.('speculationrules')) return;
+    if (window.HTMLScriptElement?.supports?.('speculationrules') || document.body?.dataset.turbo === 'true') return;
     const skip = /^\/(logout|locale\/|driver\/|b\/|webhooks\/)|\/(pdf|file)$|\/export|\/download|invoice/;
     const done = new Set();
     let timer;

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\AuditLog;
 use App\Models\Driver;
+use App\Models\Expense;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -263,5 +264,27 @@ class FleetCoreUpgradesTest extends TestCase
         $otherOwner = $this->owner($other);
         $this->actingAs($otherOwner)->post(route('operator.inspections.resolve', $ins))->assertNotFound();
         $this->actingAs($otherOwner)->get(route('operator.inspections.photo', $ins))->assertNotFound();
+    }
+
+    public function test_deleting_a_vehicle_expense_never_touches_general_expenses(): void
+    {
+        $v = $this->vehicle();
+        $this->fuel($v, now()->toDateString(), 1000, 10, 10100)->assertSessionHasNoErrors();
+        $vehicleExpense = VehicleExpense::withoutGlobalScopes()->sole();
+        $general = app(TenantContext::class)->runAs($this->tenant, function () use ($vehicleExpense) {
+            $e = new Expense(['expense_date' => now()->toDateString(), 'category' => 'office', 'amount' => 999, 'notes' => 'Rent']);
+            $e->id = $vehicleExpense->id; // same id in both tables on purpose
+            $e->save();
+
+            return $e;
+        });
+        $this->assertSame($vehicleExpense->id, $general->id); // same id in both tables — the old shared URI deleted the wrong row
+
+        $this->actingAs($this->owner)->get(route('operator.vehicles.show', [$v, 'tab' => 'expenses']))->assertOk()
+            ->assertSee(route('operator.vehicle-expenses.destroy', $vehicleExpense), false);
+        $this->actingAs($this->owner)->delete(route('operator.vehicle-expenses.destroy', $vehicleExpense))->assertSessionHas('success');
+
+        $this->assertNull(VehicleExpense::withoutGlobalScopes()->find($vehicleExpense->id));
+        $this->assertNotNull(Expense::withoutGlobalScopes()->find($general->id));
     }
 }

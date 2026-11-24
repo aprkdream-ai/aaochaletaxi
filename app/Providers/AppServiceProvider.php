@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -55,6 +56,9 @@ class AppServiceProvider extends ServiceProvider
         Model::preventLazyLoading(! $this->app->isProduction());
         Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
         Paginator::useBootstrapFive();
+        // Turbo Drive reloads the page when the built assets change (new deploy).
+        Vite::useScriptTagAttributes(['data-turbo-track' => 'reload']);
+        Vite::useStyleTagAttributes(['data-turbo-track' => 'reload']);
 
         if ($this->app->isProduction()) {
             URL::forceScheme('https');

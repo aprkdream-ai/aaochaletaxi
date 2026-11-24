@@ -137,4 +137,12 @@ class PublicPagesTest extends TestCase
         }
         $this->get(route('home'))->assertSee('Owned &amp; operated by Test Owner', false)->assertSee(route('legal.shipping'), false);
     }
+
+    public function test_turbo_drive_only_on_panels(): void
+    {
+        $this->actingAs($this->owner())->get(route('operator.dashboard'))->assertOk()
+            ->assertSee('data-turbo="true"', false)->assertSee('turbo-cache-control', false)
+            ->assertSee('data-turbo-track="reload"', false)->assertDontSee('speculationrules', false);
+        $this->get(route('home'))->assertOk()->assertDontSee('data-turbo="true"', false)->assertSee('speculationrules', false);
+    }
 }

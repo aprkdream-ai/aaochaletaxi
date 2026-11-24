@@ -224,7 +224,8 @@ Route::prefix('app')->name('operator.')->middleware(['auth', 'type:operator,vend
         });
         Route::middleware('permission:expenses.manage,vehicles.manage')->group(function () {
             Route::post('/vehicles/{vehicle}/expenses', [Operator\FleetRecordController::class, 'storeExpense'])->name('vehicles.expenses.store');
-            Route::delete('/expenses/{expense}', [Operator\FleetRecordController::class, 'destroyExpense'])->name('expenses.destroy');
+            // Own URI: /expenses/{expense} belongs to general (non-vehicle) expenses below.
+            Route::delete('/vehicle-expenses/{expense}', [Operator\FleetRecordController::class, 'destroyExpense'])->name('vehicle-expenses.destroy');
         });
         Route::middleware('permission:vehicles.view,vehicles.manage')->group(function () {
             Route::get('/vehicles', [Operator\VehicleController::class, 'index'])->name('vehicles.index');

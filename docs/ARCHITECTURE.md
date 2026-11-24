@@ -70,6 +70,12 @@ only place that computes plan price (+ add-on for both).
 Trips: customer bookings and fleet trips share `trips`; `Trip::isFleet()` (booking_id NULL), `number()/pickupLabel()` for views.
 All assignment overlap checks go through `App\Services\TripScheduler` — never query overlaps by booking_id.
 
+### Turbo Drive (panels)
+Panels render `<body data-turbo="true">`; `resources/js/app.js` keeps Turbo off elsewhere, sends non-panel and download links
+(pdf/file/photo/export/download/invoice/locale) to normal navigation, runs per-page setup on `turbo:load`, and keeps scroll on
+same-page redirects. POST routes must redirect (or return JSON for fetch) — never render a view. New Alpine components must use
+unique names (`Alpine.data` silently overwrites).
+
 ## 5. Application structure
 ```
 app/

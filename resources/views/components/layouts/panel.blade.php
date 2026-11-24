@@ -19,10 +19,10 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <x-head />
+    <x-head :turbo="true" />
     <x-seo :title="$title" noindex />
 </head>
-<body class="panel-body" x-data="{ sidebar: false }" @keydown.escape.window="sidebar = false">
+<body class="panel-body" data-turbo="true" x-data="{ sidebar: false }" @keydown.escape.window="sidebar = false">
 <aside class="panel-sidebar" :class="{ 'show': sidebar }" aria-label="{{ __('Sidebar') }}">
     <div class="side-head">
         <x-brand :href="route($user->homeRoute())" />
@@ -71,7 +71,7 @@
                     <li><div class="dropdown-item-text"><div class="fw-semibold">{{ $user->name }}</div><div class="small text-muted-2">{{ $user->email ?? $user->phone }}</div></div></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <form method="POST" action="{{ route('logout') }}">@csrf
+                        <form method="POST" action="{{ route('logout') }}" data-turbo="false">@csrf
                             <button class="dropdown-item text-danger d-flex align-items-center gap-2"><x-icon name="box-arrow-right" />{{ __('Logout') }}</button>
                         </form>
                     </li>

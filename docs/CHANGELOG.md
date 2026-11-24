@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-24 — No page reloads in panels (Turbo) + two fixes
+- Operator and admin panels: forms and links work without full page reloads (Hotwire Turbo Drive) — progress bar, scroll
+  position kept after saving, confirm dialogs, modals, toasts and Alpine work as before. Public site and driver app unchanged.
+- Fix: deleting an expense on a vehicle page used the general-expenses URL (could delete a general expense with the same id).
+  Vehicle expenses now use `/app/vehicle-expenses/{id}`.
+- Fix: home page trip-type tabs broke after the marketplace release (Alpine component name clash) — renamed to `marketplaceQuote`.
+
 ## 2026-11-24 — Branded email templates
 - New AaoChaleTaxi mail theme (`resources/views/vendor/mail`, theme `aaochale`): dark header with logo, yellow accent bar,
   white card, brand buttons, highlighted detail panel, footer with support email/phone, website, privacy & terms links.

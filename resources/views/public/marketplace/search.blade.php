@@ -33,7 +33,7 @@
                 </div>
                 @if ($results->isNotEmpty())
                     <div class="col-lg-4">
-                        <form method="POST" action="{{ route('marketplace.quote') }}" class="card panel-card" x-data="quoteForm(@js(['otp' => route('marketplace.otp.send'), 'verify' => route('marketplace.otp.verify')]), @js($verifiedPhone))" x-ref="form" @submit.prevent="submit()">@csrf
+                        <form method="POST" action="{{ route('marketplace.quote') }}" class="card panel-card" x-data="marketplaceQuote(@js(['otp' => route('marketplace.otp.send'), 'verify' => route('marketplace.otp.verify')]), @js($verifiedPhone))" x-ref="form" @submit.prevent="submit()">@csrf
                             @foreach ($query as $k => $v)<input type="hidden" name="{{ $k }}" value="{{ $v }}">@endforeach
                             <div class="card-header"><span class="d-flex align-items-center gap-2"><x-icon name="megaphone" />{{ __('Get the best offer') }}</span></div>
                             <div class="card-body">

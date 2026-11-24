@@ -146,7 +146,7 @@
                                 @if (isset($fuel['fills'][$e->id]))<div><span class="badge-soft {{ $fuel['fills'][$e->id]['low'] ? 'danger' : 'ok' }}" @if ($fuel['fills'][$e->id]['low']) title="{{ __('Much lower than this vehicle’s average — check for leak, theft or a wrong entry') }}" @endif>{{ $kmpl($fuel['fills'][$e->id]['kmpl']) }}</span></div>@endif
                                 @else — @endif</td>
                             <td>{{ $e->notes ?: '—' }}</td><td class="text-uppercase">{{ $e->payment_method ?? '—' }}</td><td class="text-end fw-semibold text-nowrap">{{ Money::format($e->amount) }}</td>
-                            <td class="text-end">@if ($canExpense)<form method="POST" action="{{ route('operator.expenses.destroy', $e) }}" data-confirm="{{ __('Delete this expense?') }}">@csrf @method('DELETE')<button class="btn btn-sm btn-light text-danger" aria-label="{{ __('Delete') }}"><x-icon name="trash" /></button></form>@endif</td></tr>
+                            <td class="text-end">@if ($canExpense)<form method="POST" action="{{ route('operator.vehicle-expenses.destroy', $e) }}" data-confirm="{{ __('Delete this expense?') }}">@csrf @method('DELETE')<button class="btn btn-sm btn-light text-danger" aria-label="{{ __('Delete') }}"><x-icon name="trash" /></button></form>@endif</td></tr>
                     @empty
                         <tr><td colspan="7"><x-empty-state icon="receipt" :title="__('No expenses recorded')" /></td></tr>
                     @endforelse
