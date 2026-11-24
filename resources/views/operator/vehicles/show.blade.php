@@ -64,7 +64,7 @@
         @foreach (['documents' => [__('Documents'), 'folder2-open', $vehicle->documents->count()], 'maintenance' => [__('Maintenance'), 'tools', $vehicle->maintenance->count()], 'expenses' => [__('Expenses & fuel'), 'receipt', $vehicle->expenses->count()], 'inspections' => [__('Daily checks'), 'clipboard-check', $openIssues ?: $vehicle->inspections->count()],
             'parts' => [__('Tyres & parts'), 'gear', $vehicle->parts->count()], 'incidents' => [__('Incidents'), 'exclamation-octagon', $vehicle->incidents->where('status', 'open')->count()],
             'loan' => [__('Loan / EMI'), 'bank', $vehicle->loans->where('status', 'active')->count()]] + ($vehicle->isAttached() ? ['owner' => [__('Owner'), 'person-vcard', $vehicle->ownerPayouts()->count()]] : []) as $key => [$label, $icon, $n])
-            <li class="nav-item"><a href="{{ route('operator.vehicles.show', [$vehicle, 'tab' => $key]) }}" @class(['nav-link d-flex align-items-center gap-2', 'active bg-ink text-white' => $tab === $key, 'bg-white border text-body' => $tab !== $key])><x-icon :name="$icon" />{{ $label }} <span class="badge rounded-pill {{ $tab === $key ? 'text-bg-warning' : 'text-bg-light' }}">{{ $n }}</span></a></li>
+            <li class="nav-item"><a href="{{ route('operator.vehicles.show', [$vehicle, 'tab' => $key]) }}" @class(['nav-link d-flex align-items-center gap-2', 'active bg-brand text-dark fw-semibold' => $tab === $key, 'bg-surface border text-body' => $tab !== $key])><x-icon :name="$icon" />{{ $label }} <span @class(['badge rounded-pill', 'text-bg-dark' => $tab === $key, 'bg-surface-2 text-body border' => $tab !== $key])>{{ $n }}</span></a></li>
         @endforeach
     </ul>
 
