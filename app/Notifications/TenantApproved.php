@@ -22,7 +22,7 @@ class TenantApproved extends Notification implements ShouldQueue
             ->greeting(__('Congratulations :name!', ['name' => $notifiable->name]))
             ->line(__('Your business account has been verified and activated.'))
             ->action(__('Open your dashboard'), route('operator.dashboard'))
-            ->line(__('Need help getting started? Reply to this email or raise a support ticket.'));
+            ->line(__('Need help getting started? Raise a support ticket from your dashboard or write to :email.', ['email' => config('aaochale.support_email')]));
     }
 
     public function toText(object $notifiable): string

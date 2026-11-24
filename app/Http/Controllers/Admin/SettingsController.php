@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\BrandedMail;
 use App\Models\MessageLog;
 use App\Models\PlatformSetting;
 use App\Models\SubscriptionPlan;
@@ -156,7 +157,12 @@ class SettingsController extends Controller
             return ['ok' => false, 'message' => __('Enter a valid email address.')];
         }
         try {
-            Mail::raw(__('This is a test email from AaoChaleTaxi. Email delivery is working.'), fn ($m) => $m->to($to)->subject(__('AaoChaleTaxi test email')));
+            Mail::to($to)->send(new BrandedMail(
+                subjectLine: __('AaoChaleTaxi test email'),
+                heading: __('Email delivery is working'),
+                lines: [__('This is a test email from AaoChaleTaxi. If you can read it, your mail settings are correct.')],
+                details: [__('Mailer') => (string) config('mail.default'), __('Sent at') => now()->format('d M Y, h:i A')],
+            ));
 
             return ['ok' => true, 'message' => __('Test email sent to :to via :m.', ['to' => $to, 'm' => config('mail.default')])];
         } catch (\Throwable $e) {

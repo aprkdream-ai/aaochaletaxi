@@ -2,6 +2,7 @@
 
 namespace App\Services\Messaging;
 
+use App\Mail\BrandedMail;
 use App\Support\Phone;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -58,7 +59,13 @@ class OtpService
             return 'whatsapp';
         }
         if (filled($email)) {
-            Mail::raw($text, fn ($m) => $m->to($email)->subject(__('Your AaoChaleTaxi verification code')));
+            Mail::to($email)->send(new BrandedMail(
+                subjectLine: __(':code is your AaoChaleTaxi verification code', ['code' => $code]),
+                heading: __('Verify your mobile number'),
+                lines: [__('Use this code to verify :phone. It is valid for :m minutes.', ['phone' => $phone, 'm' => self::TTL_MIN])],
+                code: $code,
+                note: __('Never share this code with anyone — not even the driver or AaoChaleTaxi staff. If you did not request it, you can ignore this email.'),
+            ));
 
             return 'email';
         }

@@ -115,4 +115,12 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    | Markdown mail theme (resources/views/vendor/mail/html/themes/aaochale.css).
+    */
+    'markdown' => [
+        'theme' => env('MAIL_MARKDOWN_THEME', 'aaochale'),
+        'paths' => [resource_path('views/vendor/mail')],
+    ],
+
 ];

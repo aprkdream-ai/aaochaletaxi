@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-24 — Branded email templates
+- New AaoChaleTaxi mail theme (`resources/views/vendor/mail`, theme `aaochale`): dark header with logo, yellow accent bar,
+  white card, brand buttons, highlighted detail panel, footer with support email/phone, website, privacy & terms links.
+- All notifications (approval, subscription, reminders, password reset, tickets…) use it automatically; sign-off "Team AaoChaleTaxi".
+- OTP, customer booking updates and the admin test email are now branded HTML (`App\Mail\BrandedMail`) instead of plain text:
+  OTP shown in a large code box; booking emails show booking no., pickup, route, driver/vehicle/OTP or fare and a "Track your booking" button.
+  Customer booking emails are queued (database queue).
+
 ## 2026-11-23 — Phase 10: QA & security
 - Marketplace search no longer calls Maps for cities without listed operators.
 - Owner payouts page computes all statements with a fixed number of queries.

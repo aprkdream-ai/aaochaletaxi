@@ -2,6 +2,7 @@
 
 namespace App\Services\Booking;
 
+use App\Mail\BrandedMail;
 use App\Models\Booking;
 use App\Models\Tenant;
 use App\Services\Messaging\SmsService;
@@ -57,10 +58,46 @@ class CustomerNotifier
         }
         if ($booking->customer_email) {
             try {
-                Mail::raw($text, fn ($m) => $m->to($booking->customer_email)->subject($tenant->name.' · '.$booking->booking_number));
+                Mail::to($booking->customer_email)->queue($this->email($booking, $tenant, $event, $extra, $link));
             } catch (Throwable $e) {
                 report($e);
             }
         }
+    }
+
+    /** Branded email version of the update (details table + tracking button). */
+    private function email(Booking $booking, Tenant $tenant, string $event, array $extra, ?string $link): BrandedMail
+    {
+        [$heading, $intro] = match ($event) {
+            'quoted' => [__('We have received your booking'), __(':op has received your booking. Here is your fare estimate — they will confirm shortly.', ['op' => $tenant->name])],
+            'confirmed' => [__('Your booking is confirmed'), __(':op has confirmed your booking.', ['op' => $tenant->name])],
+            'assigned' => [__('Your driver is assigned'), __('Your driver and vehicle for this trip are ready. Share the trip OTP with the driver only when the trip starts.')],
+            'completed' => [__('Thank you for riding with us'), __('Your trip with :op is complete. We would love to hear how it went.', ['op' => $tenant->name])],
+            default => [__('Your booking has been cancelled'), __(':op has cancelled booking :no. If this is unexpected, please call them.', ['op' => $tenant->name, 'no' => $booking->booking_number])],
+        };
+        $details = array_filter([
+            __('Booking') => $booking->booking_number,
+            __('Pickup') => $booking->pickup_at->format('D, d M Y · h:i A'),
+            __('From') => $booking->pickup_address,
+            __('To') => $booking->drop_address,
+        ]);
+        if ($event === 'assigned') {
+            $details += [__('Driver') => $extra['driver'].' · '.$extra['driver_phone'], __('Vehicle') => $extra['vehicle'], __('Trip OTP') => $extra['otp']];
+        } elseif ($event === 'completed' && $booking->final_total !== null) {
+            $details[__('Final fare')] = Money::format($booking->final_total);
+        } elseif (in_array($event, ['quoted', 'confirmed'], true) && $booking->quoted_total !== null) {
+            $details[__('Estimated fare')] = Money::format($booking->quoted_total);
+        }
+
+        return new BrandedMail(
+            subjectLine: $tenant->name.' · '.$booking->booking_number.' · '.$heading,
+            heading: $heading,
+            lines: [$intro],
+            details: $details,
+            actionText: $link ? ($event === 'completed' ? __('Rate your trip') : __('Track your booking')) : null,
+            actionUrl: $link,
+            note: $tenant->phone ? __('Questions? Call :op on :phone.', ['op' => $tenant->name, 'phone' => $tenant->phone]) : null,
+            signOff: $tenant->name,
+        );
     }
 }
